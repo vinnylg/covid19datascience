@@ -1,0 +1,7 @@
+*.pdf
+*.pptx
+*.json
+*.log
+*.xls*
+*.csv
+*__pycache__*
