@@ -1,0 +1,1 @@
+# with gived data in resources, process and generate bulletin, csv files, logs, etc

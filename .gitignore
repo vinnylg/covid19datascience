@@ -5,3 +5,4 @@
 *.xls*
 *.csv
 *__pycache__*
+tmp/
