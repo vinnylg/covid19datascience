@@ -24,7 +24,7 @@ This project comprises the management of a lot of data, and all science and magi
 
 ### bulletin.inform
 
-Another side of this project is the generate of epidemiologicy inform, that will be done here
+Another side of this project is the generate of epidemiological inform, that will be done here
 
 ### bulletin.resources
 
