@@ -5,7 +5,7 @@ from os.path import dirname, join
 from bulletin import __file__ as __root__
 from bulletin.commom.normalize import normalize_text
 
-def generate_from_xls(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet: str="Municípios", skiprows: int=1, nrows: int=5570):
+def generate(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet: str="Municípios", skiprows: int=1, nrows: int=5570):
 	#read excel sheet from ibge
 	municipios = pd.read_excel(path,sheet,skiprows=skiprows,nrows=nrows)
 
@@ -27,6 +27,8 @@ def generate_from_xls(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'
 	#select and save columns to HDF5 format
 	municipios = municipios[['ibge','uf','municipio','populacao']]
 	municipios.to_hdf(join(dirname(__root__),'resources','database','municipios.h5'),'municipios',index=None, encoding='utf-8-sig')
+
+	return municipios
 
 def load():
 	return pd.read_hdf(join(dirname(__root__),'resources','database','municipios.h5'))
