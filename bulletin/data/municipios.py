@@ -5,7 +5,7 @@ from os.path import dirname, join
 from bulletin import __file__ as __root__
 from bulletin.commom.normalize import normalize_text
 
-def generate(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet: str="Municípios", skiprows: int=1, nrows: int=5570):
+def read(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet: str="Municípios", skiprows: int=1, nrows: int=5570):
 	#read excel sheet from ibge
 	municipios = pd.read_excel(path,sheet,skiprows=skiprows,nrows=nrows)
 
@@ -13,7 +13,7 @@ def generate(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet:
 	municipios.columns = [ normalize_text(x) for x in municipios.columns ]
 
 	#rename columns labels
-	municipios = municipios.rename(columns={'nome_do_municipio':'municipio','populacao_estimada':'populacao'})
+	municipios = municipios.rename(columns={'nome_do_municipio':'nome','populacao_estimada':'populacao'})
 
 	#normalize data to remove artifacts and standardize data
 	municipios['populacao'] = municipios['populacao'].apply(lambda x: int(str(x).split("(")[0]))
@@ -25,7 +25,7 @@ def generate(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet:
 	municipios.insert(0,'ibge',ibge)
 
 	#select and save columns to HDF5 format
-	municipios = municipios[['ibge','uf','municipio','populacao']]
+	municipios = municipios[['ibge','uf','nome','populacao']]
 	municipios.to_hdf(join(dirname(__root__),'resources','database','municipios.h5'),'municipios',index=None, encoding='utf-8-sig')
 
 	return municipios
