@@ -1,12 +1,16 @@
-from datetime import datetime
+import datetime
 from unidecode import unidecode as unidecode
 
 def trim_overspace(text):
 	parts = filter(lambda x: len(x) > 0,text.split(" "))
 	return " ".join(parts)
 
+def trim_overunderscore(text):
+	parts = filter(lambda x: len(x) > 0,text.split("_"))
+	return "_".join(parts)
+
 def normalize_text(text):
-	x = str(text).replace("'"," ").replace(".","").replace("\n","").lower()
+	x = str(text).replace("'"," ").replace(".","").replace("\n","").replace(",","").lower()
 	x = trim_overspace(x).replace(" ","_")
 	x = unidecode(x)
 
@@ -45,17 +49,36 @@ def normalize_date(date):
 	else:
 		raise Exception('year not found')
 
-	date = datetime(year, month, day)
-	today = datetime.now()
+	date = datetime.date(year, month, day)
+	today = datetime.date.today()
 
 	while date.year > today.year:
 		year = year-1
-		date = datetime(year, month, day)
+		date = datetime.date(year, month, day)
 
 	#aqui estou considerando que se uma data esta no mesmo mês porém num dia maior que o atual então o mês que está errado
 	#porém isso é algo a ser analisado
 	while date > today and (date.month > today.month or date.day > today.day):
 		month = month - 1
-		date = datetime(year, month, day)
+		date = datetime.date(year, month, day)
 
 	return date
+
+def normalize_municipios(mun):
+	mun = normalize_text(mun)
+	if '-' in mun:
+		mun = mun.split('-')[-1]
+	if '/' in mun:
+		mun = mun.split('/')[0]
+
+	mun = trim_overunderscore(mun)
+	return mun
+
+def normalize_igbe(ibge):
+	ibge = normalize_number(ibge)
+	if ibge != -1:
+		ibge = str(ibge)
+		ibge = ibge[:len(ibge)-1]
+		ibge = int(ibge)
+
+	return ibge
