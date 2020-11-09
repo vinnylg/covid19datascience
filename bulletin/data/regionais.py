@@ -17,9 +17,9 @@ def read(path:str=join(dirname(__root__),'tmp','regionais.csv'), sep=';'):
 	regionais['nm_macro'] = regionais['nm_macro'].apply(lambda x: str(x).capitalize())
 	regionais['cep'] = regionais['cep'].apply(lambda x: str(x))
 
-	regionais.to_hdf(join(dirname(__root__),'resources','database','regionais.h5'),'regionais',index=None, encoding='utf-8-sig')
+	regionais.to_pickle(join(dirname(__root__),'resources','database','regionais.pkl'))
 
 	return regionais
 
 def load():
-	return pd.read_hdf(join(dirname(__root__),'resources','database','regionais.h5'))
+	return pd.read_pickle(join(dirname(__root__),'resources','database','regionais.pkl'))

@@ -26,9 +26,10 @@ def read(path:str=join(dirname(__root__),'tmp','estimativa_dou.xls'), sheet: str
 
 	#select and save columns to HDF5 format
 	municipios = municipios[['ibge','uf','mun_nome','populacao']]
-	municipios.to_hdf(join(dirname(__root__),'resources','database','municipios.h5'),'municipios',index=None, encoding='utf-8-sig')
+	# municipios.to_hdf(join(dirname(__root__),'resources','database','municipios.h5'),'municipios',index=None, encoding='utf-8-sig')
+	municipios.to_pickle(join(dirname(__root__),'resources','database','municipios.pkl'))
 
 	return municipios
 
 def load():
-	return pd.read_hdf(join(dirname(__root__),'resources','database','municipios.h5'))
+	return pd.read_pickle(join(dirname(__root__),'resources','database','municipios.pkl'))
