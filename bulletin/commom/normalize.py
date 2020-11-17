@@ -11,7 +11,7 @@ def trim_overunderscore(text):
 
 def normalize_text(text):
 	x = str(text).replace("'"," ").replace(".","").replace("\n","").replace(",","").lower()
-	x = trim_overspace(x).replace(" ","_")
+	x = trim_overspace(x)
 	x = unidecode(x)
 
 	if x == 'nan' or len(x) == 0 or x == '0' or x == 'nao_informado':
