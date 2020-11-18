@@ -3,7 +3,6 @@
 *.json
 *.log
 *.xls*
-*.csv
 *__pycache__*
 tmp
 .ipynb_checkpoints*

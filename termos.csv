@@ -1,0 +1,493 @@
+id,tipo,codigo,valor
+1,classificacao_final,1,Caso suspeito
+2,classificacao_final,2,Caso confirmado
+332,local_surto,60,Cadeia Publica 
+5,criterio_classificacao,1,Laboratorial
+6,criterio_classificacao,2,Clínico/Epidemiológico
+9,evolucao,1,Cura
+10,evolucao,2,Óbito
+11,local_contato,1,Domicílio
+12,local_contato,2,Unidade de saúde
+15,local_contato,5,Outro
+17,ocupacao,2,Estudante de área de saúde
+20,ocupacao,5,Outro
+21,origem,1,Notifica COVID-19
+25,periodo_gestacao,1,1º trimestre
+26,periodo_gestacao,2,2º trimestre
+28,raiox_torax,1,Normal
+29,raiox_torax,2,Misto
+32,raiox_torax,5,Outro
+33,resultado,1,Influenza A
+34,resultado,2,Influenza B
+37,resultado,5,Parainfluenza (1-4)
+38,resultado,6,Rinovírus
+39,resultado,7,Metapneumo
+40,resultado,8,"Coronavírus (OC43, 229E, HKU1, NL63)"
+41,resultado,9,Coronavírus (SARS-COV2)
+42,resultado,10,Outro vírus
+44,sexo,1,Masculino
+45,sexo,2,Feminino
+47,sim_nao,1,Sim
+48,sim_nao,2,Não
+50,status,1,Aberta
+51,status,2,Encerrada
+53,tipo_internacao,1,Enfermaria
+54,tipo_internacao,2,UTI
+58,tomografia,1,Vidro fosco de predomínio periférico e basal
+62,uso_antiviral,1,Sim
+63,uso_antiviral,2,Não
+333,origem,15,SMS Imbituva
+70,metodo,1,RT-PCR
+71,metodo,2,Teste Rápido
+16,ocupacao,1,Trabalhador/Profissional de Saúde
+72,raca_cor,1,Branca
+73,raca_cor,2,Preta
+76,raca_cor,5,Indígena
+55,tipo_paciente,1,Estrangeiro (Sem CPF)
+56,tipo_paciente,2,Indígena (Sem CPF)
+68,tipo_paciente,5,Em situação de rua (Sem CPF)
+79,origem,6,GAL
+84,resultado,12,Reagente
+85,resultado,13,Não Reagente
+86,resultado,14,Inconclusivo
+14,local_contato,4,Desconhecido
+82,exame,1,Vírus Respiratório
+83,exame,2,Influenza
+59,tomografia,2,Ausência de linfonodo mediastinal
+90,exame,5,Anti COVID-19 IgG/IgM Rapid Test
+91,exame,6,BasePoint COVID-19 IgG/IgM
+92,exame,7,BIOSYNEX COVID-19 BSS
+93,exame,8,CORONAVÍRUS IgG/IgM (COVID-19)
+94,exame,9,CORONAVÍRUS RAPID TEST
+95,exame,10,COVID-19 Ag ECO Teste
+96,exame,11,COVID-19 IgG/IgM
+97,exame,12,COVID-19 IgG/IgM BIO
+98,exame,13,COVID-19 IgG/IgM ECO Teste
+99,exame,14,COVID-19 IgG/IgM LF
+100,exame,15,COVID-19 igG/IgM test
+101,exame,16,DPP® COVID-19 IgM/IgG System
+102,exame,17,Família COVID-19 IgG/IgM Teste Rápido ( Sangue total/ Soro/Plasma)
+103,exame,18,Família Teste Rápido em Cassete 2019-nCoV IgG/IgM (sangue total/soro/plasma)
+105,exame,20,MedTeste Coronavírus (COVID-19) IgG/IgM (TESTE RAPIDO)
+106,exame,21,One Step COVID-2019 Test
+107,exame,22,QuickProfile COVID-19 IgG/IgM Combo Test Card
+108,exame,23,Smart Test Covid-19 Vyttra
+109,exame,24,Teste Rápido Covid-19 15 minutos Nutriex
+110,exame,25,Teste Rápido OnSite™ COVID-19 IgG/IgM
+111,exame,26,TR DPP® COVID-19 IGM/IGG - Bio-Manguinhos
+112,local_contato_suspeito,1,Domicílio
+113,local_contato_suspeito,2,Unidade de saúde
+116,local_contato_suspeito,5,Outro
+117,local_contato_confirmado,1,Domicílio
+118,local_contato_confirmado,2,Unidade de saúde
+78,origem,5,SIVEP-SRAG
+22,origem,2,e-Saúde
+67,tipo_paciente,6,Criança até 15 Anos (Sem CPF)
+215,local_surto,10,Unidade prisional
+121,local_contato_confirmado,5,Outro
+334,origem,14,SMS São José dos Pinhais
+335,local_surto,61,Colégio Interno
+125,exame,27,"COVID-19, Biologia Molecular"
+126,paciente_institucionalizado,1,Unidades Prisionais (Presídios e Cadeias)
+131,local_surto,2,Instituição de Saúde
+43,resultado,11,Negativo
+133,metodo,5,Quimioluminescência
+134,metodo,6,Imunofluorescência
+135,exame,28,AFIAS COVID-19 Ab
+136,exame,29,ALLSERUM EIA COVID19 IGG
+137,exame,30,ALLSERUM EIA COVID19 IGM
+138,exame,31,Anti-SARS-CoV-2 ELISA IgA
+139,exame,32,Anti-SARS-CoV-2 IgG ELISA
+140,exame,33,Asan Easy Teste Covid-19 IgG/IgM
+141,exame,34,Casete Diagnóstico Teste de Anticorpos para SARS-CoV-2
+142,exame,35,Celer Sansure Kit de Detecção por PCR em Tempo Real para SARS-CoV-2
+143,exame,36,Cellex qSARS-CoV-2 IgG/IgM Cassette Rapid Test
+144,exame,37,CORONAVÍRUS COVID-19 IgG/IgM TESTE RÁPIDO
+145,exame,38,COVID-19 ELISA IgG
+146,exame,39,COVID-19 ELISA IgM+IgA
+147,exame,40,COVID-19 IgG/IgM Assure Test
+149,exame,42,COVID-19 IgG/IgM KIT DE TESTE RÁPIDO
+150,exame,43,COVID-19 IgG/IgM Rapid Test
+151,exame,44,COVID-19 IgG/IgM Rapid Test Cassette (WB/S/P)
+152,exame,45,COVID-19 IgG/IgM Rapid Test Device (WB/S/P)
+153,exame,46,COVID-19 IgG/IgM Rapid Test Kit
+154,exame,47,COVID-19 IgG/IgM Teste Rápido em Tira
+155,exame,48,COVID-19 Real-Time PCR Kit
+156,exame,49,COVID-19 VIRCLIA IgM/IgA MONOTEST
+157,exame,50,DETECT SARS-CoV-2 RT-PCR
+158,exame,51,Diagnostic Kit for IgM/IgG Antibody to Coronavirus (SAR S-CoV-2)
+159,exame,52,Diagnostic Kit for Novel-Coronavirus(2019-nCoV) RNA
+160,exame,53,ECO F COVID-19 Ag
+161,exame,54,EURORealTime SARS-CoV-2	RT-PCR
+162,exame,55,Família Abbott RealTime SARS-CoV-2
+163,exame,56,Família Abbott RealTime SARS-CoV-2 EUA
+164,exame,57,FAMÍLIA BIO GENE COVID-19 PCR
+165,exame,58,Família cobas SARS-CoV-2
+166,exame,59,Família Kit de Detecção por PCR em Tempo Real VIASURE SARS-CoV-2
+167,exame,60,FAMÍLIA KIT XGEN MASTER COVID-19
+168,exame,61,Família SARS-CoV-2 IgG
+169,exame,62,GeneFinderTM COVID-19 PLUS RealAmp Kit
+170,exame,63,ichroma COVID-19 Ab	Imunofluorescência
+171,exame,64,Imuno-Rápido COVID-19 IgG/IgM
+172,exame,65,Imunotest COVID-19
+173,exame,66,KIT DE TESTE RAPIDO PARA COVID-19
+174,exame,67,Kit MOLECULAR SARS-CoV2 (E/P1)
+175,exame,68,Kit Molecular SARS-CoV2 (E/RP)
+176,exame,69,KOVID Ab (COVID-19 IgG/IgM)
+177,exame,70,LANG SARS-CoV-2 Antibody Test
+178,exame,71,Leccurate - SARS-CoV-2 Antibody Test (colloidal gold immunochromatography)
+179,exame,72,LUMIRATEK COVID-19 (IgG/IgM)
+180,exame,73,MAGLUMI IgG de 2019-nCoV
+181,exame,74,MAGLUMI IgM de 2019-nCoV
+182,exame,75,Medf1rst covid-19 teste rapido
+183,exame,76,NEW CORONAVIRUS IGG/IGM RAPID TEST KIT (COVID-19 IgG/ IgM)
+184,exame,77,NL qSARS-CoV-2 IgG/IgM Cassette Rapid Test
+185,exame,78,Novel Coronavirus (2019-nCoV) Nucleic Acid Detection Kit PCR-Fluorescence Probing
+186,exame,79,Novo kit de teste de anticorpos IgM / IgG para coronavírus (2019-nCoV)
+187,exame,80,Panbio COVID-19 IgG/IgM Rapid Test Device
+188,exame,81,Quick PROFILE COVID-19 IgG/IgM Test Card
+189,exame,82,RealStar® SARS-CoV-2 RT-PCR Kit 1.0
+190,exame,83,SARS CoV-2 ECO Detect
+191,exame,84,SARS-CoV-2 Antibody Test
+192,exame,85,SARS-CoV-2 Antibody Test (colloidal gold immunochromatography)
+193,exame,86,SARS-CoV-2 IgG & IgM Ab Diagnostic Test kit (Colloidal Gold)
+194,exame,87,SARS-COV-2 RT-PCR KIT
+195,exame,88,SARS-CoV-2 S gene for BD Max
+196,exame,89,SARS-CoV-2 TESTE DE ANTICORPO (IMUNOCROMATOGRAFIA EM OURO COLOIDAL)
+197,exame,90,TaqPath™ COVID-19 CE-IVD RT PCR Kit
+198,exame,91,Teste de anticorpo SARS-CoV-2 (imunocromatografia - ouro coloidal)
+199,exame,92,Teste para anticorpos de SARS-CoV-2 (imunocromatografia com ouro coloidal)
+200,exame,93,Teste Rápido COVID-19 IgG / IgM Bahiafarma
+201,exame,94,Xpert Xpress SARS-CoV-2
+202,paciente_institucionalizado,5,Clínicas de recuperação ou reabilitação (psiquiatria e dependência química)
+123,origem,7,Telemedicina
+206,uso_antiviral,5,Cloroquina
+208,local_surto,6,Indústria
+210,origem,8,SIVEP-SG
+212,local_surto,7,ILPI
+213,local_surto,8,Restaurante
+214,local_surto,9,Oficina mecânica
+127,local_surto,1,Frigorífico
+211,exame,95,SARS-CoV-2 Antibody Test (homologado)
+148,exame,41,COVID-19 IgG/IgM RAPID Combo ECO Teste
+216,local_surto,11,Evento
+217,local_surto,12,Velório
+218,local_surto,13,Batalhão Policia Militar
+336,local_surto,62,Carga/descarga de aves
+220,local_surto,15,Prefeitura
+221,local_surto,16,Banco
+222,tipo_paciente,8,Privado de liberdade (sem CPF)
+223,local_surto,17,Subdivisão Policial
+224,local_surto,18,Supermercado
+225,exame,96,Teste Rápido CORONAVÍRUS REALY TECH
+337,local_surto,63,Aldeia Indígena
+227,exame,98,Elecsys Anti SARS-CoV2
+228,exame,99,CORONAVÍRUS 2019 - SARS-COV-2- IMUNOGLOBULINA TOTAL
+229,exame,100, SOROLOGIA COVID-19 (Anticorpos anti-SARS-CoV-2 IgG)
+230,exame,101,Covid-19 ELISA IgG+IgA
+231,local_surto,19,Posto de Combustível 
+400,local_surto,80,Delegacia de Polícia Civil
+413,local_surto,89,Correios
+234,local_surto,22,Fabrica pequeno porte
+235,local_surto,23,Comercio atacadista
+236,local_surto,24,Concessionária 
+237,local_surto,25,Loja de Móveis
+238,local_surto,26,Fabricação de Carrocerias
+239,local_surto,27,Central de Abastecimento de Aguá 
+240,local_surto,28,Organização Associativa de Empresários 
+241,local_surto,29,IMOBILIÁRIA
+242,local_surto,30,Panificadora
+243,pesquisa_gal,10087,Pesquisa de Vírus Respiratórios
+244,pesquisa_gal,10017,COVID-19  Profissionais da Saúde e Ambulatorial não internado
+246,origem,10,SMS Maringá
+207,local_surto,5,Construção e distribuição de energia
+247,local_surto,31,Entidade de recuperação de dependentes químicos
+249,local_surto,33,Usina Sucroalcooleira
+250,local_surto,34,Igreja
+251,local_surto,35,Funerária
+252,local_surto,36,Empresa de informática
+255,local_surto,39,Escola
+256,exame,102,Medix -Teste coronavírus -IgG/IgM
+257,exame,103,ACRO BIOTECH (ACRO Rapid Test)
+258,local_surto,40,Fabril Cimentos
+259,local_surto,41,Empresa de pavimentação
+260,local_surto,42,SECRETARIA
+261,local_surto,43,SECRETARIA DE OBRAS
+262,local_surto,44,EMPRESAS LIGADAS A AÇÕES PORTUÁRIAS
+245,origem,9,HMPGL
+263,local_surto,45,Alojamento
+264,local_surto,46,Fábrica de roupas
+266,local_surto,48,EMPRESA DE TRANSPORTE
+267,local_surto,49,LATICINIO
+268,local_surto,50,Batalho do Exército
+269,local_surto,51,Farmácia
+270,origem,11,Hosp. Unimed Foz
+271,origem,12,Lab. Hilab
+272,local_surto,52,Comercio Varejista
+128,paciente_institucionalizado,2,ILPI/Casa de Repouso/Asilo
+273,local_surto,53,Distribuidora de ferro e aço
+274,local_surto,54,Domicílio
+276,local_surto,55,salão de beleza
+277,exame,104,2019-nCoV IgG/IgM DEVICE ( TESTE RÁPIDO )
+278,exame,105,2019-nCOV AB TEST (COLLOIDAL GOLD) IgM/IgG (WHOLE BLOOD / SERUM / PLASMA)
+279,exame,106,2019-nCOV IgG (CLIA)
+280,exame,107,2019-nCoV IgG/IgM COMBO TEST CARD
+281,exame,108,2019-nCoV IgG/IgM RAPID TEST
+282,exame,109,2019-nCOV IgM (CLIA)
+283,exame,110,ADVIA CENTAUR SARS-CoV-2 TOTAL (COV2T)
+284,exame,111,ANTI-SARS-CoV-2 IgG REAGENT PACK
+285,exame,112,STANDARD Q COVID-19 IgM/IgG DUO
+286,exame,113,ARTRON ONE STEP TESTE RÁPIDO CORONAVÍRUS
+287,exame,114,ATELLICA IM SARS-CoV-2 TOTAL (COV2T)
+288,exame,115,COBAS SARS-CoV-2
+289,exame,116,CORONAVIRUS 2019 ANTIBODY (IgM/IgG) COMBINED TEST KIT
+290,exame,117,COVID-19 IgM/IgG DUO (SD BIOSENSOR)
+291,exame,118,COVID-19 (2019-nCoV) CORONAVIRUS IgG / IgM RAPID TEST KIT
+292,exame,119,COVID-19 (SARS-CoV-2) IgM/IgG ANTIBODY TEST KIT
+293,exame,120,COVID-19 (2019-nCoV) CORONAVÍRUS IgG/IgM RAPID TEST KIT
+294,exame,121,COVID-19 (SARS-CoV-2) IgM ELISA
+295,exame,122,COVID-19 (SARS-CoV-2) IgM/IgG ANTIBODY TEST KIT
+296,exame,123,COVID-19 IgG
+297,exame,124,COVID-19 IgG/IgM DUO (NANOENTEK)
+298,exame,125,COVID-19 IgG/IgM ECO
+299,exame,126,COVID-19 IgG/IgM RAPID TEST (COLLOIDAL GOLD)
+300,exame,127,COVID-19 IgM ANTIBODY RAPID TEST KIT
+301,exame,128,COVID-19 IgM/IgG ANTIBODY TEST
+302,exame,129,COVID-19 IgM/IgG ANTIBODY TEST (COLLOIDAL GOLD)
+303,exame,130,EDI NOVEL CORONAVÍRUS COVID-19 IgG ELISA KIT
+305,exame,132,ERBALISA COVID-19 IgG
+306,exame,133,HECIN COVID-19 IgM ANTIBODY RAPID TEST KIT
+307,exame,134,IgM/IgG DIAGNOSTIC KIT FOR IgM/IgG ANTIBODY TO CORONAVÍRUS (SARS-CoV-2) [LATERAL FLOW]
+308,exame,135,KIT COVID-19 IgG/IgM
+309,exame,136,KIT DE DETECÇÃO 2019-nCoV IgG/IgM (Baseado em couro coloidal)
+310,exame,137,KIT ELISA SARS-CoV-2 IgG
+311,exame,138,KIT XGEN MASTER COVID-19
+122,classificacao_final,4,Caso a confirmar
+115,local_contato_suspeito,4,Desconhecido
+312,exame,139,NEWSCEN - COVID-19 IgG/IgM RAPID TEST CASSETTE
+313,exame,140,NOVALISA SARS-CoV-2 (COVID-19) IgG
+314,exame,141,NOVEL CORONAVÍRUS (2019-nCoV) IgM/IgG ANTIBODY COMBO TEST KIT (COLLOIDAL GOLD)
+315,exame,142,ONE STEP TEST FOR NOVEL CORONAVÍRUS (2019-nCoV) IgM/IgG ANTIBODY
+316,exame,143,RENDER COVID-19 IgM & IgG TEST
+317,exame,144,SARS-CoV-2 ANTIBODY TEST STRIP
+318,exame,145,SARS-CoV-2 ELISA IgG
+319,exame,146,SARS-CoV-2 IgM/IgG (MACCURA)
+320,exame,147,SARS-CoV-2 IgM/IgG AB RAPID TEST
+321,exame,148,SARS-CoV-2 IgM/IgG ANTIBODY ASSAY KIT
+322,exame,149,SARS-CoV-2 IgM/IgG ANTIBODY TEST (COLLOIDAL GOLD)
+323,exame,150,SARS-CoV-2 IgM/IgG COMBO RAPID TEST KIT
+324,exame,151,ARTRON COVID-19 IgM/IgG ANTIBODY TEST
+325,exame,152,SARS-CoV-2 Antibody Test (Lateral  Flow Method)
+326,local_surto,56,clinica de estetica
+327,local_surto,57,Unidade Básica de Saúde
+328,paciente_institucionalizado,6,Seminário / Convento
+329,origem,13,Lab. Lab Imagem
+330,local_surto,58,Empresa de Equipamentos
+331,local_surto,59,Academia
+338,local_surto,64,Escritório de Contabilidade
+339,local_surto,65,Penitenciária
+340,status_monitoramento,1,Iniciado
+341,status_monitoramento,2,Não Iniciado
+343,relacao_contato,1,Familiar
+344,relacao_contato,2,Trabalho
+347,situacao_monitoramento,1,Visto e saudável
+351,situacao_monitoramento,5,Pendente
+352,situacao_monitoramento,6,Não realizado
+355,evolucao_monitoramento,2,Suspeito
+358,febre,1,Aferida
+359,febre,2,Percebida
+361,sintoma_contato,1,Febre
+362,sintoma_contato,2,Dor de cabeça
+365,sintoma_contato,5,Perda de Força
+366,sintoma_contato,6,Diarreia
+367,sintoma_contato,7,Perda de Olfato
+368,sintoma_contato,8,Perda de Paladar
+369,sintoma_contato,9,Enjoo
+370,sintoma_contato,10,Vômitos
+371,sintoma_contato,11,Pressão no Tórax
+372,sintoma_contato,12,Saturação O2 ≤ 95%
+373,sintoma_contato,13,Coloração azulada dos lábios e rosto
+374,sintoma_contato,14,Dificuldade de respirar
+375,sintoma_contato,15,Coriza
+376,sintoma_contato,16,Dor de garganta
+377,tipo_paciente_institucionalizado,1,Trabalhador da instituição
+378,tipo_paciente_institucionalizado,2,Coabitante da instituição
+379,local_surto,66,Incubatório de aves
+380,local_surto,67,Fábrica de Embalagens
+381,local_surto,68,Fábrica de laminados planos e tubulados e tecelagem de fios de fibra
+382,local_surto,69,Companhia de Energia
+383,local_surto,70,Seminário Religioso
+384,exame,153,ELISA in house SARS-COV-2 IgM (UNILA)
+385,exame,154,ELISA in house SARS CoV-2 IgM/IgG (UNILA)
+386,exame,155,ELISA in house SARS CoV-2 IgA (UNILA)
+387,exame,156,ELISA in house SARS CoV-2 - IgG (UNILA)
+388,local_surto,71,Quilombo
+389,local_surto,72,Empresa ligada à criação de aves
+390,local_surto,73,Indústria de Pneus
+391,local_surto,74,Segmentos agrícolas
+392,local_surto,75,Câmara Municipal de Vereadores
+393,exame,157,COVID-19 IgG/IgM Rapid TESTE DEVICE
+394,exame,158,One Step Rapid Teste - Innovita
+395,local_surto,76,Produção de produtos de metal
+396,local_surto,77,Universidade
+397,local_surto,78,PEDAGIO
+399,local_surto,79,Indústria de máquinas
+401,local_surto,81,Abrigo municipal 
+398,exame,159,ichroma COVID-19 Ag - Imunofluorescência
+402,local_surto,82,Regional de Saúde
+403,local_surto,83,Cooperativa
+404,local_surto,84,ABRIGO PARA CRIANÇAS E ADOLESCENTES
+354,evolucao_monitoramento,1,Descartado
+409,local_surto,85,Distribuidora de carnes
+410,local_surto,86,Facção de Roupas
+411,local_surto,87,Serviço de Saúde
+412,local_surto,88,Centrais de Abastecimento do Paraná S.A
+414,local_surto,90,Escolas
+415,local_surto,91,Lanchonete
+416,classificacao_monitoramento,1,Encerrado por suspeita
+417,classificacao_monitoramento,2,Caso índice descartado
+77,raca_cor,99,Ignorado
+8,criterio_classificacao,4,Não se Aplica
+19,ocupacao,4,Profissional de segurança pública
+24,origem,4,e-SUS VE
+31,raiox_torax,4,Consolidado
+348,situacao_monitoramento,2,Visto e suspeito
+3,classificacao_final,3,Caso descartado
+418,classificacao_monitoramento,3,Perda de segmento
+419,classificacao_monitoramento,4,Monitoramento finalizado
+7,criterio_classificacao,3,Em Investigação
+69,evolucao,3,Não se aplica
+275,evolucao,4,Óbito por outras causas
+357,evolucao_monitoramento,4,Não se aplica
+360,febre,3,Não
+13,local_contato,3,Local de trabalho
+119,local_contato_confirmado,3,Local de trabalho
+120,local_contato_confirmado,4,Desconhecido
+114,local_contato_suspeito,3,Local de trabalho
+203,local_surto,3,Agroindustrial
+205,local_surto,4,Construção civil
+81,metodo,3,Não informado
+132,metodo,4,ELISA
+18,ocupacao,3,Trabalhador/Profissional de Laboratório
+23,origem,3,REDCap
+130,paciente_institucionalizado,4,Centro de Sócio Educação (CENSE e Casas de Semiliberdade
+129,paciente_institucionalizado,3,Serviços de Acolhimento Institucional SUAS
+27,periodo_gestacao,3,3º trimestre
+80,periodo_gestacao,4,Idade gestacional ignorada
+441,local_surto,96,Laboratório
+30,raiox_torax,3,Infiltrado intersticial
+345,relacao_contato,3,Hospitalar / Unidade Saúde
+346,relacao_contato,4,Outro
+35,resultado,3,Adenovírus
+36,resultado,4,Vírus Sincicial Respiratório
+46,sexo,3,Não informado
+49,sim_nao,3,Não informado
+363,sintoma_contato,3,Cansaço
+364,sintoma_contato,4,Tosse seca persistente
+349,situacao_monitoramento,3,Ausente
+52,status,3,Inativa
+209,status,4,Excluído por duplicidade
+342,status_monitoramento,3,Encerrado
+124,tipo_internacao,3,Não informado
+57,tipo_paciente,3,CPF informado
+204,tipo_paciente,4,CPF não informado
+60,tomografia,3,Ausência de derrame pleural
+61,tomografia,4,Outro
+64,uso_antiviral,3,Oseltamivir (Tamiflu)
+65,uso_antiviral,4,Hidroxicloroquina
+420,exame,160,Diagnóstico Molecular CORONÁVIRUS COVID-19
+421,local_surto,92,Manejo Florestal
+74,raca_cor,3,Parda
+75,raca_cor,4,Amarela
+422,criterio_classificacao,5,Clínico imagem
+424,local_surto,93,Industria de Alimentos
+425,local_surto,94,Bombeiros
+426,exame,161,SARS - COV-2 IGG (ABBOTT)
+427,local_surto,95,Vinícola
+428,situacao_trabalho,1,Empregado registrado com carteira assinada
+429,situacao_trabalho,2,Empregado não registrado
+430,situacao_trabalho,3,Autônomo/conta própria
+431,situacao_trabalho,4,Servidor público estatutário
+432,situacao_trabalho,5,Servidor público celetista
+433,situacao_trabalho,6,Aposentado
+434,situacao_trabalho,7,Desempregado
+435,situacao_trabalho,8,Trabalho temporário
+436,situacao_trabalho,9,Coorperativado
+437,situacao_trabalho,10,Trabalhador Avulso
+438,situacao_trabalho,11,Empregador
+439,evolucao_monitoramento,3,Não iniciado
+440,classificacao_monitoramento,5,Monitoramento não realizado
+442,local_surto,97,Fábrica
+443,local_surto,98,Empresa setor automotivo
+446,local_surto,99,Conselho Totelar
+447,local_surto,100,Rádio
+448,local_surto,101,Escritório de Advocacia
+445,origem,18,SMS Enéas Marques
+449,local_surto,102,Time de futebol
+450,local_surto,103,Unidade Socioeducativa
+451,local_surto,104,CENTRO DE APOIO
+452,exame,162,COVID-19 IgG/IgM AlfaTest - COVID 19
+453,local_surto,105,Comércio materiais de construção
+454,local_surto,106,Transporte de cargas
+455,local_surto,107,Fábrica de produtos de alumínio
+456,exame,163,Panbio COVID-19 Ag Rapid Test
+457,local_surto,108,Loja de departamento
+458,criterio_classificacao,6,Clínico
+459,origem,20,SMS Foz do Iguacu
+460,origem,21,Saúde Online
+461,exame,164,Panbio COVID-19 Ag Rapid Test
+462,cbo_monitoramento,2251,Médicos Clínicos
+463,cbo_monitoramento,2235,Enfermeiros
+464,cbo_monitoramento,3222,Técnicos e Auxiliar de Enfermagem
+465,cbo_monitoramento,515105,Agente Comunitário de Saúde (ACS)
+466,cbo_monitoramento,515140,Agente Comunitário às Endemias (ACE)
+467,cbo_monitoramento,223305,Médico Veterinário
+468,cbo_monitoramento,352210,Agente de Saúde Pública
+469,cbo_monitoramento,2232,Cirurgião-Dentista
+470,cbo_monitoramento,3224,Auxiliar ou Técnico em Saúde Bucal
+471,cbo_monitoramento,251605,Assistente Social
+472,cbo_monitoramento,224140,Profissional de Educação Física na Saúde
+473,cbo_monitoramento,2238,Fonoaudiólogos
+474,cbo_monitoramento,223905,Terapeuta Ocupacional
+475,cbo_monitoramento,131525,Sanitarista
+476,cbo_monitoramento,515305,Educador Social
+478,cbo_monitoramento,2236,Fisioterapeutas
+479,cbo_monitoramento,2237,Nutricionistas
+480,cbo_monitoramento,2234,Farmacêuticos
+481,cbo_monitoramento,515201,Microscopista
+482,cbo_monitoramento,2211,Biólogo
+483,cbo_monitoramento,2212,Biomédicos
+484,classificacao_final,5,Síndrome gripal não especificada
+485,status_monitoramento,4,Novo caso indice
+487,situacao_monitoramento,7,Fora do intervalo
+488,classificacao_monitoramento,6,Monitoramento fora do intervalo
+489,classificacao_monitoramento,7,Encerrado por novo caso indice
+490,origem,19,SMS Toledo
+491,local_surto,109,Centro de Reabilitação
+492,exame,165,ACCESS SARS-CoV-2 IgG
+493,local_surto,110,DETRAN
+494,local_surto,111,Hospital
+495,exame,166,HIGHTOP- ONE STEP RAPID TEST
+496,local_surto,112,Fundição
+497,exame,167,Teste Rápido Antígeno (Imunocromatografia)
+498,exame,168,Teste Rápido IgA (Imunocromatografia)
+499,exame,169,Teste Rápido IgG (Imunocromatografia)
+500,exame,170,Teste Rápido IgM (Imunocromatografia)
+501,exame,171,Sorologia IgA (ELISA)
+502,exame,172,Sorologia IgG (ELISA)
+503,exame,173,Sorologia IgM (ELISA)
+504,exame,174,Sorologia IgA (Quimioluminescência)
+505,exame,175,Sorologia IgG (Quimioluminescência)
+506,exame,176,Sorologia IgM (Quimioluminescência)
+507,exame,177,Sorologia IgG (Imunofluorescência)
+508,exame,178,Sorologia IgM (Imunofluorescência)
+509,exame,179,Teste Rápido IgM/IgG não discriminatório (Imunocromatografia)
+510,metodo,7,Eletroquimioluminescência
+511,exame,180,Sorologia Anticorpos Totais (Eletroquimioluminescência)
+512,exame,181,Teste Molecular (RT-PCR)
+477,exame,182,Teste Rápido IgM/IgG não discriminatório (Imunofluorescência)
+513,local_surto,113,Cartório
+514,local_surto,114,Empresa de comunicações
+515,local_surto,115,Sindicato
+516,local_surto,116,Empresa de telecomunicações
+517,local_surto,117,Comércio de confecções
