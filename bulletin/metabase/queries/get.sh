@@ -1,0 +1,18 @@
+curl 'https://metabase.appsesa.pr.gov.br/api/dataset/csv' \
+  -H 'Connection: keep-alive' \
+  -H 'Cache-Control: max-age=0' \
+  -H 'Upgrade-Insecure-Requests: 1' \
+  -H 'Origin: https://metabase.appsesa.pr.gov.br' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36' \
+  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'Sec-Fetch-Mode: navigate' \
+  -H 'Sec-Fetch-User: ?1' \
+  -H 'Sec-Fetch-Dest: document' \
+  -H 'Referer: https://metabase.appsesa.pr.gov.br/question' \
+  -H 'Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7' \
+  -H 'Cookie: metabase.SESSION=d2d89ab1-b9bf-4f34-9e3d-a51757e84ab7' \
+  --data-raw 'query=%7B%22type%22%3A%22native%22%2C%22native%22%3A%7B%22query%22%3A%22SELECT+%5Cr%5Cn++++nt.id%2C%5Cr%5Cn++++nt.data_notificacao%2C%5Cr%5Cn++++nt.updated_at%2C%5Cr%5Cn++++nt.paciente%2C%5Cr%5Cn++++nt.sexo%2C%5Cr%5Cn++++nt.idade%2C%5Cr%5Cn++++nt.ibge_residencia%2C%5Cr%5Cn++++nt.ibge_unidade_notifica%2C%5Cr%5Cn++++nt.exame%2C%5Cr%5Cn++++nt.data_liberacao%2C%5Cr%5Cn++++nt.data_1o_sintomas%2C%5Cr%5Cn++++nt.evolucao%2C%5Cr%5Cn++++nt.data_cura_obito%5Cr%5Cn%5Cr%5CnFROM+public.notificacao+nt%5Cr%5Cn%5Cr%5CnWHERE+nt.classificacao_final+%3D+2%5Cr%5Cn++++AND+nt.excluir_ficha+%3D+2%5Cr%5Cn++++AND+nt.status_notificacao+IN+%281%2C+2%29%5Cr%5CnORDER+BY+id+ASC%3B%22%2C%22template-tags%22%3A%7B%7D%7D%2C%22database%22%3A2%2C%22middleware%22%3A%7B%22js-int-to-string%3F%22%3Atrue%2C%22add-default-userland-constraints%3F%22%3Atrue%7D%7D' \
+  --compressed \
+  --insecure
