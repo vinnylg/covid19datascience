@@ -7,7 +7,7 @@ def trim_overspace(text):
 
 def normalize_text(text):
     #.replace("'"," ") alguns municipios tem ' e as macros maravilhosas do excel vão falhar
-	x = str(text).replace(".","").replace("\n","").replace(",","").upper()
+	x = str(text).replace("'"," ").replace(".","").replace("\n","").replace(",","").upper()
 	x = trim_overspace(x)
 	x = unidecode(x)
 
@@ -15,7 +15,7 @@ def normalize_text(text):
 		return ''
 	else:
 		return x
-    
+
 def normalize_labels(text):
 	x = str(text).replace("'"," ").replace(".","").replace("\n","").replace(",","").lower()
 	x = trim_overspace(x).replace(" ","_")
@@ -42,7 +42,7 @@ def normalize_municipios(mun):
 	if '/' in mun:
 		mun = mun.split('/')[0]
 
-	mun = trim_overunderscore(mun)
+	mun = trim_overspace(mun)
 	return mun
 
 def normalize_igbe(ibge):

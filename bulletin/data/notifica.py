@@ -40,28 +40,37 @@ class Notifica:
                 print(f"{self.database} carregado")
             else:
                 print(f"{self.database} não encontrado, utilizando o método update")
-                self.update(self)
+                self.update()
 
         else:
             exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
+
+    def __len__(self):
+        return len(self.__source)
+
+    def shape(self):
+        return (len(self.__source),len(self.__source.loc[self.__source['evolucao'] == 1]),len(self.__source.loc[self.__source['evolucao'] == 2]),len(self.__source.loc[self.__source['evolucao'] == 3]),len(self.__source.loc[self.__source['evolucao'] == 4]))
 
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
         notifica = pd.read_csv(self.pathfile,
                            converters = {
                                'paciente': normalize_text,
+                               'origem': lambda x: normalize_number(x,fill=0),
+                               'nome_mae': normalize_text,
                                'idade': lambda x: normalize_number(x,fill=-1),
-                               'ibge_residencia': lambda x: normalize_number(x,fill=-1),
-                               'ibge_unidade_notifica': lambda x: normalize_number(x,fill=-1),
+                               'pais_residencia': lambda x: normalize_number(x,fill=0),
+                               'uf_residencia': lambda x: normalize_number(x,fill=0),
+                               'ibge_residencia': lambda x: normalize_number(x,fill=0),
+                               'uf_unidade_notifica': lambda x: normalize_number(x,fill=0),
+                               'ibge_unidade_notifica': lambda x: normalize_number(x,fill=0),
+                               'criterio_classificacao': lambda x: normalize_number(x,fill=0),
                                'exame': lambda x: normalize_number(x,fill=0),
                                'evolucao': lambda x: normalize_number(x,fill=3)
                            },
-                           parse_dates = ['data_notificacao','updated_at','data_liberacao','data_1o_sintomas','data_cura_obito'],
+                           parse_dates = ['data_notificacao','updated_at','data_nascimento','data_liberacao','data_1o_sintomas','data_cura_obito'],
                            date_parser = lambda x: pd.to_datetime(x, errors='coerce', format='%d/%m/%Y')
                         )
-
-        notifica = notifica.loc[ notifica['ibge_residencia'] > 0 ]
-        notifica = notifica.loc[ notifica['idade'] != -1 ]
 
         municipios = static.municipios[['ibge','municipio']].copy()
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
@@ -70,7 +79,17 @@ class Notifica:
         regionais = regionais.rename(columns={'ibge':'ibge_residencia','nu_reg':'rs'})
 
         exames = static.termos.loc[static.termos['tipo']=='exame',['codigo','valor']].copy()
+        origens = static.termos.loc[static.termos['tipo']=='origem',['codigo','valor']].copy()
+        criterios = static.termos.loc[static.termos['tipo']=='criterio_classificacao',['codigo','valor']].copy()
+
         exames = exames.rename(columns={'codigo':'exame','valor':'nome_exame'})
+        origens = origens.rename(columns={'codigo':'origem','valor':'nome_origem'})
+        criterios = criterios.rename(columns={'codigo':'criterio_classificacao','valor':'nome_criterio_classificacao'})
+
+        notifica = pd.merge(left=notifica, right=exames, how='left', on='exame')
+        notifica = pd.merge(left=notifica, right=origens, how='left', on='origem')
+        notifica = pd.merge(left=notifica, right=criterios, how='left', on='criterio_classificacao')
+
 
         municipios = municipios.rename(columns={'ibge':'ibge_residencia','municipio':'mun_resid'})
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_residencia')
@@ -78,11 +97,20 @@ class Notifica:
 
         municipios = municipios.rename(columns={'ibge_residencia':'ibge_unidade_notifica','mun_resid':'mun_atend'})
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_unidade_notifica')
-        notifica = pd.merge(left=notifica, right=exames, how='left', on='exame')
 
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
         notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
 
+        notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
+        notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
+        notifica.loc[ notifica['ibge_residencia'] <= 0  ].to_excel('sem_ibge_residencia.xlsx', index=None)
+        notifica.loc[ notifica['sexo'].isnull()  ].to_excel('sem_sexo.xlsx', index=None)
+        notifica.loc[ notifica['idade'] == -1 ].to_excel('sem_idade.xlsx', index=None)
+
+        notifica = notifica.loc[ notifica['data_liberacao'].notnull() ]
+        notifica = notifica.loc[ notifica['ibge_residencia'] > 0 ]
+        notifica = notifica.loc[ notifica['sexo'].notnull() ]
+        notifica = notifica.loc[ notifica['idade'] != -1 ]
         notifica = notifica.loc[notifica['mun_resid'].notnull()]
 
         notifica['hash'] = notifica.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
@@ -97,6 +125,9 @@ class Notifica:
         print(f"{self.database} salvo e {self.checksum_file} atualizado")
 
         self.__source = notifica
+
+    def filter_date(self,date):
+        self.__source = self.__source.loc[((self.__source['updated_at'] >= date) | (self.__source['data_liberacao'] >= date) | (self.__source['data_notificacao'] >= date))]
 
     def get_casos(self):
         try:
