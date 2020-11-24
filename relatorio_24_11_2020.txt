@@ -1,10 +1,10 @@
-﻿3.552 novos casos residentes divulgadose 28 não residentes no PR. Sendo:
+﻿3.552 novos casos residentes divulgados e 28 não residentes no PR. Sendo:
 Em 24/11/2020: 1798 novos casos novos confirmados.
 1754 casos retroativos confirmados do período de 09/06/2020 à 22/11/2020.
-258.434 casos confirmados residentes do PR.
+258.432 casos confirmados residentes do PR.
 261.018 total geral.
 
-38 Óbitos residentes do PR:
+51 Óbitos residentes do PR:
 1 ANGULO
 1 ANTONINA
 3 ARAUCARIA
@@ -12,7 +12,7 @@ Em 24/11/2020: 1798 novos casos novos confirmados.
 3 CAMPO MOURAO
 1 CASCAVEL
 3 COLOMBO
-3 CURITIBA
+15 CURITIBA
 1 FAZENDA RIO GRANDE
 1 FOZ DO IGUACU
 2 FRANCISCO BELTRAO
@@ -25,13 +25,13 @@ Em 24/11/2020: 1798 novos casos novos confirmados.
 1 PARANAVAI
 1 PEABIRU
 1 PINHALAO
-2 PONTA GROSSA
+3 PONTA GROSSA
 1 SAO JOAO DO TRIUNFO
 3 SAO JOSE DOS PINHAIS
 1 SARANDI
 1 TIJUCAS DO SUL
-5.871 óbitos residentes do PR.
-5.917 total geral.
+5.878 óbitos residentes do PR.
+5.930 total geral.
 
 M 69 PARANAVAI 14 21/nov
 M 48 CAMPO MOURAO 11 23/nov
@@ -71,6 +71,19 @@ F 63 COLOMBO 02 23/nov
 M 84 ARAUCARIA 02 23/nov
 M 62 SAO JOSE DOS PINHAIS 02 22/nov
 M 90 PONTA GROSSA 03 22/nov
+F 92 CURITIBA 02 19/nov
+F 89 CURITIBA 02 17/nov
+M 71 CURITIBA 02 18/nov
+M 66 CURITIBA 02 18/nov
+M 45 CURITIBA 02 18/nov
+F 70 CURITIBA 02 17/nov
+M 49 CURITIBA 02 17/nov
+M 75 CURITIBA 02 14/nov
+F 75 CURITIBA 02 13/nov
+M 75 CURITIBA 02 11/nov
+F 85 CURITIBA 02 12/nov
+M 44 CURITIBA 02 17/nov
+F 89 PONTA GROSSA 03 28/set
 
 jun: 4
 jul: 7
