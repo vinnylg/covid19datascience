@@ -90,7 +90,6 @@ class Notifica:
         notifica = pd.merge(left=notifica, right=origens, how='left', on='origem')
         notifica = pd.merge(left=notifica, right=criterios, how='left', on='criterio_classificacao')
 
-
         municipios = municipios.rename(columns={'ibge':'ibge_residencia','municipio':'mun_resid'})
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_residencia')
         notifica = pd.merge(left=notifica, right=regionais, how='left', on='ibge_residencia')
@@ -101,17 +100,20 @@ class Notifica:
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
         notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
 
-        notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
-        notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
-        notifica.loc[ notifica['ibge_residencia'] <= 0  ].to_excel('sem_ibge_residencia.xlsx', index=None)
-        notifica.loc[ notifica['sexo'].isnull()  ].to_excel('sem_sexo.xlsx', index=None)
-        notifica.loc[ notifica['idade'] == -1 ].to_excel('sem_idade.xlsx', index=None)
+        # notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
+        # notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
+        # notifica.loc[ notifica['ibge_residencia'] <= 0  ].to_excel('sem_ibge_residencia.xlsx', index=None)
+        # notifica.loc[ notifica['sexo'].isnull()  ].to_excel('sem_sexo.xlsx', index=None)
+        # notifica.loc[ notifica['idade'] == -1 ].to_excel('sem_idade.xlsx', index=None)
 
-        notifica = notifica.loc[ notifica['data_liberacao'].notnull() ]
-        notifica = notifica.loc[ notifica['ibge_residencia'] > 0 ]
-        notifica = notifica.loc[ notifica['sexo'].notnull() ]
-        notifica = notifica.loc[ notifica['idade'] != -1 ]
+        # notifica = notifica.loc[ notifica['data_liberacao'].notnull() ]
+        # notifica = notifica.loc[ notifica['ibge_residencia'] > 0 ]
+        # notifica = notifica.loc[ notifica['sexo'].notnull() ]
+        # notifica = notifica.loc[ notifica['idade'] != -1 ]
         notifica = notifica.loc[notifica['mun_resid'].notnull()]
+
+        # notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'] if row['criterio_classificacao'] not in [1,4] else pd.NaT, axis=1)
+        notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'], axis=1)
 
         notifica['hash'] = notifica.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
         notifica['hash_less'] = notifica.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
