@@ -9,7 +9,7 @@ from sys import exit
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe
+from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace
 
 class CasosConfirmados:
     def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx')):
@@ -87,11 +87,11 @@ class CasosConfirmados:
         index_duplicados = list(set(index_casos_duplicados + index_casos_duplicados_idade_less + index_casos_duplicados_idade_more))
         print(f"sendo assim, {len(index_duplicados)} casos que já se encontram na planilha serão removidos")
 
-        print(f"então, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados")
+        print(f"\nentão, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados\n")
         casos_raw = casos_raw.drop(index=index_duplicados)
 
         casos_raw['data_com'] = [ "" ] * len(casos_raw)
-        novos_casos = casos_raw[['paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_notificacao','data_liberacao','data_com','data_1o_sintomas','hash']]
+        novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
         novos_casos.to_excel('novos_casos.xlsx', index=False)
 
         return novos_casos
@@ -102,21 +102,26 @@ class CasosConfirmados:
         obitos_raw = obitos_raw.sort_values(by='paciente')
 
         obitos_curitiba = pd.read_excel('obitos_curitiba.xlsx')
+
+        obitos_curitiba['paciente'] = obitos_curitiba['paciente'].apply(normalize_text)
+        obitos_curitiba['mun_resid'] = obitos_curitiba['mun_resid'].apply(normalize_text)
+        obitos_curitiba['idade'] = obitos_curitiba['idade'].apply(normalize_number)
+
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: normalize_number(x,fill='99'))
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
 
         obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
-        obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
-        obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']+1)+row['mun_resid'])).hexdigest(), axis=1)
+        obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
+        obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']+1)+row['mun_resid'])).hexdigest(), axis=1)
 
-        print(f"obitos novos notifica {obitos_raw.shape[0]} + {obitos_curitiba.shape[0]} curitiba")
+        print(f"obitos novos notifica {obitos_raw.shape[0]} + {obitos_curitiba.shape[0]} curitiba\n")
 
         obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
 
-        obitos_raw.loc[obitos_raw.duplicated(subset='hash')].to_excel('casos_raw_duplicates.xlsx')
-        print(f"obitos novos duplicados: {obitos_raw.loc[obitos_raw.duplicated(subset='hash')].shape[0]}")
+        obitos_raw_duplicates = obitos_raw.loc[obitos_raw.duplicated(subset='hash')]
+        print(f"obitos novos duplicados: {obitos_raw_duplicates.shape[0]}")
+        obitos_raw_duplicates.to_excel('obitos_raw_duplicates.xlsx')
         obitos_raw = obitos_raw.drop_duplicates(subset='hash')
-        print(f"obitos novos sem duplicados: {obitos_raw.shape[0]}")
 
         index_obitos_duplicados = obitos_raw.loc[obitos_raw['hash'].isin(obitos_confirmados['hash'])].index.to_list()
         print(f"obitos já em obitos com a mesma idade: {len(index_obitos_duplicados)}")
@@ -124,29 +129,35 @@ class CasosConfirmados:
         print(f"obitos já em obitos com a idade - 1: {len(index_obitos_duplicados_idade_less)}")
         index_obitos_duplicados_idade_more = obitos_raw.loc[obitos_raw['hash_more'].isin(obitos_confirmados['hash'])].index.to_list()
         print(f"obitos já em obitos com a idade + 1: {len(index_obitos_duplicados_idade_more)}")
-        print(f"dentre os quais {len(set(index_obitos_duplicados_idade_more).intersection(index_obitos_duplicados)) + len(set(index_obitos_duplicados_idade_less).intersection(index_obitos_duplicados))} são obitos em comum, o que leva a crer que estão duplicados na planilha já com idade a mais ou idade a menos")
-        index_duplicados = list(set(index_obitos_duplicados + index_obitos_duplicados_idade_less + index_obitos_duplicados_idade_more))
-        print(f"sendo assim, {len(index_duplicados)} obitos que já se encontram na planilha serão removidos")
 
-        print(f"então, de {len(obitos_raw)} obitos baixados hoje  {len(obitos_raw)-len(index_duplicados)} serão adicionados")
+        obitos_duplicados_idade_diferente = list(set(index_obitos_duplicados_idade_more).intersection(index_obitos_duplicados).union(set(index_obitos_duplicados_idade_less).intersection(index_obitos_duplicados)))
+        if len(obitos_duplicados_idade_diferente) > 0:
+            print(f"dentre os quais {len(obitos_duplicados_idade_diferente)} são obitos duplicados com idade diferente")
+
+        index_idade_less = obitos_raw.loc[obitos_raw['hash_less'].isin(casos_confirmados['hash'])].index
+        print(f"obitos que estão nos casos porém com um ano a menos {index_idade_less.shape[0]}")
+        if len(index_idade_less) > 0:
+            obitos_raw.loc[index_idade_less,'idade'] -= 1
+            obitos_raw.loc[index_idade_less,'hash'] = obitos_raw.loc[index_idade_less].apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
+
+        index_idade_more = obitos_raw.loc[obitos_raw['hash_more'].isin(casos_confirmados['hash'])].index
+        print(f"obitos que estão nos casos porém com um ano a mais {index_idade_more.shape[0]}")
+        if len(index_idade_more) > 0:
+            obitos_raw.loc[index_idade_more,'idade'] += 1
+            obitos_raw.loc[index_idade_more,'hash'] = obitos_raw.loc[index_idade_less].apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
+
+        obitos_nao_casos = obitos_raw.loc[~(obitos_raw['hash'].isin(casos_confirmados['hash']) | obitos_raw['hash'].isin(novos_casos['hash']))]
+        obitos_nao_casos.to_excel('obitos_nao_casos.xlsx', index=False)
+        print(f"obitos que não estão nos casos {obitos_nao_casos.shape[0]}")
+
+        index_duplicados = list(set(index_obitos_duplicados + index_obitos_duplicados_idade_less + index_obitos_duplicados_idade_more + obitos_nao_casos.index.to_list()))
+        print(f"sendo assim, {len(index_duplicados) + len(obitos_raw_duplicates)} obitos que já se encontram na planilha serão removidos")
+        print(f"\nentão, de {len(obitos_raw) - len(obitos_curitiba) + len(obitos_raw_duplicates) + len(obitos_nao_casos)} obitos baixados hoje + {len(obitos_curitiba)} inseridos de Curitiba, {len(obitos_raw)-len(index_duplicados)-len(obitos_nao_casos)} serão adicionados\n")
         obitos_raw = obitos_raw.drop(index=index_duplicados)
 
-        # novos_casos.columns = casos_confirmados.columns
-        # casos_confirmados = casos_confirmados.append(novos_casos, ignore_index=True)
-
-        print(f"obitos que estão nos casos {obitos_raw.loc[obitos_raw['hash'].isin(casos_confirmados['hash'])].shape[0]}")
-        print(f"obitos que estão nos casos novos {obitos_raw.loc[obitos_raw['hash'].isin(novos_casos['hash'])].shape[0]}")
 
 
-        print(f"obitos que estão nos casos porém com um ano a menos {obitos_raw.loc[obitos_raw['hash_less'].isin(casos_confirmados['hash'])].shape[0]}")
-        index_idade_less = obitos_raw.loc[obitos_raw['hash_less'].isin(casos_confirmados['hash'])].index
-        obitos_raw.loc[index_idade_less,'idade'] -= 1
-        obitos_raw.loc[index_idade_less,'hash'] = obitos_raw.loc[index_idade_less].apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
-
-        print(f"obitos que estão nos casos porém com um ano a mais {obitos_raw.loc[obitos_raw['hash_more'].isin(casos_confirmados['hash'])].shape[0]}")
-        # index_idade_more = obitos_raw.loc[obitos_raw['hash_more'].isin(casos_confirmados['hash'])]
-
-        novos_obitos = obitos_raw[['paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
+        novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
         novos_obitos.to_excel('novos_obitos.xlsx', index=False)
 
         return novos_obitos
@@ -194,34 +205,46 @@ class CasosConfirmados:
 
         with codecs.open(f"relatorio_{(today.strftime('%d/%m/%Y').replace('/','_').replace(' ',''))}.txt","w","utf-8-sig") as relatorio:
             relatorio.write(f"{len(novos_casosPR):,} novos casos residentes divulgados ".replace(',','.'))
+
             if len(novos_casosFora) > 0:
                 relatorio.write(f"e {len(novos_casosFora):,} não residente{'s' if len(novos_casosFora) > 1 else ''} ".replace(',','.'))
-            relatorio.write(f"no PR. Sendo:\n")
-            relatorio.write(f"Em {today.strftime('%d/%m/%Y')}: {len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > anteontem)])} novos casos novos confirmados.\n")
-            relatorio.write(f"{len(retroativos)} casos retroativos confirmados do período de {retroativos.iloc[0]['data_liberacao'].strftime('%d/%m/%Y')} à {retroativos.iloc[-1]['data_liberacao'].strftime('%d/%m/%Y')}.\n")
+            relatorio.write(f"no PR.")
+
+            if len(retroativos) > 0:
+                relatorio.write(f" Sendo:\n")
+                relatorio.write(f"Em {today.strftime('%d/%m/%Y')}: {len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > anteontem)])} novos casos confirmados.\n")
+                relatorio.write(f"{len(retroativos)} casos retroativos confirmados do período de {retroativos.iloc[0]['data_liberacao'].strftime('%d/%m/%Y')} à {retroativos.iloc[-1]['data_liberacao'].strftime('%d/%m/%Y')}.\n")
+            else:
+                relatorio.write(f" \n")
 
             relatorio.write(f"{len(casos_confirmadosPR)+len(novos_casosPR):,} casos confirmados residentes do PR.\n".replace(',','.'))
             relatorio.write(f"{len(casos_confirmados)+len(novos_casos):,} total geral.\n\n".replace(',','.'))
             relatorio.write(f"{len(novos_obitosPR):,} Óbitos residentes do PR:\n".replace(',','.'))
+
             for municipio, obitos in novos_obitosPR_group:
                 relatorio.write(f"{len(obitos):,} {municipio}\n".replace(',','.'))
+
             if len(novos_obitosFora) > 0:
                 relatorio.write(f"{len(novos_obitosFora):,} Óbito{'s' if len(novos_obitosFora) > 1 else ''} não residente{'s' if len(novos_obitosFora) > 1 else ''} do PR.\n\n".replace(',','.'))
+
             relatorio.write(f"{len(obitos_confirmadosPR)+len(novos_obitosPR):,} óbitos residentes do PR.\n".replace(',','.'))
             relatorio.write(f"{len(obitos_confirmados)+len(novos_obitos):,} total geral.\n\n".replace(',','.'))
+
             for _, row in novos_obitosPR.iterrows():
                 relatorio.write(f"{row['sexo']} {row['idade']} {row['mun_resid']} {row['rs']} {row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month-1]}\n")
             relatorio.write('\n')
 
-            novos_casosPR['month'] = novos_casosPR.apply(lambda x: x['data_liberacao'].month, axis=1)
-            for group, value in novos_casosPR.groupby(by='month'):
-                relatorio.write(f"{static.meses[int(group)-1]}: {len(value)}\n")
-            relatorio.write('\n')
-            for group, value in novos_casosPR.groupby(by='data_liberacao'):
-                relatorio.write(f"{group.strftime('%d/%m/%Y') }: {len(value)}\n")
+
+            if len(retroativos) > 0:
+                novos_casosPR['month'] = novos_casosPR.apply(lambda x: x['data_liberacao'].month, axis=1)
+                for group, value in novos_casosPR.groupby(by='month'):
+                    relatorio.write(f"{static.meses[int(group)-1]}: {len(value)}\n")
+                relatorio.write('\n')
+                for group, value in novos_casosPR.groupby(by='data_liberacao'):
+                    relatorio.write(f"{group.strftime('%d/%m/%Y') }: {len(value)}\n")
 
         with codecs.open(f"relatorio_{(today.strftime('%d/%m/%Y').replace('/','_').replace(' ',''))}.txt","r","utf-8-sig") as relatorio:
-            print("relatorio:\n")
+            print("\nrelatorio:\n")
             print(relatorio.read())
 
     def update(self):
