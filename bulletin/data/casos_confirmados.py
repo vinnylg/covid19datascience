@@ -17,7 +17,7 @@ class CasosConfirmados:
         self.__source = None
         self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
         self.checksum_file = join(dirname(__root__),'tmp','casos_confirmados_checksum')
-        self.errorspath = join(dirname(__root__),'errors','casos_confirmados')
+        self.errorspath = ''
 
         if isfile(self.pathfile):
             saved_checksum = None

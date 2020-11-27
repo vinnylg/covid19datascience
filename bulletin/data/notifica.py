@@ -15,7 +15,7 @@ class Notifica:
         self.__source = None
         self.checksum_file = join(dirname(__root__),'tmp','notifica_checksum')
         self.database = join(dirname(__root__),'tmp','notifica.pkl')
-        self.errorspath = join(dirname(__root__),'errors','notifica')
+        self.errorspath = ''
 
         if isfile(self.pathfile):
             saved_checksum = None
