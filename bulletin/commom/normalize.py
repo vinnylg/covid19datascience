@@ -7,7 +7,7 @@ def trim_overspace(text):
 
 def normalize_text(text):
     #.replace("'"," ") alguns municipios tem ' e as macros maravilhosas do excel vão falhar
-	x = str(text).replace(".","").replace("\n","").replace(",","").upper()
+	x = str(text).replace(".","").replace("\n","").replace(",","").replace("\t","").upper()
 	x = trim_overspace(x)
 	x = unidecode(x)
 
