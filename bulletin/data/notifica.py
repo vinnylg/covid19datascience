@@ -15,7 +15,7 @@ class Notifica:
         self.__source = None
         self.checksum_file = join(dirname(__root__),'tmp','notifica_checksum')
         self.database = join(dirname(__root__),'tmp','notifica.pkl')
-        self.errorspath = ''
+        self.errorspath = join('output','errors')
 
         if isfile(self.pathfile):
             saved_checksum = None
@@ -73,7 +73,7 @@ class Notifica:
                            date_parser = lambda x: pd.to_datetime(x, errors='coerce', format='%d/%m/%Y')
                         )
 
-        municipios = static.municipios[['ibge','municipio']].copy()
+        municipios = static.municipios[['ibge','municipio','uf']].copy()
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
 
         regionais = static.regionais[['ibge','nu_reg']].copy()
@@ -91,15 +91,19 @@ class Notifica:
         notifica = pd.merge(left=notifica, right=origens, how='left', on='origem')
         notifica = pd.merge(left=notifica, right=criterios, how='left', on='criterio_classificacao')
 
-        municipios = municipios.rename(columns={'ibge':'ibge_residencia','municipio':'mun_resid'})
+        notifica['nome_exame'] = notifica['nome_exame'].fillna('Não informado')
+
+        municipios = municipios.rename(columns={'ibge':'ibge_residencia','municipio':'mun_resid','uf':'uf_resid'})
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_residencia')
         notifica = pd.merge(left=notifica, right=regionais, how='left', on='ibge_residencia')
 
-        municipios = municipios.rename(columns={'ibge_residencia':'ibge_unidade_notifica','mun_resid':'mun_atend'})
+        municipios = municipios.rename(columns={'ibge_residencia':'ibge_unidade_notifica','mun_resid':'mun_atend','uf_resid':'uf_atend'})
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_unidade_notifica')
 
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
         notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+
+        notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] = notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] + '/' + notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'uf_resid']
 
         # notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
         # notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)

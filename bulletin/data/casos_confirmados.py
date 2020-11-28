@@ -17,7 +17,7 @@ class CasosConfirmados:
         self.__source = None
         self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
         self.checksum_file = join(dirname(__root__),'tmp','casos_confirmados_checksum')
-        self.errorspath = ''
+        self.errorspath = join('output','errors')
 
         if isfile(self.pathfile):
             saved_checksum = None
@@ -93,7 +93,7 @@ class CasosConfirmados:
 
         casos_raw['data_com'] = [ "" ] * len(casos_raw)
         novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
-        novos_casos.to_excel('novos_casos.xlsx', index=False)
+        novos_casos.to_excel(join('output','novos_casos.xlsx'), index=False)
 
         return novos_casos
 
@@ -153,12 +153,11 @@ class CasosConfirmados:
 
         index_duplicados = list(set(index_obitos_duplicados + index_obitos_duplicados_idade_less + index_obitos_duplicados_idade_more + obitos_nao_casos.index.to_list()))
         print(f"sendo assim, {len(index_duplicados) + len(obitos_raw_duplicates)} obitos que já se encontram na planilha serão removidos")
-        print(f"\nentão, de {len(obitos_raw) - len(obitos_curitiba) + len(obitos_raw_duplicates)} obitos baixados hoje + {len(obitos_curitiba)} inseridos de Curitiba, {len(obitos_raw)-len(index_duplicados)-len(obitos_nao_casos)} serão adicionados\n")
+        print(f"\nentão, de {len(obitos_raw) - len(obitos_curitiba) + len(obitos_raw_duplicates)} obitos baixados hoje + {len(obitos_curitiba)} inseridos de Curitiba, ",end='')
         obitos_raw = obitos_raw.drop(index=index_duplicados)
-
-
+        print(f"{len(obitos_raw)} serão adicionados\n")
         novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
-        novos_obitos.to_excel('novos_obitos.xlsx', index=False)
+        novos_obitos.to_excel(join('output','novos_obitos.xlsx'), index=False)
 
         return novos_obitos
 
@@ -196,6 +195,7 @@ class CasosConfirmados:
         print(f"Total de obitos Fora: {len(obitos_confirmados) - len(obitos_confirmadosPR)} + {len(novos_obitosFora)}")
 
         novos_obitosPR_group = novos_obitosPR.groupby(by='mun_resid')
+
         today = datetime.today()
         ontem = today - timedelta(1)
         anteontem = ontem - timedelta(1)
@@ -203,7 +203,7 @@ class CasosConfirmados:
 
         retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= anteontem)].sort_values(by='data_liberacao')
 
-        with codecs.open(f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt","w","utf-8-sig") as relatorio:
+        with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"w","utf-8-sig") as relatorio:
             relatorio.write(f"{len(novos_casosPR):,} novos casos residentes divulgados ".replace(',','.'))
 
             if len(novos_casosFora) > 0:
@@ -225,13 +225,15 @@ class CasosConfirmados:
                 relatorio.write(f"{len(obitos):,} {municipio}\n".replace(',','.'))
 
             if len(novos_obitosFora) > 0:
-                relatorio.write(f"{len(novos_obitosFora):,} Óbito{'s' if len(novos_obitosFora) > 1 else ''} não residente{'s' if len(novos_obitosFora) > 1 else ''} do PR.\n\n".replace(',','.'))
+                relatorio.write('\n')
+                relatorio.write(f"{len(novos_obitosFora):,} Óbito{'s' if len(novos_obitosFora) > 1 else ''} não residente{'s' if len(novos_obitosFora) > 1 else ''} do PR.\n".replace(',','.'))
 
+            relatorio.write('\n')
             relatorio.write(f"{len(obitos_confirmadosPR)+len(novos_obitosPR):,} óbitos residentes do PR.\n".replace(',','.'))
             relatorio.write(f"{len(obitos_confirmados)+len(novos_obitos):,} total geral.\n\n".replace(',','.'))
 
             for _, row in novos_obitos.iterrows():
-                relatorio.write(f"{row['sexo']}\t{row['idade']}\t{row['mun_resid'] if row['rs'] else row['mun_resid'] + ' - Fora'}\t{row['rs'] if row['rs'] else ''}\t{row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month-1]}\n")
+                relatorio.write(f"{row['sexo']}\t{row['idade']}\t{row['mun_resid'] if row['rs'] else row['mun_resid']}\t{row['rs'] if row['rs'] else '#N/D'}\t{row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month-1]}\n")
             relatorio.write('\n')
 
 
@@ -251,7 +253,7 @@ class CasosConfirmados:
                 for group, value in novos_casosPR.groupby(by='data_liberacao'):
                     relatorio.write(f"{group.strftime('%d/%m/%Y')}\t{len(value)}\n")
 
-        with codecs.open(f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt","r","utf-8-sig") as relatorio:
+        with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"r","utf-8-sig") as relatorio:
             print("\nrelatorio:\n")
             print(relatorio.read())
 

@@ -4,6 +4,6 @@
 *.log
 *.xls*
 *__pycache__*
-tmp
 .ipynb_checkpoints*
-*.txt
+*.pkl
+notifica.csv
