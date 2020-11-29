@@ -12,7 +12,7 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace
 
 class CasosConfirmados:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx')):
+    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False):
         self.pathfile = pathfile
         self.__source = None
         self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
@@ -32,7 +32,10 @@ class CasosConfirmados:
                 print(f"current checksum: {self.checksum}")
 
             if saved_checksum != self.checksum:
-                print(f"Parece que o arquivo {self.pathfile} sofreu alterações, considere usar o método update")
+                print(f"Parece que o arquivo {self.pathfile} sofreu alterações, considere usar o método update ou o passe force=True")
+                if force:
+                    print(f"Utilizando o método update")
+                    self.update()
             else:
                 print(f"Tudo certo, nenhuma alteração detectada")
 
@@ -76,7 +79,12 @@ class CasosConfirmados:
         dropar.to_excel(join(self.errorspath,'casos_raw_sem_sexo.xlsx'))
         # casos_raw = casos_raw.drop(index=dropar.index)
 
-        print(f"casos novos validos: {casos_raw.shape[0]}")
+        dropar = casos_raw.loc[casos_raw['data_liberacao'] > datetime.today()]
+        print(f"casos novos com data_liberacao no futuro: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
+        # casos_raw = casos_raw.drop(index=dropar.index)
+
+        # print(f"casos novos validos: {casos_raw.shape[0]}")
 
         index_casos_duplicados = casos_raw.loc[casos_raw['hash'].isin(casos_confirmados['hash'])].index.to_list()
         print(f"casos já em casos com a mesma idade: {len(index_casos_duplicados)}")
@@ -90,6 +98,8 @@ class CasosConfirmados:
 
         print(f"\nentão, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados\n")
         casos_raw = casos_raw.drop(index=index_duplicados)
+
+        casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
 
         casos_raw['data_com'] = [ "" ] * len(casos_raw)
         novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
@@ -145,7 +155,7 @@ class CasosConfirmados:
         print(f"obitos que estão nos casos porém com um ano a mais {index_idade_more.shape[0]}")
         if len(index_idade_more) > 0:
             obitos_raw.loc[index_idade_more,'idade'] += 1
-            obitos_raw.loc[index_idade_more,'hash'] = obitos_raw.loc[index_idade_less].apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
+            obitos_raw.loc[index_idade_more,'hash'] = obitos_raw.loc[index_idade_more].apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
 
         obitos_nao_casos = obitos_raw.loc[~(obitos_raw['hash'].isin(casos_confirmados['hash']) | obitos_raw['hash'].isin(novos_casos['hash']))]
         obitos_nao_casos.to_excel(join(self.errorspath,'obitos_nao_casos.xlsx'))
@@ -155,6 +165,9 @@ class CasosConfirmados:
         print(f"sendo assim, {len(index_duplicados) + len(obitos_raw_duplicates)} obitos que já se encontram na planilha serão removidos")
         print(f"\nentão, de {len(obitos_raw) - len(obitos_curitiba) + len(obitos_raw_duplicates)} obitos baixados hoje + {len(obitos_curitiba)} inseridos de Curitiba, ",end='')
         obitos_raw = obitos_raw.drop(index=index_duplicados)
+
+        obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] = obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'uf_resid']
+
         print(f"{len(obitos_raw)} serão adicionados\n")
         novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
         novos_obitos.to_excel(join('output','novos_obitos.xlsx'), index=False)

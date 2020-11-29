@@ -10,7 +10,7 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe
 
 class Notifica:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','notifica.csv')):
+    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','notifica.csv'), force=False):
         self.pathfile = pathfile
         self.__source = None
         self.checksum_file = join(dirname(__root__),'tmp','notifica_checksum')
@@ -32,7 +32,10 @@ class Notifica:
                 print(f"current checksum: {self.checksum}")
 
             if saved_checksum != self.checksum:
-                print(f"Parece que o arquivo {self.pathfile} sofreu alterações, considere usar o método update")
+                print(f"Parece que o arquivo {self.pathfile} sofreu alterações, considere usar o método update ou o passe force=True")
+                if force:
+                    print(f"Utilizando o método update")
+                    self.update()
             else:
                 print(f"Tudo certo, nenhuma alteração detectada")
 
@@ -102,8 +105,6 @@ class Notifica:
 
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
         notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
-
-        notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] = notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] + '/' + notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'uf_resid']
 
         # notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
         # notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
