@@ -79,11 +79,6 @@ class CasosConfirmados:
         dropar.to_excel(join(self.errorspath,'casos_raw_sem_sexo.xlsx'))
         # casos_raw = casos_raw.drop(index=dropar.index)
 
-        dropar = casos_raw.loc[casos_raw['data_liberacao'] > datetime.today()]
-        print(f"casos novos com data_liberacao no futuro: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
-
         # print(f"casos novos validos: {casos_raw.shape[0]}")
 
         index_casos_duplicados = casos_raw.loc[casos_raw['hash'].isin(casos_confirmados['hash'])].index.to_list()
@@ -98,6 +93,16 @@ class CasosConfirmados:
 
         print(f"\nentão, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados\n")
         casos_raw = casos_raw.drop(index=index_duplicados)
+
+        dropar = casos_raw.loc[casos_raw['data_liberacao'] > datetime.today()]
+        print(f"casos novos com data_liberacao no futuro: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
+        # casos_raw = casos_raw.drop(index=dropar.index)
+
+        dropar = casos_raw.loc[casos_raw['data_liberacao'] < datetime.strptime('01/01/2020','%d/%m/%Y')]
+        print(f"casos novos com data_liberacao antes de 2020: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_passado.xlsx'))
+        # casos_raw = casos_raw.drop(index=dropar.index)
 
         casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
 
@@ -157,8 +162,9 @@ class CasosConfirmados:
             obitos_raw.loc[index_idade_more,'idade'] += 1
             obitos_raw.loc[index_idade_more,'hash'] = obitos_raw.loc[index_idade_more].apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
 
-        obitos_nao_casos = obitos_raw.loc[~(obitos_raw['hash'].isin(casos_confirmados['hash']) | obitos_raw['hash'].isin(novos_casos['hash']))]
-        obitos_nao_casos.to_excel(join(self.errorspath,'obitos_nao_casos.xlsx'))
+        all_casos = casos_confirmados[['hash']].append(novos_casos[['hash']])
+        obitos_nao_casos = obitos_raw.loc[~obitos_raw['hash'].isin(all_casos['hash'])]
+        obitos_nao_casos.to_excel(join(self.errorspath,'obitos_nao_casos_confirmados.xlsx'))
         print(f"obitos que não estão nos casos {obitos_nao_casos.shape[0]}")
 
         index_duplicados = list(set(index_obitos_duplicados + index_obitos_duplicados_idade_less + index_obitos_duplicados_idade_more + obitos_nao_casos.index.to_list()))
@@ -168,7 +174,7 @@ class CasosConfirmados:
 
         obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] = obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'uf_resid']
 
-        print(f"{len(obitos_raw)} serão adicionados\n")
+        print(f"{len(obitos_raw) - len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} do notifica e {len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} de Curitiba serão adicionados\n")
         novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
         novos_obitos.to_excel(join('output','novos_obitos.xlsx'), index=False)
 
@@ -217,6 +223,7 @@ class CasosConfirmados:
         retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= anteontem)].sort_values(by='data_liberacao')
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"w","utf-8-sig") as relatorio:
+            relatorio.write(f"{today.strftime('%d/%m/%Y - %Hh%M')}\n")
             relatorio.write(f"{len(novos_casosPR):,} novos casos residentes divulgados ".replace(',','.'))
 
             if len(novos_casosFora) > 0:

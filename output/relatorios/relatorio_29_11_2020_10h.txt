@@ -1,8 +1,8 @@
-﻿1.392 novos casos residentes divulgados e 4 não residentes no PR. Sendo:
-Em 29/11/2020: 813 novos casos confirmados.
-579 casos retroativos confirmados do período de 21/05/2020 à 27/11/2020.
-274.922 casos confirmados residentes do PR.
-277.581 total geral.
+﻿1.518 novos casos residentes divulgados e 4 não residentes no PR. Sendo:
+Em 29/11/2020: 882 novos casos confirmados.
+636 casos retroativos confirmados do período de 21/05/2020 à 27/11/2020.
+275.048 casos confirmados residentes do PR.
+277.707 total geral.
 
 15 Óbitos residentes do PR:
 4 CAMPO MAGRO
@@ -37,16 +37,18 @@ F	89	CURITIBA	02	25/nov
 
 Casos por meses:
 mai: 1
-jul: 2
+jul: 4
 ago: 6
 set: 2
 out: 10
-nov: 1371
+nov: 1495
 
 Obitos por meses:
 nov: 15
 
 21/05/2020	1
+08/07/2020	1
+20/07/2020	1
 24/07/2020	1
 30/07/2020	1
 10/08/2020	1
@@ -69,17 +71,17 @@ nov: 15
 07/11/2020	6
 12/11/2020	1
 15/11/2020	15
-16/11/2020	4
+16/11/2020	5
 17/11/2020	3
 18/11/2020	6
 19/11/2020	9
-20/11/2020	4
+20/11/2020	5
 21/11/2020	15
 22/11/2020	7
 23/11/2020	42
-24/11/2020	36
-25/11/2020	91
-26/11/2020	60
-27/11/2020	250
-28/11/2020	629
-29/11/2020	184
+24/11/2020	49
+25/11/2020	100
+26/11/2020	69
+27/11/2020	272
+28/11/2020	678
+29/11/2020	204
