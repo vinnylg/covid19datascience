@@ -13,14 +13,21 @@ ontem = hoje - timedelta(1)
 anteontem = ontem - timedelta(1)
 
 force = False
+hard = False
 if len(argv) == 2:
     if argv[1] == '--force':
         force = True
+    elif argv[1] == '--hard':
+        hard = True
+elif len(argv) == 3:
+    if (argv[1] == '--force' or argv[1] == '--hard') and (argv[2] == '--hard' or argv[2] == '--force'):
+        force = True
+        hard = True
 
-notifica = Notifica(force=force)
+notifica = Notifica(force=force, hard=hard)
 notifica.shape()
 
-casos_confirmados = CasosConfirmados(force=force)
+casos_confirmados = CasosConfirmados(force=force, hard=hard)
 casos_confirmados.shape()
 
 notifica.filter_date(anteontem)

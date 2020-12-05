@@ -10,7 +10,7 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe
 
 class Notifica:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','notifica.csv'), force=False):
+    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','notifica.csv'), force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
         self.checksum_file = join(dirname(__root__),'tmp','notifica_checksum')
@@ -38,6 +38,9 @@ class Notifica:
                     self.update()
             else:
                 print(f"Tudo certo, nenhuma alteração detectada")
+                if hard:
+                    print(f"Utilizando forcadamente com método update")
+                    self.update()
 
             if isfile(self.database):
                 self.__source = pd.read_pickle(self.database)
@@ -62,7 +65,7 @@ class Notifica:
                                'paciente': normalize_text,
                                'origem': lambda x: normalize_number(x,fill=0),
                                'nome_mae': normalize_text,
-                               'idade': lambda x: normalize_number(x,fill=-1),
+                               'idade': lambda x: normalize_number(x,fill=0),
                                'pais_residencia': lambda x: normalize_number(x,fill=0),
                                'uf_residencia': lambda x: normalize_number(x,fill=0),
                                'ibge_residencia': lambda x: normalize_number(x,fill=0),

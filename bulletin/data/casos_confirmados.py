@@ -12,7 +12,7 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace
 
 class CasosConfirmados:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False):
+    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
         self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
@@ -38,6 +38,9 @@ class CasosConfirmados:
                     self.update()
             else:
                 print(f"Tudo certo, nenhuma alteração detectada")
+                if hard:
+                    print(f"Utilizando forcadamente com método update")
+                    self.update()
 
             if isfile(self.database['casos']) and isfile(self.database['obitos']):
                 casos = pd.read_pickle(self.database['casos'])
@@ -121,7 +124,7 @@ class CasosConfirmados:
 
         obitos_curitiba['paciente'] = obitos_curitiba['paciente'].apply(lambda x: trim_overspace(normalize_text(x)))
         obitos_curitiba['mun_resid'] = obitos_curitiba['mun_resid'].apply(lambda x: trim_overspace(normalize_text(x)))
-        obitos_curitiba['idade'] = obitos_curitiba['idade'].apply(normalize_number)
+        obitos_curitiba['idade'] = obitos_curitiba['idade'].apply(lambda x: normalize_number(x,fill=0))
 
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: normalize_number(x,fill='99'))
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
@@ -286,7 +289,7 @@ class CasosConfirmados:
                             usecols='B,C,D,F,G',
                             converters = {
                                'Nome': normalize_text,
-                               'Idade': normalize_number,
+                               'Idade': lambda x: normalize_number(x,fill=0),
                                'IBGE_RES_PR': normalize_igbe,
                                'Mun Resid': normalize_municipios
                             })
@@ -320,7 +323,7 @@ class CasosConfirmados:
                             usecols='B,C,D,F,G,I',
                             converters = {
                                'Nome': normalize_text,
-                               'Idade': normalize_number,
+                               'Idade': lambda x: normalize_number(x,fill=0),
                                'IBGE_RES_PR': normalize_igbe,
                                'Município': normalize_municipios
                             })

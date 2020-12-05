@@ -10,8 +10,8 @@ from bulletin.data.casos_confirmados import CasosConfirmados
 from bulletin.data.notifica import Notifica
 from bulletin.data.casos_confirmados import CasosConfirmados
 
-novos_casos = pd.read_excel(join('output','novos_casos.xlsx'),dtype={'idade':int, 'rs':str}, parse_dates=['data_liberacao','data_1o_sintomas'])
+novos_casos = pd.read_excel(join('output','novos_casos.xlsx'),dtype={'idade':int, 'rs':str})
 
-novos_obitos = pd.read_excel(join('output','novos_obitos.xlsx'),dtype={'idade':int, 'rs':str}, parse_dates='data_cura_obito')
+novos_obitos = pd.read_excel(join('output','novos_obitos.xlsx'),dtype={'idade':int, 'rs':str})
 
 CasosConfirmados().relatorio(novos_casos, novos_obitos)
