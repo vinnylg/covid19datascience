@@ -8,4 +8,4 @@
 *.pkl
 notifica.csv
 output
-tmp
+bulletin/tmp/*
