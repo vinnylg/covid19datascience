@@ -11,15 +11,18 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash
 
 class Notifica:
-    def __init__(self, pathfile:join('input','notifica.csv'), force=False, hard=False):
+    def __init__(self, pathfile=join('input','notifica.csv'), force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
-        self.checksum_file = join(dirname(__root__),'resource','database','notifica_checksum')
-        self.database = join(dirname(__root__),'resource','database','notifica.pkl')
+        self.checksum_file = join(dirname(__root__),'resources','database','notifica_checksum')
+        self.database = join(dirname(__root__),'resources','database','notifica','notifica.pkl')
         self.errorspath = join('output','errors')
 
         if not isdir(self.errorspath):
             makedirs(self.errorspath)
+
+        if not isdir(dirname(self.database)):
+            makedirs(dirname(self.database))
 
         if isfile(self.pathfile):
             saved_checksum = None
@@ -33,7 +36,6 @@ class Notifica:
                 self.checksum = sha256(bytes).hexdigest()
 
             if saved_checksum != self.checksum:
-                print(f"O arquivo {self.pathfile} sofreu alterações")
                 if force:
                     self.update()
             else:
@@ -55,10 +57,10 @@ class Notifica:
         return len(self.__source)
 
     def shape(self):
-        return (len(self.__source),len(self.__source.loc[self.__source['evolucao'] == 1]),len(self.__source.loc[self.__source['evolucao'] == 2]),len(self.__source.loc[self.__source['evolucao'] == 3]),len(self.__source.loc[self.__source['evolucao'] == 4]))
+        return (len(self.__source),len(self.__source.loc[self.__source['cod_evolucao'] == 1]),len(self.__source.loc[self.__source['cod_evolucao'] == 2]),len(self.__source.loc[self.__source['cod_evolucao'] == 3]),len(self.__source.loc[self.__source['cod_evolucao'] == 4]))
 
     def read_notifica(self,pathfile):
-        return pd.read_csv(self.pathfile,
+        return pd.read_csv(pathfile,
                            dtype = {
                                'id': 'int32',
                            },
@@ -108,7 +110,13 @@ class Notifica:
                         )
 
     def update(self):
-        notifica = self.read_notifica(self.pathfile)
+        # notifica = self.read_notifica(self.pathfile)
+        notifica = self.read_notifica(join('input','null.csv'))
+        notifica = notifica.append(self.read_notifica(join('input','0.csv')))
+        notifica = notifica.append(self.read_notifica(join('input','1.csv')))
+        notifica = notifica.append(self.read_notifica(join('input','2.csv')))
+        notifica = notifica.append(self.read_notifica(join('input','3.csv')))
+        notifica = notifica.append(self.read_notifica(join('input','5.csv')))
 
         municipios = static.municipios[['ibge','municipio','uf']].copy()
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
@@ -126,26 +134,15 @@ class Notifica:
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
         notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
 
-        # print(f"notifica duplicados: {notifica.loc[notifica.duplicated(subset='hash')].shape[0]}")
-        # notifica.loc[notifica.duplicated(subset='hash')].to_excel(join(self.errorspath,'notifica_duplicados.xlsx'))
-        # notifica = notifica.drop_duplicates(subset='hash')
+        nao = set(['NAO','CONSTA','INFO','INFORMADO','CONTEM'])
+        notifica.loc[ [True if set(nome_mae.split(" ")).intersection(nao) else False for nome_mae in notifica['nome_mae'] ], 'nome_mae'] = None
 
-        # notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
-        # notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
-        # notifica.loc[ notifica['ibge_residencia'] <= 0  ].to_excel('sem_ibge_residencia.xlsx', index=None)
-        # notifica.loc[ notifica['sexo'].isnull()  ].to_excel('sem_sexo.xlsx', index=None)
-        # notifica.loc[ notifica['idade'] == -1 ].to_excel('sem_idade.xlsx', index=None)
+        notifica.loc[notifica['mun_resid'].notnull(), 'hash_idade_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica.loc[notifica['mun_atend'].notnull(), 'hash_idade_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica['hash_idade'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']))).hexdigest(), axis=1)
 
-        # notifica = notifica.loc[ notifica['data_liberacao'].notnull() ]
-        # notifica = notifica.loc[ notifica['ibge_residencia'] > 0 ]
-        # notifica = notifica.loc[ notifica['sexo'].notnull() ]
-        # notifica = notifica.loc[ notifica['idade'] != -1 ]
-
-        notifica = notifica.loc[notifica['mun_resid'].notnull()]
-
-        notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'], axis=1)
-
-        notifica['hash'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+normalize_hash(row['nome_mae']))).hexdigest(), axis=1)
+        # notifica['hash_nasc'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+row['data_nascimento'].dt.strftime('%d%m%Y'))).hexdigest(), axis=1)
 
         notifica.to_pickle(self.database)
 
@@ -161,13 +158,13 @@ class Notifica:
         return self.__source.copy()
 
     def get_obitos(self):
-        return self.__source.loc[self.__source['evolucao'] == 2].copy()
+        return self.__source.loc[self.__source['cod_evolucao'] == 2].copy()
 
     def get_recuperados(self):
-        return self.__source.loc[self.__source['evolucao'] == 1].copy()
+        return self.__source.loc[self.__source['cod_evolucao'] == 1].copy()
 
     def get_casos_ativos(self):
-        return self.__source.loc[self.__source['evolucao'] == 3].copy()
+        return self.__source.loc[self.__source['cod_evolucao'] == 3].copy()
 
     def get_obitos_nao_covid(self):
-        return self.__source.loc[self.__source['evolucao'] == 4].copy()
+        return self.__source.loc[self.__source['cod_evolucao'] == 4].copy()

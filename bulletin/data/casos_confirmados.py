@@ -17,12 +17,18 @@ class CasosConfirmados:
 
         self.pathfile = pathfile
         self.__source = None
-        self.checksum_file = join(dirname(__root__),'resource','database','notifica_checksum')
-        self.database = join(dirname(__root__),'resource','database','notifica.pkl')
+        self.checksum_file = join(dirname(__root__),'resources','database','casos_confirmados_checksum')
+        self.database = {
+            'casos': join(dirname(__root__),'resources','database','casos_confirmados','casos.pkl'),
+            'obitos': join(dirname(__root__),'resources','database','casos_confirmados','obitos.pkl')
+        }
         self.errorspath = join('output','errors','casos_confirmados')
 
         if not isdir(self.errorspath):
             makedirs(self.errorspath)
+
+        if not isdir(dirname(self.database['casos'])):
+            makedirs(dirname(self.database['casos']))
 
         if isfile(self.pathfile):
             saved_checksum = None
@@ -36,7 +42,6 @@ class CasosConfirmados:
                 self.checksum = sha256(bytes).hexdigest()
 
             if saved_checksum != self.checksum:
-                print(f"O arquivo {self.pathfile} sofreu alterações")
                 if force:
                     self.update()
             else:
@@ -160,22 +165,15 @@ class CasosConfirmados:
 
 
     def relatorio(self, novos_casos, novos_obitos):
-        casos_confirmados =  self.__source['casos']
-        casos_exclucoes = casos_confirmados.loc[casos_confirmados['mun_resid'] == 'EXCLUIR']
-        casos_confirmados = casos_confirmados.drop(index=casos_exclucoes.index)
+        casos_confirmados =  self.get_casos()
 
         casos_confirmadosPR = casos_confirmados.loc[casos_confirmados['rs'].notnull()]
 
-        obitos_confirmados =  self.__source['obitos']
-        obitos_exclucoes = obitos_confirmados.loc[obitos_confirmados['municipio'] == 'EXCLUIR']
-        obitos_confirmados = obitos_confirmados.drop(index=obitos_exclucoes.index)
+        obitos_confirmados =  self.get_obitos()
 
         obitos_confirmadosPR = obitos_confirmados.loc[obitos_confirmados['rs'].notnull()]
 
-        print(f"Casos confirmados excluidos: {len(casos_exclucoes)}")
         print(f"Total de casos: {len(casos_confirmados)} + {len(novos_casos)}")
-
-        print(f"Obitos confirmados excluidos: {len(obitos_exclucoes)}")
         print(f"Total de obitos: {len(obitos_confirmados)} + {len(novos_obitos)}\n\n")
 
 
@@ -256,8 +254,6 @@ class CasosConfirmados:
             print(relatorio.read())
 
     def update(self):
-        print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
-
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
                             usecols='B,C,D,F,G',
@@ -301,13 +297,15 @@ class CasosConfirmados:
         with open(self.checksum_file, "w") as checksum:
             checksum.write(self.checksum)
 
-        print(f"{self.database} salvo e {self.checksum_file} atualizado")
-
         self.__source = { 'casos': casos, 'obitos': obitos }
 
     def get_casos(self):
-        return self.__source['casos'].copy()
+        casos = self.__source['casos']
+        print(f"Casos confirmados excluidos: {len(casos.loc[casos['mun_resid'] == 'EXCLUIR'])}")
+        return casos.loc[casos['mun_resid'] != 'EXCLUIR'].copy()
 
 
     def get_obitos(self):
-        return self.__source['obitos'].copy()
+        obitos = self.__source['obitos']
+        print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['municipio'] == 'EXCLUIR'])}")
+        return obitos.loc[obitos['municipio'] != 'EXCLUIR'].copy()
