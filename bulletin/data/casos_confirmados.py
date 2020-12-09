@@ -1,57 +1,59 @@
-from os.path import dirname, join, isfile
+from os.path import dirname, join, isfile, isdir
 from datetime import datetime, timedelta
 from unidecode import unidecode
 from hashlib import sha256
+from os import makedirs
+from sys import exit
 import pandas as pd
 import codecs
 
-from sys import exit
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace
 
 class CasosConfirmados:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False, hard=False):
+    def __init__(self, pathfile=join('input','Casos Confirmados PR.xlsx'),force=False, hard=False):
+
         self.pathfile = pathfile
         self.__source = None
-        self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
-        self.checksum_file = join(dirname(__root__),'tmp','casos_confirmados_checksum')
-        self.errorspath = join('output','errors')
+        self.checksum_file = join(dirname(__root__),'resource','database','notifica_checksum')
+        self.database = join(dirname(__root__),'resource','database','notifica.pkl')
+        self.errorspath = join('output','errors','casos_confirmados')
+
+        if not isdir(self.errorspath):
+            makedirs(self.errorspath)
 
         if isfile(self.pathfile):
             saved_checksum = None
+
             if isfile(self.checksum_file):
                 with open(self.checksum_file, "r") as checksum:
                     saved_checksum = checksum.read()
-                    print(f"saved checksum: {saved_checksum}")
 
             with open(self.pathfile, "rb") as filein:
                 bytes = filein.read()
                 self.checksum = sha256(bytes).hexdigest()
-                print(f"current checksum: {self.checksum}")
 
             if saved_checksum != self.checksum:
-                print(f"Parece que o arquivo {self.pathfile} sofreu alterações, considere usar o método update ou o passe force=True")
+                print(f"O arquivo {self.pathfile} sofreu alterações")
                 if force:
-                    print(f"Utilizando o método update")
                     self.update()
             else:
-                print(f"Tudo certo, nenhuma alteração detectada")
                 if hard:
-                    print(f"Utilizando forcadamente com método update")
                     self.update()
 
             if isfile(self.database['casos']) and isfile(self.database['obitos']):
                 casos = pd.read_pickle(self.database['casos'])
                 obitos = pd.read_pickle(self.database['obitos'])
                 self.__source = { 'casos': casos, 'obitos': obitos }
-                print(f"{self.database} carregado")
             else:
-                print(f"{self.database} não encontrado, utilizando o método update")
                 self.update()
 
         else:
+            if not isdir(dirname(self.pathfile)):
+                makedirs(dirname(self.pathfile))
+
             exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
 
     def shape(self):
@@ -63,49 +65,19 @@ class CasosConfirmados:
 
         print(f"casos novos: {casos_raw.shape[0]}")
 
-        print(f"casos novos duplicados: {casos_raw.loc[casos_raw.duplicated(subset='hash')].shape[0]}")
-        casos_raw.loc[casos_raw.duplicated(subset='hash')].to_excel(join(self.errorspath,'casos_raw_duplicates.xlsx'))
-        casos_raw = casos_raw.drop_duplicates(subset='hash')
-
-        dropar = casos_raw.loc[casos_raw['data_liberacao'].isnull()]
-        dropar.to_excel(join(self.errorspath,'casos_raw_sem_liberacao.xlsx'))
-        print(f"casos novos sem diagnóstico: {dropar.shape[0]}")
-        # casos_raw = casos_raw.drop(index=dropar.index)
-
-        dropar = casos_raw.loc[casos_raw['nome_exame'].isnull()]
-        dropar.to_excel(join(self.errorspath,'casos_raw_sem_nome_exame.xlsx'))
-        print(f"casos novos sem laboratório: {dropar.shape[0]}")
-        # casos_raw = casos_raw.drop(index=dropar.index)
-
-        dropar = casos_raw.loc[casos_raw['sexo'].isnull()]
-        print(f"casos novos sem sexo: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'casos_raw_sem_sexo.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
-
-        # print(f"casos novos validos: {casos_raw.shape[0]}")
-
         index_casos_duplicados = casos_raw.loc[casos_raw['hash'].isin(casos_confirmados['hash'])].index.to_list()
         print(f"casos já em casos com a mesma idade: {len(index_casos_duplicados)}")
         index_casos_duplicados_idade_less = casos_raw.loc[casos_raw['hash_less'].isin(casos_confirmados['hash'])].index.to_list()
         print(f"casos já em casos com a idade - 1: {len(index_casos_duplicados_idade_less)}")
         index_casos_duplicados_idade_more = casos_raw.loc[casos_raw['hash_more'].isin(casos_confirmados['hash'])].index.to_list()
         print(f"casos já em casos com a idade + 1: {len(index_casos_duplicados_idade_more)}")
+
         print(f"dentre os quais {len(set(index_casos_duplicados_idade_more).intersection(index_casos_duplicados)) + len(set(index_casos_duplicados_idade_less).intersection(index_casos_duplicados))} são casos em comum, o que leva a crer que estão duplicados na planilha já com idade a mais ou idade a menos")
         index_duplicados = list(set(index_casos_duplicados + index_casos_duplicados_idade_less + index_casos_duplicados_idade_more))
         print(f"sendo assim, {len(index_duplicados)} casos que já se encontram na planilha serão removidos")
 
         print(f"\nentão, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados\n")
         casos_raw = casos_raw.drop(index=index_duplicados)
-
-        dropar = casos_raw.loc[casos_raw['data_liberacao'] > datetime.today()]
-        print(f"casos novos com data_liberacao no futuro: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
-
-        dropar = casos_raw.loc[casos_raw['data_liberacao'] < datetime.strptime('01/01/2020','%d/%m/%Y')]
-        print(f"casos novos com data_liberacao antes de 2020: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_passado.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
 
         casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
 
@@ -120,22 +92,25 @@ class CasosConfirmados:
         obitos_confirmados = self.__source['obitos']
         obitos_raw = obitos_raw.sort_values(by='paciente')
 
-        obitos_curitiba = pd.read_excel(join(dirname(__root__),'tmp','obitos_curitiba.xlsx'))
+        print(f"obitos novos notifica {obitos_raw.shape[0]}", end=" ")
 
-        obitos_curitiba['paciente'] = obitos_curitiba['paciente'].apply(lambda x: trim_overspace(normalize_text(x)))
-        obitos_curitiba['mun_resid'] = obitos_curitiba['mun_resid'].apply(lambda x: trim_overspace(normalize_text(x)))
-        obitos_curitiba['idade'] = obitos_curitiba['idade'].apply(lambda x: normalize_number(x,fill=0))
+        if isfile(join('input','obitos_curitiba.xlsx')):
+            obitos_curitiba = pd.read_excel(join('input','obitos_curitiba.xlsx'),
+                            converters = {
+                               'paciente': normalize_text,
+                               'idade': lambda x: normalize_number(x,fill=0),
+                               'mun_resid': normalize_text,
+                               'rs': lambda x: str(normalize_number(x,fill=99)).zfill(2) if x != 99 else None
+                            })
 
-        obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: normalize_number(x,fill='99'))
-        obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+            obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
+            obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
+            obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']+1)+row['mun_resid'])).hexdigest(), axis=1)
 
-        obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
-        obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
-        obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']+1)+row['mun_resid'])).hexdigest(), axis=1)
+            print(f" + {obitos_curitiba.shape[0]} curitiba", end="")
 
-        print(f"obitos novos notifica {obitos_raw.shape[0]} + {obitos_curitiba.shape[0]} curitiba\n")
-
-        obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
+            obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
+        print("\n")
 
         obitos_raw_duplicates = obitos_raw.loc[obitos_raw.duplicated(subset='hash')]
         print(f"obitos novos duplicados: {obitos_raw_duplicates.shape[0]}")
@@ -283,7 +258,6 @@ class CasosConfirmados:
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
 
-        # casos = pd.read_excel(self.pathfile,'Casos confirmados',usecols='B,C,D,F,G')
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
                             usecols='B,C,D,F,G',
@@ -297,22 +271,8 @@ class CasosConfirmados:
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
         casos = casos.rename(columns={'rs_res_pr': 'rs'})
 
-        # casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
-
         municipios = static.municipios.copy()[['ibge','uf','municipio']]
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
-
-        # casosPR = casos.loc[casos['ibge_res_pr'] != -1].copy()
-        # municipiosPR = municipios.loc[municipios['uf']=='PR']
-        # casosPR = pd.merge(left=casosPR, right=municipiosPR, how='left', left_on='ibge_res_pr', right_on='ibge')
-
-
-        # casosFora = casos.loc[casos['ibge_res_pr'] == -1].copy()
-        # municipiosFora = municipios.loc[municipios['uf']!='PR']
-        # casosFora = pd.merge(left=casosFora, right=municipiosFora, how='left', left_on='mun_resid', right_on='municipio')
-
-        # casos = casosPR.append(casosFora, ignore_index=True).sort_values(by='nome')
-        # casos = casos.drop(columns=(['ibge_res_pr']))
 
         casos['hash'] = casos.apply(lambda row: sha256(str.encode(row['nome']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(row['nome']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
@@ -331,23 +291,9 @@ class CasosConfirmados:
         obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
         obitos = obitos.rename(columns={'rs_res_pr': 'rs'})
 
-        # obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
-
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(row['nome']+str(row['idade'])+row['municipio'])).hexdigest(), axis=1)
         obitos['hash_less'] = obitos.apply(lambda row: sha256(str.encode(row['nome']+str(row['idade']-1)+row['municipio'])).hexdigest(), axis=1)
         obitos['hash_more'] = obitos.apply(lambda row: sha256(str.encode(row['nome']+str(row['idade']+1)+row['municipio'])).hexdigest(), axis=1)
-
-
-        # index_idade_less = obitos.loc[obitos['hash_less'].isin(casos['hash'])].index
-        # obitos.loc[index_idade_less,'idade'] -= 1
-        # obitos.loc[index_idade_less,'hash'] = obitos.loc[index_idade_less].apply(lambda row: sha256(str.encode(row['nome']+str(row['idade'])+row['municipio'])).hexdigest(), axis=1)
-
-        # index_idade_more = obitos.loc[obitos['hash_more'].isin(casos['hash'])].index
-        # obitos.loc[index_idade_more,'idade'] += 1
-        # obitos.loc[index_idade_more,'hash'] = obitos.loc[index_idade_more].apply(lambda row: sha256(str.encode(row['nome']+str(row['idade'])+row['municipio'])).hexdigest(), axis=1)
-
-        # obitos1 = obitos[['hash','data_do_obito']]
-        # casos = pd.merge(left=casos, right=obitos1, how='left', on='hash')
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])
@@ -360,31 +306,8 @@ class CasosConfirmados:
         self.__source = { 'casos': casos, 'obitos': obitos }
 
     def get_casos(self):
-        try:
-            return self.__source['casos'].copy()
-        except:
-            exit("Fonte de dados não encontrada, primeiro utilize o método update")
+        return self.__source['casos'].copy()
+
 
     def get_obitos(self):
-        try:
-            return self.__source['obitos'].copy()
-        except:
-            exit("Fonte de dados não encontrada, primeiro utilize o método update")
-    #
-    # def get_recuperados(self):
-    #     try:
-    #         return self.__source.loc[self.__source['evolucao'] == 1].copy()
-    #     except e:
-    #         exit("Fonte de dados não encontrada, primeiro utilize o método update")
-    #
-    # def get_casos_ativos(self):
-    #     try:
-    #         return self.__source.loc[self.__source['evolucao'] == 3].copy()
-    #     except e:
-    #         exit("Fonte de dados não encontrada, primeiro utilize o método update")
-    #
-    # def get_obitos_nao_covid(self):
-    #     try:
-    #         return self.__source.loc[self.__source['evolucao'] == 4].copy()
-    #     except e:
-    #         exit("Fonte de dados não encontrada, primeiro utilize o método update")
+        return self.__source['obitos'].copy()

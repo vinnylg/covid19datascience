@@ -5,26 +5,25 @@ def trim_overspace(text):
 	parts = filter(lambda x: len(x) > 0,text.split(" "))
 	return " ".join(parts)
 
+def normalize_hash(text):
+	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))
+
 def normalize_text(text):
-    #.replace("'"," ") alguns municipios tem ' e as macros maravilhosas do excel vão falhar
+	if text == None:
+		return None
+
 	x = str(text).replace(".","").replace("\n","").replace(",","").replace("\t","").replace("''","'").replace("\"","'").upper()
 	x = trim_overspace(x)
 	x = unidecode(x)
 
-	if x == 'nan' or len(x) == 0 or x == '0' or x == 'nao_informado':
-		return ''
-	else:
-		return x
+	return x
 
 def normalize_labels(text):
 	x = str(text).replace("'"," ").replace(".","").replace("\n","").replace(",","").lower()
 	x = trim_overspace(x).replace(" ","_")
 	x = unidecode(x)
 
-	if x == 'nan' or len(x) == 0 or x == '0' or x == 'nao_informado':
-		return ''
-	else:
-		return x
+	return x
 
 def normalize_number(num,cast=int,error='fill',fill='-1'):
 	try:
