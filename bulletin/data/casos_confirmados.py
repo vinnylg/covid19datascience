@@ -80,9 +80,19 @@ class CasosConfirmados:
         dropar = casos_raw.loc[casos_raw['sexo'].isnull()]
         print(f"casos novos sem sexo: {dropar.shape[0]}")
         dropar.to_excel(join(self.errorspath,'casos_raw_sem_sexo.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
+        casos_raw = casos_raw.drop(index=dropar.index)
 
-        # print(f"casos novos validos: {casos_raw.shape[0]}")
+        dropar = casos_raw.loc[casos_raw['data_liberacao'] > datetime.today()]
+        print(f"casos novos com data_liberacao no futuro: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
+        casos_raw = casos_raw.drop(index=dropar.index)
+
+        dropar = casos_raw.loc[casos_raw['data_liberacao'] < datetime.strptime('01/01/2020','%d/%m/%Y')]
+        print(f"casos novos com data_liberacao antes de 2020: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_passado.xlsx'))
+        casos_raw = casos_raw.drop(index=dropar.index)
+
+        print(f"casos novos validos: {casos_raw.shape[0]}")
 
         index_casos_duplicados = casos_raw.loc[casos_raw['hash'].isin(casos_confirmados['hash'])].index.to_list()
         print(f"casos já em casos com a mesma idade: {len(index_casos_duplicados)}")
@@ -96,16 +106,6 @@ class CasosConfirmados:
 
         print(f"\nentão, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados\n")
         casos_raw = casos_raw.drop(index=index_duplicados)
-
-        dropar = casos_raw.loc[casos_raw['data_liberacao'] > datetime.today()]
-        print(f"casos novos com data_liberacao no futuro: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
-
-        dropar = casos_raw.loc[casos_raw['data_liberacao'] < datetime.strptime('01/01/2020','%d/%m/%Y')]
-        print(f"casos novos com data_liberacao antes de 2020: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'casos_data_liberacao_passado.xlsx'))
-        # casos_raw = casos_raw.drop(index=dropar.index)
 
         casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
 
@@ -169,6 +169,16 @@ class CasosConfirmados:
         obitos_nao_casos = obitos_raw.loc[~obitos_raw['hash'].isin(all_casos['hash'])]
         obitos_nao_casos.to_excel(join(self.errorspath,'obitos_nao_casos_confirmados.xlsx'))
         print(f"obitos que não estão nos casos {obitos_nao_casos.shape[0]}")
+
+        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] > datetime.today()]
+        print(f"obitos novos com data no futuro: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'obitos_raw_futuro.xlsx'))
+        obitos_raw = obitos_raw.drop(index=dropar.index)
+
+        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] < datetime.strptime('01/01/2020','%d/%m/%Y')]
+        print(f"obitos novos com data no passado: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'obitos_raw_passado.xlsx'))
+        obitos_raw = obitos_raw.drop(index=dropar.index)
 
         index_duplicados = list(set(index_obitos_duplicados + index_obitos_duplicados_idade_less + index_obitos_duplicados_idade_more + obitos_nao_casos.index.to_list()))
         print(f"sendo assim, {len(index_duplicados) + len(obitos_raw_duplicates)} obitos que já se encontram na planilha serão removidos")
