@@ -45,13 +45,7 @@ def normalize_municipios(mun):
 	return mun
 
 def normalize_igbe(ibge):
-	ibge = normalize_number(ibge)
-	if ibge != -1:
-		try:
-			ibge = str(ibge)
-			ibge = ibge[:len(ibge)-1]
-			ibge = int(ibge)
-		except ValueError:
-			return -1
+	if ibge:
+		ibge = ibge[:len(ibge)-1]
 
 	return ibge
