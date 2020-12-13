@@ -106,7 +106,8 @@ class CasosConfirmados:
                                'idade': lambda x: normalize_number(x,fill=0),
                                'mun_resid': normalize_text,
                                'rs': lambda x: str(normalize_number(x,fill=99)).zfill(2) if x != 99 else None
-                            })
+                            },
+                            parse_dates=['data_cura_obito'])
 
             obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
             obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
@@ -267,8 +268,8 @@ class CasosConfirmados:
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
                                 'Idade': lambda x: normalize_number(x,fill=0),
-                                'Mun Resid': normalize_municipios,
-                                'Mun atend': normalize_municipios,
+                                'Mun Resid': normalize_text,
+                                'Mun atend': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99),
                                 'Laboratório': normalize_text
                             },
@@ -277,36 +278,21 @@ class CasosConfirmados:
 
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
         casos = casos.rename(columns={'ibge_res_pr': 'ibge7'})
+        casos['mun_resid'] = casos['mun_resid'].apply(lambda x: normalize_municipios(x)[0])
+        casos['uf_resid'] = casos['mun_resid'].apply(lambda x: normalize_municipios(x)[1])
+        # casos['mun_atend'] = casos['mun_atend'].apply(lambda x: normalize_municipios(x)[0])
+        # casos['uf_atend'] = casos['mun_atend'].apply(lambda x: normalize_municipios(x)[1])
 
         casos['rs'] = casos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
-        casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x) if x != 99 else None)
-        casos['ibge'] = casos['ibge7'].apply(normalize_igbe)
 
         print(f"Casos confirmados excluidos: {len(casos.loc[casos['mun_resid'] == 'EXCLUIR'])}")
         casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
-        casos['mun_hash'] = casos['mun_resid'].apply(normalize_hash)
-
-        municipios = static.municipios.copy()[['ibge','uf','municipio']]
-        municipios['mun_hash'] = municipios['municipio'].apply(lambda x: normalize_hash(normalize_text(x)))
-        municipios_hash = municipios.drop_duplicates('mun_hash')
-
-        casos_com_ibge = casos.loc[casos['ibge'].notnull()].copy()
-        casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
-        casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])
-
-        casos_com_ibge = pd.merge(left=casos_com_ibge, right=municipios, how='left', on='ibge')
-        casos_sem_ibge = pd.merge(left=casos_sem_ibge, right=municipios_hash, how='left', on='mun_hash')
-
-        casos_sem_ibge['ibge'] = casos_sem_ibge['ibge'].fillna('99')
-        casos_sem_ibge['ibge'] = casos_sem_ibge['ibge'].apply(lambda x: str(x).zfill(2) if x != '99' else None)
-
-        casos = casos_com_ibge.append(casos_sem_ibge).sort_values('ordem')
 
         casos['hash'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
 
-        casos = casos[['ordem','ibge7','ibge','nome','sexo','idade','mun_resid','municipio','uf','mun_atend','rs','laboratorio','dt_diag','comunicacao','is','hash','hash_less','hash_more']]
+        # casos = casos[['ordem','ibge7','ibge','nome','sexo','idade','mun_resid','municipio','uf','mun_atend','rs','laboratorio','dt_diag','comunicacao','is','hash','hash_less','hash_more']]
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
@@ -337,10 +323,10 @@ class CasosConfirmados:
         self.__source = { 'casos': casos, 'obitos': obitos }
 
     def get_casos(self):
-        return self.__source['casos']
+        return self.__source['casos'].copy()
 
     def get_obitos(self):
-        return self.__source['obitos']
+        return self.__source['obitos'].copy()
 
     def get_all(self):
         casos = self.get_casos()
