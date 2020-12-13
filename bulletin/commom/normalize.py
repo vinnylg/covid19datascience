@@ -1,6 +1,7 @@
 import datetime
 from unidecode import unidecode as unidecode
 
+from sys import exit
 from bulletin.commom.static import municipios
 
 def trim_overspace(text):
@@ -38,14 +39,16 @@ def normalize_number(num,cast=int,error='fill',fill='-1'):
 
 def normalize_municipios(mun):
 	mun = normalize_text(mun)
+	est = 'PR'
 
 	if '-' in mun or '/' in mun:
 		mun = mun.split('-')[-1]
-		est = trim_overspace(est)
 
 		if '/' in mun:
 			mun, est = mun.split('/')
+			est = trim_overspace(est)
 		else:
+			municipios = municipios.loc[municipios['uf']!='PR']
 			municipios['municipio_sesa'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
 			municipios['municipio_ibge'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
 
@@ -55,14 +58,9 @@ def normalize_municipios(mun):
 
 			if len(municipio) != 0:
 				est = municipio.iloc[0]['uf']
-			else:
-				est = 'ERRO'
-
-	else:
-		est = 'PR'
-
 
 	mun = trim_overspace(mun)
+
 	return (mun,est)
 
 def normalize_igbe(ibge):
