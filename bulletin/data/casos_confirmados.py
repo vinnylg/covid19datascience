@@ -273,7 +273,7 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:M',
+                            usecols = 'A,B,D:P',
                             dtype = {
                                'Ordem': int,
                             },
@@ -288,7 +288,7 @@ class CasosConfirmados:
                                 'Laboratório': normalize_text,
                                 'IS': normalize_text
                             },
-                            parse_dates=['Dt diag', 'Comunicação']
+                            parse_dates=['Dt diag', 'Comunicação', 'data_obito']
                         )
 
         casos.columns = [ normalize_labels(x) for x in casos.columns ]

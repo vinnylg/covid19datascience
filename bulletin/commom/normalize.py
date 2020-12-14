@@ -1,4 +1,5 @@
 import datetime
+import pandas as pd
 from unidecode import unidecode as unidecode
 
 from sys import exit
@@ -53,3 +54,36 @@ def normalize_igbe(ibge):
 		ibge = ibge[:len(ibge)-1]
 
 	return ibge
+
+# def normalize_date(date):
+# 	try:
+# 		date = normalize_text(date)
+# 		date = date.split(' ')[0]
+
+# 		if '-' in date:
+# 			date = date.split('-')
+# 		elif '/' in date:
+# 			date = date.split('/')
+# 		else:
+# 			return pd.NaT
+
+# 		if len(date) != 3:
+# 			return pd.NaT
+
+# 		if len(date[0]) == 4:
+# 			year, month, day = tuple(map(int,date))
+# 		elif len(date[2]) == 4:
+# 			day, month, year = tuple(map(int,date))
+# 		else:
+# 			return pd.NaT
+
+# 		begin = datetime.date('2020','03','1')
+# 		date = datetime.date(year, month, day)
+# 		today = datetime.date.today()
+
+# 		if date > today or date < begin:
+# 			date = pd.NaT
+
+# 		return date
+# 	except:
+# 		return pd.NaT
