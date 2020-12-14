@@ -256,6 +256,20 @@ class CasosConfirmados:
             print("\nrelatorio:\n")
             print(relatorio.read())
 
+    def get_uf(self,mun):
+        if '/' in mun:
+            _, uf = mun.split('/')
+        else:
+            uf = 'PR'
+
+        return uf
+
+    def get_mun(self, mun):
+        if '/' in mun:
+            mun, _ = mun.split('/')
+
+        return mun
+
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
@@ -281,12 +295,13 @@ class CasosConfirmados:
         casos = casos.rename(columns={'ibge_res_pr': 'ibge7'})
 
         casos['rs'] = casos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+        casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 99 else None)
 
         print(f"Casos confirmados excluidos: {len(casos.loc[casos['mun_resid'] == 'EXCLUIR'])}")
         casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
 
-        casos['mun_resid'] = casos['mun_resid'].apply(lambda x: normalize_municipios(x)[0])
-        casos['uf_resid'] = casos['mun_resid'].apply(lambda x: normalize_municipios(x)[1])
+        # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
+        # casos['mun_resid'] = casos['mun_resid'].apply(self.get_mun)
 
         casos['hash'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
@@ -319,8 +334,8 @@ class CasosConfirmados:
         print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['municipio'] == 'EXCLUIR'])}")
         obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
 
-        obitos['municipio'] = obitos['municipio'].apply(lambda x: normalize_municipios(x)[0])
-        obitos['uf'] = obitos['municipio'].apply(lambda x: normalize_municipios(x)[1])
+        # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
+        # obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
 
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
         obitos['hash_less'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
