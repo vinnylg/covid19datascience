@@ -273,7 +273,8 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:P',
+                            usecols = 'A,B,D:M',
+                            # usecols = 'A,B,D:P',
                             dtype = {
                                'Ordem': int,
                             },
@@ -285,10 +286,12 @@ class CasosConfirmados:
                                 'Mun Resid': normalize_text,
                                 'Mun atend': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99),
-                                'Laboratório': normalize_text,
-                                'IS': normalize_text
+                                'Laboratório': normalize_text
                             },
-                            parse_dates=['Dt diag', 'Comunicação', 'data_obito']
+                            parse_dates=False
+                            # parse_dates = ['Dt diag', 'Comunicação', 'IS']
+                            # date_parser = lambda date: pd.to_datetime(date, format='%Y-%m-%d %H:%M:%S', errors='coerce')
+                            # parse_dates = ['Dt diag', 'Comunicação', 'data_obito']
                         )
 
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
@@ -323,7 +326,9 @@ class CasosConfirmados:
                                 'Município': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99)
                             },
-                            parse_dates = ['Data do óbito']
+                            parse_dates=False
+                            # parse_dates = ['Data do óbito']
+                            # date_parser = lambda date: pd.to_datetime(date, format='%Y-%m-%d %H:%M:%S', errors='coerce')
                         )
 
         obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
