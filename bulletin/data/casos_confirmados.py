@@ -22,7 +22,7 @@ class CasosConfirmados:
             'casos': join(dirname(__root__),'resources','database','casos_confirmados','casos.pkl'),
             'obitos': join(dirname(__root__),'resources','database','casos_confirmados','obitos.pkl')
         }
-        self.errorspath = join('output','errors','casos_confirmados')
+        self.errorspath = join('output','errors','casos_confirmados',datetime.today().strftime('%d_%m_%Y'))
 
         if not isdir(self.errorspath):
             makedirs(self.errorspath)
@@ -273,8 +273,8 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:M',
-                            # usecols = 'A,B,D:P',
+                            # usecols = 'A,B,D:M',
+                            usecols = 'A,B,D:P',
                             dtype = {
                                'Ordem': int,
                             },
@@ -343,6 +343,7 @@ class CasosConfirmados:
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
         obitos['hash_less'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
         obitos['hash_more'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
+        obitos['hash_idade'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']))).hexdigest(), axis=1)
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])
@@ -351,6 +352,15 @@ class CasosConfirmados:
             checksum.write(self.checksum)
 
         self.__source = { 'casos': casos, 'obitos': obitos }
+
+    def update_casos(self, new_casos):
+        new_casos.to_pickle(self.database['casos'])
+        self.__source['casos'] = new_casos
+
+    def update_obitos(self, new_obitos):
+        new_obitos.to_pickle(self.database['obitos'])
+
+        self.__source['obitos'] = new_obitos
 
     def get_casos(self):
         return self.__source['casos'].copy()

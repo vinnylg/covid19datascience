@@ -16,7 +16,7 @@ class Notifica:
         self.__source = None
         self.checksum_file = join(dirname(__root__),'resources','database','notifica_checksum')
         self.database = join(dirname(__root__),'resources','database','notifica','notifica.pkl')
-        self.errorspath = join('output','errors')
+        self.errorspath = join('output','errors','notifica',datetime.today().strftime('%d_%m_%Y'))
 
         if not isdir(self.errorspath):
             makedirs(self.errorspath)
@@ -95,7 +95,6 @@ class Notifica:
                                'exame': normalize_text,
                                'cod_resultado': lambda x: normalize_number(x, fill=0),
                                'resultado': normalize_text,
-
                                'cod_origem': lambda x: normalize_number(x,fill=0),
                                'origem': normalize_text,
                                'uf_unidade_notifica': lambda x: normalize_number(x,fill=0),
@@ -110,13 +109,7 @@ class Notifica:
                         )
 
     def update(self):
-        # notifica = self.read_notifica(self.pathfile)
-        notifica = self.read_notifica(join('input','null.csv'))
-        notifica = notifica.append(self.read_notifica(join('input','0.csv')))
-        notifica = notifica.append(self.read_notifica(join('input','1.csv')))
-        notifica = notifica.append(self.read_notifica(join('input','2.csv')))
-        notifica = notifica.append(self.read_notifica(join('input','3.csv')))
-        notifica = notifica.append(self.read_notifica(join('input','5.csv')))
+        notifica = self.read_notifica(self.pathfile)
 
         municipios = static.municipios[['ibge','municipio','uf']].copy()
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
