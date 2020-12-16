@@ -310,8 +310,6 @@ class CasosConfirmados:
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
 
-        # casos = casos[['ordem','ibge7','ibge','nome','sexo','idade','mun_resid','municipio','uf','mun_atend','rs','laboratorio','dt_diag','comunicacao','is','hash','hash_less','hash_more']]
-
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
                             usecols = 'A,B,D:I',
@@ -360,6 +358,75 @@ class CasosConfirmados:
     def get_obitos(self):
         return self.__source['obitos'].copy()
 
-    def get_all(self):
+    def fix_mun_resid_casos(self, mun='mun_resid'):
         casos = self.get_casos()
+
+        casos[mun] = casos[mun].apply(lambda x: normalize_municipios(x)[0])
+        casos['uf_resid'] = casos[mun].apply(lambda x: normalize_municipios(x)[1])
+
+        casos['ibge'] = casos['ibge7'].apply(normalize_igbe)
+
+        casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
+        casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])
+        casos_sem_ibge['mun_hash'] = casos_sem_ibge[mun].apply(normalize_hash)
+
+
+        municipios = static.municipios.copy()
+
+        casos_com_ibge = casos.loc[casos['ibge'].notnull()].copy()
+        casos_com_ibge = pd.merge(left=casos_com_ibge, right=municipios, how='left', on='ibge')
+
+        municipios = municipios.loc[municipios['uf']!='PR']
+        municipios['mun_hash'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
+        municipios_hash = municipios.drop_duplicates('mun_hash')
+
+        casos_sem_ibge = pd.merge(left=casos_sem_ibge, right=municipios_hash, how='left', on='mun_hash')
+        casos_sem_ibge = casos_sem_ibge.drop(columns=['mun_hash'])
+
+        casos_com_ibge = casos_com_ibge.append(casos_sem_ibge.loc[casos_sem_ibge['ibge'].notnull()], ignore_index=True).sort_values('ordem')
+
+        casos_sem_ibge = casos_sem_ibge.loc[casos_sem_ibge['ibge'].isnull()].copy()
+        casos_sem_ibge = casos_sem_ibge.drop(columns=["cod_uf", "uf", "estado", "ibge", "municipio_sesa", "municipio_ibge"])
+        casos_sem_ibge['mun_hash'] = casos_sem_ibge[mun].apply(normalize_hash)
+
+        municipios['mun_hash'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
+        municipios_hash = municipios.drop_duplicates('mun_hash')
+
+        casos_sem_ibge = pd.merge(left=casos_sem_ibge, right=municipios_hash, how='left', on='mun_hash')
+        casos = casos_com_ibge.append(casos_sem_ibge, ignore_index=True).sort_values('ordem')
+
+        casos['ibge'] = casos['ibge'].fillna('99')
+        casos['ibge'] = casos['ibge'].apply(lambda x: str(x).zfill(2) if x != '99' else None)
+
+        casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].notnull()) & (casos['uf'] != 'PR'), 'uf_resid'] = casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].notnull()) & (casos['uf'] != 'PR'), 'uf']
+        casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].isnull()), 'uf_resid'] = 'ERRO'
+        casos.loc[casos['uf']!='PR', mun] = casos.loc[casos['uf']!='PR', mun] + '/' + casos.loc[casos['uf']!='PR', 'uf_resid']
+
+        return casos
+
+    def get_est(self, mun):
+        est = 'ERRO'
+        municipios = static.municipios.loc[static.municipios['uf']!='PR']
+        municipios['municipio_sesa'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
+        municipios['municipio_ibge'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
+
+        municipio = municipios.loc[municipios['municipio_sesa']==normalize_hash(mun)]
+        if len(municipio) == 0:
+            municipio = municipios.loc[municipios['municipio_ibge']==normalize_hash(mun)]
+
+        if len(municipio) != 0:
+            est = municipio.iloc[0]['uf']
+
+        return est
+
+    def fix_mun_resid_obitos(self):
         obitos = self.get_obitos()
+
+        obitos['municipio'] = obitos['municipio'].apply(lambda x: normalize_municipios(x)[0])
+        # obitos['uf'] = obitos['municipio'].apply(lambda x: normalize_municipios(x)[1])
+
+        obitos.loc[obitos['rs'].isnull(), 'uf'] = obitos.loc[obitos['rs'].isnull(), 'municipio'].apply(self.get_est)
+
+        obitos.loc[obitos['rs'].isnull(), 'municipio'] = obitos.loc[obitos['rs'].isnull(), 'municipio'] + '/' + obitos.loc[obitos['rs'].isnull(), 'uf']
+
+        return obitos
