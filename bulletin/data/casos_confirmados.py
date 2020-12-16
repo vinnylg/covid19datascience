@@ -87,7 +87,7 @@ class CasosConfirmados:
         dropar.to_excel(join(self.errorspath,'casos_data_liberacao_futuro.xlsx'))
         casos_raw = casos_raw.drop(index=dropar.index)
 
-        dropar = casos_raw.loc[casos_raw['data_liberacao'] < datetime.strptime('01/01/2020','%d/%m/%Y')]
+        dropar = casos_raw.loc[casos_raw['data_liberacao'] < datetime.strptime('12/03/2020','%d/%m/%Y')]
         print(f"casos novos com data_liberacao antes de 2020: {dropar.shape[0]}")
         dropar.to_excel(join(self.errorspath,'casos_data_liberacao_passado.xlsx'))
         casos_raw = casos_raw.drop(index=dropar.index)
@@ -109,7 +109,7 @@ class CasosConfirmados:
 
         casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
 
-        casos_raw['data_com'] = [ "" ] * len(casos_raw)
+        casos_raw['data_com'] = datetime.today()
         novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
         novos_casos.to_excel(join('output','novos_casos.xlsx'), index=False)
 
@@ -196,7 +196,7 @@ class CasosConfirmados:
 
     def relatorio(self, novos_casos, novos_obitos):
         casos_confirmados =  self.__source['casos']
-        casos_exclucoes = casos_confirmados.loc[casos_confirmados['mun_resid'] == 'EXCLUIR']
+        casos_exclucoes = casos_confirmados.loc[casos_confirmados['excluir'] == 'SIM']
         casos_confirmados = casos_confirmados.drop(index=casos_exclucoes.index)
 
         casos_confirmadosPR = casos_confirmados.loc[casos_confirmados['rs'].notnull()]
@@ -296,7 +296,7 @@ class CasosConfirmados:
         # casos = pd.read_excel(self.pathfile,'Casos confirmados',usecols='B,C,D,F,G')
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols='B,C,D,F,G',
+                            usecols='B,C,D,F,G,P',
                             converters = {
                                'Nome': normalize_text,
                                'Idade': lambda x: normalize_number(x,fill=0),
