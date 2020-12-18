@@ -1,6 +1,9 @@
 import datetime
 from unidecode import unidecode as unidecode
 
+def normalize_hash(text):
+	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))
+
 def trim_overspace(text):
 	parts = filter(lambda x: len(x) > 0,text.split(" "))
 	return " ".join(parts)

@@ -7,7 +7,7 @@ from sys import exit
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe
+from bulletin.commom.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe, normalize_hash
 
 class Notifica:
     def __init__(self, pathfile:str=join(dirname(__root__),'tmp','notifica.csv'), force=False, hard=False):
@@ -124,9 +124,9 @@ class Notifica:
         # notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'] if row['criterio_classificacao'] not in [1,4] else pd.NaT, axis=1)
         notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'], axis=1)
 
-        notifica['hash'] = notifica.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+row['mun_resid'])).hexdigest(), axis=1)
-        notifica['hash_less'] = notifica.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+row['mun_resid'])).hexdigest(), axis=1)
-        notifica['hash_more'] = notifica.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']+1)+row['mun_resid'])).hexdigest(), axis=1)
+        notifica['hash'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica['hash_less'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica['hash_more'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
 
         notifica.to_pickle(self.database)
 
