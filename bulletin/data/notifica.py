@@ -8,7 +8,7 @@ import pandas as pd
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash
+from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_cpf
 
 class Notifica:
     def __init__(self, pathfile=join('input','notifica.csv'), force=False, hard=False):
@@ -67,38 +67,37 @@ class Notifica:
                            converters = {
                                'paciente': normalize_text,
                                'nome_mae': normalize_text,
-                               'cpf': lambda x: normalize_number(x,fill=0),
-                               'cod_tipo_paciente': lambda x: normalize_number(x, fill=0),
+                               'cpf': normalize_cpf,
+                               'cod_tipo_paciente': lambda x: normalize_number(x, fill=99),
                                'tipo_paciente': normalize_text,
-                               'idade': lambda x: normalize_number(x, fill=0),
+                               'idade': lambda x: normalize_number(x, fill=-1),
                                'sexo': normalize_text,
-                               'cod_raca_cor': lambda x: normalize_number(x, fill=0),
+                               'cod_raca_cor': lambda x: normalize_number(x, fill=99),
                                'raca_cor': normalize_text,
                                'cod_etnia': lambda x: normalize_number(x, fill=0),
                                'etnia': normalize_text,
-                               'uf_residencia': lambda x: normalize_number(x, fill=0),
-                               'ibge_residencia': lambda x: normalize_number(x, fill=0),
-                               'semana_epidemiologica': lambda x: normalize_number(x, fill=0),
+                               'uf_residencia': lambda x: normalize_number(x, fill=99),
+                               'ibge_residencia': lambda x: normalize_number(x, fill=999999),
                                'cod_classificacao_final': lambda x: normalize_number(x, fill=0),
                                'classificacao_final': normalize_text,
-                               'cod_criterio_classificacao': lambda x: normalize_number(x, fill=0),
+                               'cod_criterio_classificacao': lambda x: normalize_number(x, fill=4),
                                'criterio_classificacao': normalize_text,
-                               'cod_evolucao': lambda x: normalize_number(x, fill=0),
+                               'cod_evolucao': lambda x: normalize_number(x, fill=3),
                                'evolucao': normalize_text,
-                               'numero_do': lambda x: normalize_number(x, fill=0),
-                               'lab_executor': normalize_text,
-                               'requisicao': lambda x: normalize_number(x, fill=0),
+                            #    'numero_do': lambda x: normalize_number(x, fill=0),
                                'co_seq_exame': lambda x: normalize_number(x, fill=0),
-                               'cod_metodo': lambda x: normalize_number(x, fill=0),
+                               'cod_metodo': lambda x: normalize_number(x, fill=3),
                                'metodo': normalize_text,
                                'cod_exame': lambda x: normalize_number(x, fill=0),
                                'exame': normalize_text,
                                'cod_resultado': lambda x: normalize_number(x, fill=0),
                                'resultado': normalize_text,
+                               'cod_status_notificacao': lambda x: normalize_number(x, fill=0),
+                               'status_notificacao': normalize_text,
                                'cod_origem': lambda x: normalize_number(x,fill=0),
                                'origem': normalize_text,
-                               'uf_unidade_notifica': lambda x: normalize_number(x,fill=0),
-                               'ibge_unidade_notifica': lambda x: normalize_number(x,fill=0),
+                               'uf_unidade_notifica': lambda x: normalize_number(x,fill=99),
+                               'ibge_unidade_notifica': lambda x: normalize_number(x,fill=999999),
                                'nome_unidade_notifica': normalize_text,
                                'nome_notificador': normalize_text,
                                'email_notificador': normalize_text,
@@ -109,7 +108,54 @@ class Notifica:
                         )
 
     def update(self):
-        notifica = self.read_notifica(self.pathfile)
+        # notifica = self.read_notifica(self.pathfile)
+        notifica = self.read_notifica(join('input','null.csv'))
+        notifica = notifica.append(self.read_notifica(join('input','0.csv')), ignore_index=True)
+        notifica = notifica.append(self.read_notifica(join('input','1.csv')), ignore_index=True)
+        notifica = notifica.append(self.read_notifica(join('input','2.csv')), ignore_index=True)
+        notifica = notifica.append(self.read_notifica(join('input','3.csv')), ignore_index=True)
+        notifica = notifica.append(self.read_notifica(join('input','5.csv')), ignore_index=True)
+
+
+        notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'cod_tipo_paciente'] = 99
+        notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'tipo_paciente'] = 'IGNORADO'
+
+        # normalize idade ? IDADE ATUAL OU IDADE NOTIFICACAO OU AS DUAS
+
+        notifica.loc[((notifica['raca_cor'].isnull()) | (notifica['raca_cor'] == '')),'cod_raca_cor'] = 99
+        notifica.loc[((notifica['raca_cor'].isnull()) | (notifica['raca_cor'] == '')),'raca_cor'] = 'IGNORADO'
+
+        notifica.loc[((notifica['etnia'].isnull()) | (notifica['etnia'] == '')),'cod_etnia'] = 0
+
+        notifica.loc[notifica['uf_residencia'] == 0,'uf_residencia'] = 99
+        notifica.loc[notifica['ibge_residencia'] == 0,'ibge_residencia'] = 999999
+
+        notifica.loc[((notifica['classificacao_final'].isnull()) | (notifica['classificacao_final'] == '')),'classificacao_final'] = 'IGNORADO'
+
+        notifica.loc[((notifica['criterio_classificacao'].isnull()) | (notifica['criterio_classificacao'] == '')),'cod_criterio_classificacao'] = 4
+        notifica.loc[((notifica['criterio_classificacao'].isnull()) | (notifica['criterio_classificacao'] == '')),'criterio_classificacao'] = 'NAO SE APLICA'
+
+        notifica.loc[((notifica['evolucao'].isnull()) | (notifica['evolucao'] == '')),'cod_evolucao'] = 3
+        notifica.loc[((notifica['evolucao'].isnull()) | (notifica['evolucao'] == '')),'evolucao'] = 'NAO SE APLICA'
+
+        notifica.loc[((notifica['metodo'].isnull()) | (notifica['metodo'] == '')),'cod_metodo'] = 3
+        notifica.loc[((notifica['metodo'].isnull()) | (notifica['metodo'] == '')),'metodo'] = 'NAO INFORMADO'
+
+        notifica.loc[((notifica['exame'].isnull()) | (notifica['exame'] == '')),'cod_exame'] = 0
+        notifica.loc[((notifica['exame'].isnull()) | (notifica['exame'] == '')),'exame'] = 'NAO INFORMADO'
+
+        notifica.loc[((notifica['resultado'].isnull()) | (notifica['resultado'] == '')),'cod_resultado'] = 0
+        notifica.loc[((notifica['resultado'].isnull()) | (notifica['resultado'] == '')),'resultado'] = 'NAO INFORMADO'
+
+        notifica.loc[((notifica['status_notificacao'].isnull()) | (notifica['status_notificacao'] == '')),'status_notificacao'] = 'IGNORADO'
+
+        notifica.loc[((notifica['origem'].isnull()) | (notifica['origem'] == '')),'cod_origem'] = 0
+        notifica.loc[((notifica['origem'].isnull()) | (notifica['origem'] == '')),'origem'] = 'NAO INFORMADO'
+
+        notifica.loc[notifica['uf_unidade_notifica'] == 0,'uf_unidade_notifica'] = 99
+        notifica.loc[notifica['ibge_unidade_notifica'] == 0,'ibge_unidade_notifica'] = 999999
+
+        #['data_nascimento','data_1o_sintomas','data_cura_obito','data_coleta','data_recebimento','data_liberacao','data_notificacao','updated_at']
 
         municipios = static.municipios[['ibge','municipio','uf']].copy()
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)

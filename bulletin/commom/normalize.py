@@ -1,4 +1,5 @@
 import datetime
+import numpy as np
 import pandas as pd
 from unidecode import unidecode as unidecode
 
@@ -8,6 +9,21 @@ from bulletin.commom import static
 def trim_overspace(text):
 	parts = filter(lambda x: len(x) > 0,text.split(" "))
 	return " ".join(parts)
+
+def normalize_cpf(cpf):
+	cpf = ''.join(filter(lambda x: x >= '0' and x <= '9', str(cpf)))
+	cpf = str(cpf).zfill(11)
+	digitos = list(map(int,cpf))
+
+	if max(digitos) == min(digitos):
+		return None
+
+	validacao = sum(np.array(digitos[:9]) * np.array([10,9,8,7,6,5,4,3,2])) * 10 % 11
+
+	if validacao != digitos[-2]:
+		return None
+
+	return cpf[:3] + '.' + cpf[3:6] + '.' + cpf[6:9] + '-' + cpf[9:]
 
 def normalize_hash(text):
 	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))

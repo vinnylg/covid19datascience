@@ -273,8 +273,8 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            # usecols = 'A,B,D:M',
-                            usecols = 'A,B,D:P',
+                            usecols = 'A,B,D:M',
+                            # usecols = 'A,B,D:P',
                             dtype = {
                                'Ordem': int,
                             },

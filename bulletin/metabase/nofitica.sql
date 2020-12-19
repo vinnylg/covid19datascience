@@ -25,20 +25,17 @@ SELECT
     nt.ibge_residencia,
 
     --informações epidemiológicas
-    nt.semana_epidemiologica,
     nt.classificacao_final AS cod_classificacao_final,
     clf.valor AS classificacao_final,
     nt.criterio_classificacao AS cod_criterio_classificacao,
     ccl.valor AS criterio_classificacao,
     nt.evolucao AS cod_evolucao,
     evo.valor AS evolucao,
-    nt.numero_do,
+    -- nt.numero_do,
     to_char(nt.data_1o_sintomas,'DD/MM/YYYY') AS data_1o_sintomas,
     to_char(nt.data_cura_obito,'DD/MM/YYYY') AS data_cura_obito,
 
     --informações laboratoriais
-    nt.lab_executor,
-    nt.requisicao,
     nt.co_seq_exame,
     nt.metodo AS cod_metodo,
     met.valor AS metodo,
@@ -51,6 +48,9 @@ SELECT
     to_char(nt.data_liberacao,'DD/MM/YYYY') AS data_liberacao,
 
     --informações sobre notificação
+    nt.status_notificacao AS cod_status_notificacao,
+    snt.valor as status_notificacao,
+    nt.excluir_ficha,
     nt.origem AS cod_origem,
     ori.valor AS origem,
     nt.uf_unidade_notifica,
@@ -72,6 +72,7 @@ LEFT JOIN public.termo met ON (met.codigo::character varying = nt.metodo::charac
 LEFT JOIN public.termo ccl ON (ccl.codigo::character varying = nt.criterio_classificacao::character varying AND ccl.tipo = 'criterio_classificacao')
 LEFT JOIN public.termo clf ON (clf.codigo::character varying = nt.classificacao_final::character varying AND clf.tipo = 'classificacao_final')
 LEFT JOIN public.termo evo ON (evo.codigo::character varying = nt.evolucao::character varying AND evo.tipo = 'evolucao')
+LEFT JOIN public.termo snt ON (snt.codigo::character varying = nt.status_notificacao::character varying AND snt.tipo = 'status')
 LEFT JOIN public.etnia etn ON (etn.co_etnia::character varying = nt.etnia::character varying)
 
 WHERE nt.classificacao_final = 2
