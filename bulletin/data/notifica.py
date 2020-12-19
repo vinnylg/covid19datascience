@@ -1,5 +1,5 @@
 from os.path import dirname, join, isfile, isdir
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from unidecode import unidecode
 from hashlib import sha256
 from os import makedirs
@@ -9,6 +9,7 @@ import pandas as pd
 from bulletin import __file__ as __root__
 from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_cpf
+from bulletin.commom.utils import isvaliddate
 
 class Notifica:
     def __init__(self, pathfile=join('input','notifica.csv'), force=False, hard=False):
@@ -70,7 +71,6 @@ class Notifica:
                                'cpf': normalize_cpf,
                                'cod_tipo_paciente': lambda x: normalize_number(x, fill=99),
                                'tipo_paciente': normalize_text,
-                               'idade': lambda x: normalize_number(x, fill=-1),
                                'sexo': normalize_text,
                                'cod_raca_cor': lambda x: normalize_number(x, fill=99),
                                'raca_cor': normalize_text,
@@ -120,7 +120,34 @@ class Notifica:
         notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'cod_tipo_paciente'] = 99
         notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'tipo_paciente'] = 'IGNORADO'
 
+        mask = notifica['data_nascimento'].apply(lambda x: isvaliddate(x, begin=date(1900,1,1)))
+        notifica.loc[~mask, 'data_nascimento'] = pd.NaT
+
+        mask = notifica['data_1o_sintomas'].apply(isvaliddate)
+        notifica.loc[~mask, 'data_1o_sintomas'] = pd.NaT
+
+        mask = notifica['data_cura_obito'].apply(isvaliddate)
+        notifica.loc[~mask, 'data_cura_obito'] = pd.NaT
+
+        mask = notifica['data_coleta'].apply(isvaliddate)
+        notifica.loc[~mask, 'data_coleta'] = pd.NaT
+
+        mask = notifica['data_recebimento'].apply(isvaliddate)
+        notifica.loc[~mask, 'data_recebimento'] = pd.NaT
+
+        mask = notifica['data_liberacao'].apply(isvaliddate)
+        notifica.loc[~mask, 'data_liberacao'] = pd.NaT
+
+        mask = notifica['data_notificacao'].apply(isvaliddate)
+        notifica.loc[~mask, 'data_notificacao'] = pd.NaT
+
+        mask = notifica['updated_at'].apply(isvaliddate)
+        notifica.loc[~mask, 'updated_at'] = pd.NaT
+
         # normalize idade ? IDADE ATUAL OU IDADE NOTIFICACAO OU AS DUAS
+        notifica.loc[(notifica['data_nascimento'].notnull()) & (notifica['data_notificacao'].notnull()),'idade'] = notifica.loc[(notifica['data_nascimento'].notnull()) & (notifica['data_notificacao'].notnull())].apply(lambda row: row['data_notificacao'].year - row['data_nascimento'].year - ((row['data_notificacao'].month, row['data_notificacao'].day) < (row['data_nascimento'].month, row['data_nascimento'].day)), axis=1)
+        notifica.loc[notifica['data_nascimento'].isnull(),'idade'] = -99
+        notifica['idade'] = notifica['idade'].apply(int)
 
         notifica.loc[((notifica['raca_cor'].isnull()) | (notifica['raca_cor'] == '')),'cod_raca_cor'] = 99
         notifica.loc[((notifica['raca_cor'].isnull()) | (notifica['raca_cor'] == '')),'raca_cor'] = 'IGNORADO'
@@ -173,15 +200,14 @@ class Notifica:
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
         notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
 
-        nao = set(['NAO','CONSTA','INFO','INFORMADO','CONTEM'])
+        nao = set(['NAO','CONSTA','INFO','INFORMADO','CONTEM',''])
         notifica.loc[ [True if set(nome_mae.split(" ")).intersection(nao) else False for nome_mae in notifica['nome_mae'] ], 'nome_mae'] = None
 
-        notifica.loc[notifica['mun_resid'].notnull(), 'hash_idade_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        notifica.loc[notifica['mun_atend'].notnull(), 'hash_idade_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        notifica['hash_idade'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']))).hexdigest(), axis=1)
-
+        notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_idade_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_idade_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
         notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+normalize_hash(row['nome_mae']))).hexdigest(), axis=1)
-        # notifica['hash_nasc'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+row['data_nascimento'].dt.strftime('%d%m%Y'))).hexdigest(), axis=1)
+
+        notifica.loc[notifica['idade']!=-99, 'hash_idade'] = notifica.loc[notifica['idade']!=-99].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']))).hexdigest(), axis=1)
 
         notifica.to_pickle(self.database)
 

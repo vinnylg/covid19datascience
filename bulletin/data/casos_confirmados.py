@@ -273,8 +273,8 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:M',
-                            # usecols = 'A,B,D:P',
+                            # usecols = 'A,B,D:M',
+                            usecols = 'A,B,D:P',
                             dtype = {
                                'Ordem': int,
                             },
@@ -303,12 +303,16 @@ class CasosConfirmados:
         print(f"Casos confirmados excluidos: {len(casos.loc[casos['mun_resid'] == 'EXCLUIR'])}")
         casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
 
-        # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
-        # casos['mun_resid'] = casos['mun_resid'].apply(self.get_mun)
+        casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
+        casos['mun_resid'] = casos['mun_resid'].apply(self.get_mun)
 
         casos['hash'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+
+        casos['hash_idade'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']))).hexdigest(), axis=1)
+        casos['hash_idade_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1))).hexdigest(), axis=1)
+        casos['hash_idade_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1))).hexdigest(), axis=1)
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
@@ -337,13 +341,12 @@ class CasosConfirmados:
         print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['municipio'] == 'EXCLUIR'])}")
         obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
 
-        # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
-        # obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
+        obitos['uf'] = obitos['municipio'].apply(self.get_uf)
+        obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
 
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
         obitos['hash_less'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
         obitos['hash_more'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
-        obitos['hash_idade'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']))).hexdigest(), axis=1)
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])
@@ -410,7 +413,7 @@ class CasosConfirmados:
 
         casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].notnull()) & (casos['uf'] != 'PR'), 'uf_resid'] = casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].notnull()) & (casos['uf'] != 'PR'), 'uf']
         casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].isnull()), 'uf_resid'] = 'ERRO'
-        casos.loc[casos['uf']!='PR', mun] = casos.loc[casos['uf']!='PR', mun] + '/' + casos.loc[casos['uf']!='PR', 'uf_resid']
+        # casos.loc[casos['uf']!='PR', mun] = casos.loc[casos['uf']!='PR', mun] + '/' + casos.loc[casos['uf']!='PR', 'uf_resid']
 
         return casos
 
