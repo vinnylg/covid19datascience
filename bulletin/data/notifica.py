@@ -43,16 +43,14 @@ class Notifica:
                 if hard:
                     self.update()
 
-            if isfile(self.database):
-                self.__source = pd.read_pickle(self.database)
-            else:
-                self.update()
-
         else:
             if not isdir(dirname(self.pathfile)):
                 makedirs(dirname(self.pathfile))
 
-            exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
+        if isfile(self.database):
+            self.__source = pd.read_pickle(self.database)
+        else:
+            self.update()
 
     def __len__(self):
         return len(self.__source)
@@ -60,8 +58,9 @@ class Notifica:
     def shape(self):
         return (len(self.__source),len(self.__source.loc[self.__source['cod_evolucao'] == 1]),len(self.__source.loc[self.__source['cod_evolucao'] == 2]),len(self.__source.loc[self.__source['cod_evolucao'] == 3]),len(self.__source.loc[self.__source['cod_evolucao'] == 4]))
 
-    def read_notifica(self,pathfile):
-        return pd.read_csv(pathfile,
+    def read(self,pathfile,overwrite=False):
+        print(f"reading {pathfile}")
+        notifica = pd.read_csv(pathfile,
                            dtype = {
                                'id': 'int32',
                            },
@@ -107,15 +106,17 @@ class Notifica:
                            date_parser = lambda x: pd.to_datetime(x, errors='coerce', format='%d/%m/%Y')
                         )
 
-    def update(self):
-        # notifica = self.read_notifica(self.pathfile)
-        notifica = self.read_notifica(join('input','null.csv'))
-        notifica = notifica.append(self.read_notifica(join('input','0.csv')), ignore_index=True)
-        notifica = notifica.append(self.read_notifica(join('input','1.csv')), ignore_index=True)
-        notifica = notifica.append(self.read_notifica(join('input','2.csv')), ignore_index=True)
-        notifica = notifica.append(self.read_notifica(join('input','3.csv')), ignore_index=True)
-        notifica = notifica.append(self.read_notifica(join('input','5.csv')), ignore_index=True)
+        if not isinstance(self.__source, pd.DataFrame) or overwrite:
+            self.__source = notifica
+        else:
+            self.__source = self.__source.append(notifica, ignore_index=True)
 
+    def update(self, overwrite=False):
+        if not isinstance(self.__source, pd.DataFrame) or overwrite:
+            self.read(self.pathfile)
+
+        print('normalize and update notifica')
+        notifica = self.__source
 
         notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'cod_tipo_paciente'] = 99
         notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'tipo_paciente'] = 'IGNORADO'
@@ -212,8 +213,13 @@ class Notifica:
         notifica.to_pickle(self.database)
 
         with open(self.checksum_file, "w") as checksum:
-            checksum.write(self.checksum)
+            try:
+                checksum.write(self.checksum)
+            except:
+                print('checksum não criado')
 
+
+        print('Finished')
         self.__source = notifica
 
     def filter_date(self,date):
