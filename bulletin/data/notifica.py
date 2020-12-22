@@ -12,11 +12,16 @@ from bulletin.commom.normalize import normalize_text, normalize_number, normaliz
 from bulletin.commom.utils import isvaliddate
 
 class Notifica:
-    def __init__(self, pathfile=join('input','notifica.csv'), force=False, hard=False):
-        self.pathfile = pathfile
+
+    def __len__(self):
+        return len(self.__source)
+
+    def __init__(self, pathfile='',):
         self.__source = None
+        self.checksum = None
+        self.pathfile = pathfile
         self.checksum_file = join(dirname(__root__),'resources','database','notifica_checksum')
-        self.database = join(dirname(__root__),'resources','database','notifica','notifica.pkl')
+        self.database = join(dirname(__root__),'resources','database','notifica.pkl')
         self.errorspath = join('output','errors','notifica',datetime.today().strftime('%d_%m_%Y'))
 
         if not isdir(self.errorspath):
@@ -25,40 +30,25 @@ class Notifica:
         if not isdir(dirname(self.database)):
             makedirs(dirname(self.database))
 
+        if isfile(self.checksum_file):
+            with open(self.checksum_file, "r") as checksum:
+                saved_checksum = checksum.read()
+
         if isfile(self.pathfile):
-            saved_checksum = None
-
-            if isfile(self.checksum_file):
-                with open(self.checksum_file, "r") as checksum:
-                    saved_checksum = checksum.read()
-
             with open(self.pathfile, "rb") as filein:
                 bytes = filein.read()
                 self.checksum = sha256(bytes).hexdigest()
 
             if saved_checksum != self.checksum:
-                if force:
-                    self.update()
-            else:
-                if hard:
-                    self.update()
-
-        else:
-            if not isdir(dirname(self.pathfile)):
-                makedirs(dirname(self.pathfile))
-
-        if isfile(self.database):
-            self.__source = pd.read_pickle(self.database)
-        else:
-            self.update()
-
-    def __len__(self):
-        return len(self.__source)
+                print(f"{self.pathfile} sofreu alterações")
 
     def shape(self):
-        return (len(self.__source),len(self.__source.loc[self.__source['cod_evolucao'] == 1]),len(self.__source.loc[self.__source['cod_evolucao'] == 2]),len(self.__source.loc[self.__source['cod_evolucao'] == 3]),len(self.__source.loc[self.__source['cod_evolucao'] == 4]))
+        try:
+            return (len(self.__source),len(self.__source.loc[self.__source['cod_evolucao'] == 1]),len(self.__source.loc[self.__source['cod_evolucao'] == 2]),len(self.__source.loc[self.__source['cod_evolucao'] == 3]),len(self.__source.loc[self.__source['cod_evolucao'] == 4]))
+        except:
+            return f"Arquivo {self.database} não encontrado"
 
-    def read(self,pathfile,overwrite=False):
+    def read(self,pathfile,append=False):
         print(f"reading {pathfile}")
         notifica = pd.read_csv(pathfile,
                            dtype = {
@@ -106,16 +96,39 @@ class Notifica:
                            date_parser = lambda x: pd.to_datetime(x, errors='coerce', format='%d/%m/%Y')
                         )
 
-        if not isinstance(self.__source, pd.DataFrame) or overwrite:
-            self.__source = notifica
-        else:
+        if isinstance(self.__source, pd.DataFrame) and append:
             self.__source = self.__source.append(notifica, ignore_index=True)
+        else:
+            self.__source = notifica
 
-    def update(self, overwrite=False):
-        if not isinstance(self.__source, pd.DataFrame) or overwrite:
-            self.read(self.pathfile)
 
-        print('normalize and update notifica')
+    def load(self):
+        try:
+            self.__source = pd.read_pickle(self.database)
+        except:
+            raise Exception(f"Arquivo {self.database} não encontrado")
+
+    def save(self, df=None):
+        if isinstance(df, pd.DataFrame) and len(df) > 0:
+            notifica = df
+        elif isinstance(self.__source, pd.DataFrame) and len(self.__source) > 0:
+            notifica = self.__source
+        else:
+            raise Exception('Não é possível salvar um DataFrame inexistente, realize a leitura antes ou passe como para esse método')
+
+        notifica.to_pickle(self.database)
+
+        with open(self.checksum_file, "w") as checksum:
+            try:
+                checksum.write(self.checksum)
+            except:
+                print('checksum não criado')
+
+    def normalize(self):
+        if not isinstance(self.__source, pd.DataFrame):
+            raise Exception('Não é possível normalizar um arquivo inexistente, realize a leitura antes')
+
+        print('Normalizando dados')
         notifica = self.__source
 
         notifica.loc[((notifica['tipo_paciente'].isnull()) | (notifica['tipo_paciente'] == '')),'cod_tipo_paciente'] = 99
@@ -145,7 +158,6 @@ class Notifica:
         mask = notifica['updated_at'].apply(isvaliddate)
         notifica.loc[~mask, 'updated_at'] = pd.NaT
 
-        # normalize idade ? IDADE ATUAL OU IDADE NOTIFICACAO OU AS DUAS
         notifica.loc[(notifica['data_nascimento'].notnull()) & (notifica['data_notificacao'].notnull()),'idade'] = notifica.loc[(notifica['data_nascimento'].notnull()) & (notifica['data_notificacao'].notnull())].apply(lambda row: row['data_notificacao'].year - row['data_nascimento'].year - ((row['data_notificacao'].month, row['data_notificacao'].day) < (row['data_nascimento'].month, row['data_nascimento'].day)), axis=1)
         notifica.loc[notifica['data_nascimento'].isnull(),'idade'] = -99
         notifica['idade'] = notifica['idade'].apply(int)
@@ -183,8 +195,6 @@ class Notifica:
         notifica.loc[notifica['uf_unidade_notifica'] == 0,'uf_unidade_notifica'] = 99
         notifica.loc[notifica['ibge_unidade_notifica'] == 0,'ibge_unidade_notifica'] = 999999
 
-        #['data_nascimento','data_1o_sintomas','data_cura_obito','data_coleta','data_recebimento','data_liberacao','data_notificacao','updated_at']
-
         municipios = static.municipios[['ibge','municipio','uf']].copy()
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
 
@@ -207,23 +217,10 @@ class Notifica:
         notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_idade_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_idade_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
         notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+normalize_hash(row['nome_mae']))).hexdigest(), axis=1)
+        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['data_nascimento']).replace('-',''))).hexdigest(), axis=1)
 
-        notifica.loc[notifica['idade']!=-99, 'hash_idade'] = notifica.loc[notifica['idade']!=-99].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']))).hexdigest(), axis=1)
-
-        notifica.to_pickle(self.database)
-
-        with open(self.checksum_file, "w") as checksum:
-            try:
-                checksum.write(self.checksum)
-            except:
-                print('checksum não criado')
-
-
-        print('Finished')
         self.__source = notifica
-
-    def filter_date(self,date):
-        self.__source = self.__source.loc[((self.__source['updated_at'] >= date) | (self.__source['data_liberacao'] >= date) | (self.__source['data_notificacao'] >= date))]
+        print('Finished')
 
     def get_casos(self):
         return self.__source.copy()

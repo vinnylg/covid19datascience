@@ -310,9 +310,9 @@ class CasosConfirmados:
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
 
-        casos['hash_idade'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']))).hexdigest(), axis=1)
-        casos['hash_idade_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1))).hexdigest(), axis=1)
-        casos['hash_idade_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1))).hexdigest(), axis=1)
+        casos['hash_atend'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
+        casos['hash_less_atend'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
+        casos['hash_more_atend'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
