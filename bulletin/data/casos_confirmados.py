@@ -129,9 +129,9 @@ class CasosConfirmados:
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: normalize_number(x,fill='99'))
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
 
-        obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: sha256(str.encode(row['paciente']+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
 
         print(f"obitos novos notifica {obitos_raw.shape[0]} + {obitos_curitiba.shape[0]} curitiba\n")
 
