@@ -65,7 +65,7 @@ def normalize_municipios(mun):
 			mun, est = mun.split('/')
 			est = trim_overspace(est)
 		else:
-			municipios = static.municipios.loc[static.municipios['uf']!='PR']
+			municipios = static.municipios_sesa_ibge.loc[static.municipios_sesa_ibge['uf']!='PR']
 			municipios['municipio_sesa'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
 			municipios['municipio_ibge'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
 
