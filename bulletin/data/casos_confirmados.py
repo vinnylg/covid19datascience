@@ -306,6 +306,8 @@ class CasosConfirmados:
         # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
         # casos['mun_resid'] = casos['mun_resid'].apply(self.get_mun)
 
+        # casos.loc[casos['idade']==0, 'idade'] = 1
+
         casos['hash'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
         casos['hash_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
