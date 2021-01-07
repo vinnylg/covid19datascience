@@ -137,6 +137,16 @@ class CasosConfirmados:
 
         obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
 
+        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] > datetime.today()]
+        print(f"obitos novos com data no futuro: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'obitos_raw_futuro.xlsx'))
+        obitos_raw = obitos_raw.drop(index=dropar.index)
+
+        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] < datetime.strptime('12/03/2020','%d/%m/%Y')]
+        print(f"obitos novos com data no passado: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'obitos_raw_passado.xlsx'))
+        obitos_raw = obitos_raw.drop(index=dropar.index)
+
         obitos_raw_duplicates = obitos_raw.loc[obitos_raw.duplicated(subset='hash')]
         print(f"obitos novos duplicados: {obitos_raw_duplicates.shape[0]}")
         obitos_raw_duplicates.to_excel(join(self.errorspath,'obitos_raw_duplicates.xlsx'))
@@ -169,16 +179,6 @@ class CasosConfirmados:
         obitos_nao_casos = obitos_raw.loc[~obitos_raw['hash'].isin(all_casos['hash'])]
         obitos_nao_casos.to_excel(join(self.errorspath,'obitos_nao_casos_confirmados.xlsx'))
         print(f"obitos que não estão nos casos {obitos_nao_casos.shape[0]}")
-
-        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] > datetime.today()]
-        print(f"obitos novos com data no futuro: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'obitos_raw_futuro.xlsx'))
-        obitos_raw = obitos_raw.drop(index=dropar.index)
-
-        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] < datetime.strptime('12/03/2020','%d/%m/%Y')]
-        print(f"obitos novos com data no passado: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'obitos_raw_passado.xlsx'))
-        obitos_raw = obitos_raw.drop(index=dropar.index)
 
         index_duplicados = list(set(index_obitos_duplicados + index_obitos_duplicados_idade_less + index_obitos_duplicados_idade_more + obitos_nao_casos.index.to_list()))
         print(f"sendo assim, {len(index_duplicados) + len(obitos_raw_duplicates)} obitos que já se encontram na planilha serão removidos")
