@@ -72,11 +72,6 @@ class TbPacientes:
                 "Sexo": normalize_text,
                 "Mun_Resid": normalize_text,
                 "Mun_atend": normalize_text,
-                "Laboratorio": normalize_text,
-                "Obito": lambda x: normalize_text(x) if x else None,
-                "Status": lambda x: normalize_text(x) if x else None,
-                "Fonte": normalize_text,
-                "COD_LABORATORIO": normalize_number
             },
             parse_dates=["Dt_diag", "dt_notificacao", "dt_inicio_sintomas", "15_dia_Isolamento", "Data_de_internamento", "Dt_alta", "Dt_obito", "DT_ATUALIZACAO", "Dt_internamento","dt_com_obito","dt_com_recuperado",],
             date_parser=lambda x: pd.to_datetime(x,errors='coerce',format='%d/%m/%Y')
