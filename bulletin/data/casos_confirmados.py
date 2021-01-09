@@ -305,6 +305,7 @@ class CasosConfirmados:
         casos = casos.rename(columns={'rs_res_pr': 'rs'})
 
         casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
+        casos = casos.loc[casos['excluir'] != 'SIM']
 
         municipios = static.municipios.copy()[['ibge','uf','municipio']]
         municipios['municipio'] = municipios['municipio'].apply(normalize_text)
