@@ -301,6 +301,7 @@ class CasosConfirmados:
         casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 99 else None)
 
         print(f"Casos confirmados excluidos: {len(casos.loc[casos['mun_resid'] == 'EXCLUIR'])}")
+        casos = casos.loc[casos['excluir'] != 'SIM']
         casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
 
         # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
