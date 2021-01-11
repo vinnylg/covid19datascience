@@ -1,3 +1,8 @@
+"""@package Notifica
+Este pacote contém a classe Notifica, com métodos referentes à leitura, normalização, e obtenção dos dados provenientes do banco de dados Notifica Covid-19 Paraná
+"""
+
+#Importações de pacotes de terceiros
 from os.path import dirname, join, isfile, isdir
 from datetime import datetime, date, timedelta
 from unidecode import unidecode
@@ -6,49 +11,81 @@ from os import makedirs
 from sys import exit
 import pandas as pd
 
+#Importação de pacotes gerados
 from bulletin import __file__ as __root__
 from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_cpf
 from bulletin.commom.utils import isvaliddate
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
 class Notifica:
+    """! Classe do Notifica
+        Quando instanciada pode ser usada para ler novos dados, salvar, carregar.
+        Os dados serão normalizados após a leitura, sendo salvos como deve
+        Além disso, possibilida a extração dos casos, obitos, recuperados e ativos
+    """
 
     def __len__(self):
-        return len(self.__source)
+        ###! Retorna o tamanho do DataFrame carregado.
+        try:
+            return len(self.__source)
+        except:
+            raise Exception('Não é possivel calcular o tamanho de algo inexistente')
 
-    def __init__(self, pathfile='',):
+    def __init__(self, pathfile=''):
+        """! Construdor da classe Notifica.
+            Inicializa os atributos, cria os diretórios auxiliares, verifica mudanças no arquivo.
+            @param pathfile Caminho relativo ao arquivo csv que contém os dados baixados do Metabase
+        """
+
+        ## Referencia ao DataFrame lido do arquivo csv. Atribudo privado, não pode ser lido nem alterado fora da classe
         self.__source = None
+        ## Realiza a leitura do arquivo csv e o calculo do hash, usado para verifiar mudanças no arquivo
         self.checksum = None
+        ## Recebe caminho do arquivo csv passado como parametro
         self.pathfile = pathfile
+        ## Arquivo onde é salvo o hash referente ao arquivo csv
         self.checksum_file = join(dirname(__root__),'resources','database','notifica_checksum')
+        ## Arquivo onde é salvo o DataFrame normalizado para uma leitura mais rapida
         self.database = join(dirname(__root__),'resources','database','notifica.pkl')
+        ## Diretório aonde é salvo eventuais erros de dado
         self.errorspath = join('output','errors','notifica',datetime.today().strftime('%d_%m_%Y'))
 
         if not isdir(self.errorspath):
-            makedirs(self.errorspath)
+            makedirs(self.errorspath) #Cria o diretório para os erros, separando os por data
 
         if not isdir(dirname(self.database)):
-            makedirs(dirname(self.database))
+            makedirs(dirname(self.database)) #Cria o diretório para salvar os dados
 
         if isfile(self.checksum_file):
             with open(self.checksum_file, "r") as checksum:
-                saved_checksum = checksum.read()
+                saved_checksum = checksum.read() # Realiza a leitura do checksum salvo, se houver
 
         if isfile(self.pathfile):
             with open(self.pathfile, "rb") as filein:
                 bytes = filein.read()
-                self.checksum = sha256(bytes).hexdigest()
+                self.checksum = sha256(bytes).hexdigest() # Realiza a leitura do arquivo csv passado e calcula seu checksum
 
             if saved_checksum != self.checksum:
-                print(f"{self.pathfile} sofreu alterações")
+                print(f"{self.pathfile} sofreu alterações") #Sinaliza em caso de alterações
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def shape(self):
+        ###! Retorna a quantidade de casos totais, casos recuperados, óbitos, casos ativos e óbitos por outras causas.
         try:
             return (len(self.__source),len(self.__source.loc[self.__source['cod_evolucao'] == 1]),len(self.__source.loc[self.__source['cod_evolucao'] == 2]),len(self.__source.loc[self.__source['cod_evolucao'] == 3]),len(self.__source.loc[self.__source['cod_evolucao'] == 4]))
         except:
-            return f"Arquivo {self.database} não encontrado"
+            raise Exception('Não é possivel calcular o tamanho de algo inexistente')
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def read(self,pathfile,append=False):
+        """! Método para realizar a leitura de um ou mais csv.
+            @param pathfile Caminho relativo ao arquivo csv que contém os dados baixados do Metabase
+            @param append Bool que define se ao ler mais de um arquivo será sobrescrito ou agregado
+        """
         print(f"reading {pathfile}")
         notifica = pd.read_csv(pathfile,
                            dtype = {
@@ -97,16 +134,21 @@ class Notifica:
                         )
 
         if isinstance(self.__source, pd.DataFrame) and append:
+            #se não for nulo e append for verdadeiro, concantena csv passado com csv que já está em source
             self.__source = self.__source.append(notifica, ignore_index=True)
         else:
+            #senão adiciona csv no source
             self.__source = notifica
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def load(self):
         try:
             self.__source = pd.read_pickle(self.database)
         except:
             raise Exception(f"Arquivo {self.database} não encontrado")
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def save(self, df=None):
         if isinstance(df, pd.DataFrame) and len(df) > 0:
@@ -123,6 +165,8 @@ class Notifica:
                 checksum.write(self.checksum)
             except:
                 print('checksum não criado')
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def normalize(self):
         if not isinstance(self.__source, pd.DataFrame):
@@ -222,17 +266,27 @@ class Notifica:
         self.__source = notifica
         print('Finished')
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
     def get_casos(self):
         return self.__source.copy()
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def get_obitos(self):
         return self.__source.loc[self.__source['cod_evolucao'] == 2].copy()
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
     def get_recuperados(self):
         return self.__source.loc[self.__source['cod_evolucao'] == 1].copy()
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
+
     def get_casos_ativos(self):
         return self.__source.loc[self.__source['cod_evolucao'] == 3].copy()
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------#
 
     def get_obitos_nao_covid(self):
         return self.__source.loc[self.__source['cod_evolucao'] == 4].copy()
