@@ -25,7 +25,7 @@ def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.ex
         'Origin':'https://metabase.appsesa.pr.gov.br',
         'Connection':'keep-alive',
         'Referer':'https://metabase.appsesa.pr.gov.br/question',
-        'Cookie':'metabase.SESSION=85ac2295-a50b-4b8b-9340-b422c9e844f3',
+        'Cookie':'metabase.SESSION=c57b018e-8ada-4c6b-b8cc-f7d8a27f95bf',
         'Upgrade-Insecure-Requests':'1'
     }
 
