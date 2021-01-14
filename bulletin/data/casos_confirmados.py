@@ -268,18 +268,18 @@ class CasosConfirmados:
 
 
                 novos_casosPR['month'] = novos_casosPR.apply(lambda x: x['data_liberacao'].month, axis=1)
-                relatorio.write('Casos por meses:\n')
+                relatorio.write('Novos casos por meses:\n')
                 for group, value in novos_casosPR.groupby(by='month'):
                     relatorio.write(f"{static.meses[int(group)-1]}: {len(value)}\n")
                 relatorio.write('\n')
 
-                relatorio.write('Obitos por meses:\n')
+                relatorio.write('Novos obitos por meses:\n')
                 novos_obitosPR['month'] = novos_obitosPR.apply(lambda x: x['data_cura_obito'].month, axis=1)
                 for group, value in novos_obitosPR.groupby(by='month'):
                     relatorio.write(f"{static.meses[int(group)-1]}: {len(value)}\n")
                 relatorio.write('\n')
 
-                relatorio.write('Obitos por dia:\n')
+                relatorio.write('Novos obitos por dia:\n')
                 for group, value in novos_obitosPR.groupby(by='data_cura_obito'):
                     relatorio.write(f"{group.strftime('%d/%m/%Y')}\t{len(value)}\n")
 
@@ -328,7 +328,7 @@ class CasosConfirmados:
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
-                            usecols='B,C,D,F,G,I',
+                            usecols='B,C,D,F,G,I,J',
                             converters = {
                                'Nome': normalize_text,
                                'Idade': lambda x: normalize_number(x,fill=0),
@@ -340,6 +340,7 @@ class CasosConfirmados:
         obitos = obitos.rename(columns={'rs_res_pr': 'rs'})
 
         obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
+        obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
         obitos['hash_less'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
