@@ -28,6 +28,9 @@ def normalize_cpf(cpf):
 def normalize_hash(text):
 	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))
 
+def data_hash(text):
+	return "".join(filter(lambda x: x >= '0' and x <= '9', str(text).upper()))
+
 def normalize_text(text):
 	if text == None:
 		return None

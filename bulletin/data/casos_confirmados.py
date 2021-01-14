@@ -10,7 +10,7 @@ import codecs
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace, normalize_hash
+from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, normalize_hash, data_hash
 
 class CasosConfirmados:
     def __init__(self, pathfile=join('input','Casos Confirmados PR.xlsx'),force=False, hard=False):
@@ -109,9 +109,9 @@ class CasosConfirmados:
                             },
                             parse_dates=['data_cura_obito'])
 
-            obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-            obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-            obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+            obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+            obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+            obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
             print(f" + {obitos_curitiba.shape[0]} curitiba", end="")
 
@@ -140,13 +140,13 @@ class CasosConfirmados:
         print(f"obitos que estão nos casos porém com um ano a menos {index_idade_less.shape[0]}")
         if len(index_idade_less) > 0:
             obitos_raw.loc[index_idade_less,'idade'] -= 1
-            obitos_raw.loc[index_idade_less,'hash'] = obitos_raw.loc[index_idade_less].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+            obitos_raw.loc[index_idade_less,'hash'] = obitos_raw.loc[index_idade_less].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
 
         index_idade_more = obitos_raw.loc[obitos_raw['hash_more'].isin(casos_confirmados['hash'])].index
         print(f"obitos que estão nos casos porém com um ano a mais {index_idade_more.shape[0]}")
         if len(index_idade_more) > 0:
             obitos_raw.loc[index_idade_more,'idade'] += 1
-            obitos_raw.loc[index_idade_more,'hash'] = obitos_raw.loc[index_idade_more].apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+            obitos_raw.loc[index_idade_more,'hash'] = obitos_raw.loc[index_idade_more].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
 
         all_casos = casos_confirmados[['hash']].append(novos_casos[['hash']])
         obitos_nao_casos = obitos_raw.loc[~obitos_raw['hash'].isin(all_casos['hash'])]
@@ -273,13 +273,12 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            # usecols = 'A,B,D:M',
                             usecols = 'A,B,D:P',
                             dtype = {
-                               'Ordem': int,
+                               'Ordem': str
                             },
                             converters = {
-                                'IBGE_RES_PR': lambda x: normalize_number(x,fill=99),
+                                'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
                                 'Idade': lambda x: normalize_number(x,fill=0),
@@ -289,41 +288,38 @@ class CasosConfirmados:
                                 'Laboratório': normalize_text
                             },
                             parse_dates=False
-                            # parse_dates = ['Dt diag', 'Comunicação', 'IS']
-                            # date_parser = lambda date: pd.to_datetime(date, format='%Y-%m-%d %H:%M:%S', errors='coerce')
-                            # parse_dates = ['Dt diag', 'Comunicação', 'data_obito']
                         )
 
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
         casos = casos.rename(columns={'ibge_res_pr': 'ibge7'})
 
         casos['rs'] = casos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
-        casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 99 else None)
+        casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
-        print(f"Casos confirmados excluidos: {len(casos.loc[casos['mun_resid'] == 'EXCLUIR'])}")
-        casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
+        print(f"Casos confirmados excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
+        casos = casos.loc[casos['excluir'] != 'SIM']
 
         # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
         # casos['mun_resid'] = casos['mun_resid'].apply(self.get_mun)
 
-        # casos.loc[casos['idade']==0, 'idade'] = 1
+        casos['hash'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        casos['hash_less'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        casos['hash_more'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
-        casos['hash'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        casos['hash_less'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        casos['hash_more'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        casos['hash_atend'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
+        casos['hash_less_atend'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_atend']), axis=1)
+        casos['hash_more_atend'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']), axis=1)
 
-        casos['hash_atend'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
-        casos['hash_less_atend'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
-        casos['hash_more_atend'] = casos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
+        casos['hash_dt_diag'] = casos.apply(lambda row: normalize_hash(row['nome'])+data_hash(row['dt_diag']), axis=1)
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
                             usecols = 'A,B,D:I',
                             dtype = {
-                               'Ordem': int,
+                               'Ordem': str
                             },
                             converters = {
-                                'IBGE_RES_PR': lambda x: normalize_number(x,fill=99),
+                                'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
                                 'Idade': lambda x: normalize_number(x,fill=0),
@@ -331,14 +327,13 @@ class CasosConfirmados:
                                 'RS': lambda x: normalize_number(x,fill=99)
                             },
                             parse_dates=False
-                            # parse_dates = ['Data do óbito']
-                            # date_parser = lambda date: pd.to_datetime(date, format='%Y-%m-%d %H:%M:%S', errors='coerce')
                         )
 
         obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
         obitos = obitos.rename(columns={'ibge_res_pr': 'ibge7'})
 
         obitos['rs'] = obitos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+        obitos['ibge7'] = obitos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
         print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['municipio'] == 'EXCLUIR'])}")
         obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
@@ -346,9 +341,10 @@ class CasosConfirmados:
         # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
         # obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
 
-        obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
-        obitos['hash_less'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
-        obitos['hash_more'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']))).hexdigest(), axis=1)
+        obitos['hash'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
+        obitos['hash_less'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']), axis=1)
+        obitos['hash_more'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']), axis=1)
+        obitos['hash_dt_obito'] = obitos.apply(lambda row: normalize_hash(row['nome'])+data_hash(row['data_do_obito']), axis=1)
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])
@@ -384,7 +380,6 @@ class CasosConfirmados:
         casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
         casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])
         casos_sem_ibge['mun_hash'] = casos_sem_ibge[mun].apply(normalize_hash)
-
 
         municipios = static.municipios.copy()
 
