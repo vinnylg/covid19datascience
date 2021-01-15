@@ -314,7 +314,7 @@ class CasosConfirmados:
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
-                            usecols = 'A,B,D:I',
+                            usecols = 'A,B,D:J',
                             dtype = {
                                'Ordem': str
                             },
@@ -337,6 +337,7 @@ class CasosConfirmados:
 
         print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['municipio'] == 'EXCLUIR'])}")
         obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
+        obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
         # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
         # obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
