@@ -335,7 +335,7 @@ class CasosConfirmados:
         obitos['rs'] = obitos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
         obitos['ibge7'] = obitos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
-        print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['municipio'] == 'EXCLUIR'])}")
+        print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
         obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
