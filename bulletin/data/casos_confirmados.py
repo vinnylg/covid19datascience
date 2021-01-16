@@ -107,7 +107,7 @@ class CasosConfirmados:
         print(f"\nentão, de {len(casos_raw)} casos baixados hoje  {len(casos_raw)-len(index_duplicados)} serão adicionados\n")
         casos_raw = casos_raw.drop(index=index_duplicados)
 
-        casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
+        # casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
         casos_raw['data_com'] = date.today()
 
         novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
@@ -185,7 +185,7 @@ class CasosConfirmados:
         print(f"\nentão, de {len(obitos_raw) - len(obitos_curitiba) + len(obitos_raw_duplicates)} obitos baixados hoje + {len(obitos_curitiba)} inseridos de Curitiba, ",end='')
         obitos_raw = obitos_raw.drop(index=index_duplicados)
 
-        obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] = obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'uf_resid']
+        # obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] = obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'uf_resid']
 
         print(f"{len(obitos_raw) - len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} do notifica e {len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} de Curitiba serão adicionados\n")
         novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
@@ -222,10 +222,10 @@ class CasosConfirmados:
 
         today = datetime.today()
         ontem = today - timedelta(1)
-        anteontem = ontem - timedelta(1)
-        # last_week = ontem - timedelta(7)
+        # anteontem = ontem - timedelta(1)
+        last_week = ontem - timedelta(7)
 
-        retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= anteontem)].sort_values(by='data_liberacao')
+        retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= last_week)].sort_values(by='data_liberacao')
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"w","utf-8-sig") as relatorio:
             relatorio.write(f"{today.strftime('%d/%m/%Y - %Hh%M')}\n")
@@ -264,7 +264,7 @@ class CasosConfirmados:
                 relatorio.write(f"divulgados no PR.\n")
 
                 relatorio.write(f"{len(retroativos)} casos retroativos confirmados no período de {retroativos.iloc[0]['data_liberacao'].strftime('%d/%m/%Y')} à {retroativos.iloc[-1]['data_liberacao'].strftime('%d/%m/%Y')}.\n")
-                relatorio.write(f"{len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > anteontem)])} novos casos confirmados na data de hoje.\n\n")
+                relatorio.write(f"{len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > last_week)])} novos casos confirmados na data de hoje.\n\n")
 
 
                 novos_casosPR['month'] = novos_casosPR.apply(lambda x: x['data_liberacao'].month, axis=1)
@@ -281,7 +281,7 @@ class CasosConfirmados:
 
                 relatorio.write('Novos obitos por dia:\n')
                 for group, value in novos_obitosPR.groupby(by='data_cura_obito'):
-                    relatorio.write(f"{group.strftime('%d/%m/%Y')}\t{len(value)}\n")
+                    relatorio.write(f"{group.strftime('%d/%m/%Y')}: {len(value)}\n")
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"r","utf-8-sig") as relatorio:
             print("\nrelatorio:\n")
@@ -307,8 +307,8 @@ class CasosConfirmados:
         casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
         casos = casos.loc[casos['excluir'] != 'SIM']
 
-        municipios = static.municipios.copy()[['ibge','uf','municipio']]
-        municipios['municipio'] = municipios['municipio'].apply(normalize_text)
+        # municipios = static.municipios.copy()[['ibge','uf','municipio']]
+        # municipios['municipio'] = municipios['municipio'].apply(normalize_text)
 
         # casosPR = casos.loc[casos['ibge_res_pr'] != -1].copy()
         # municipiosPR = municipios.loc[municipios['uf']=='PR']
