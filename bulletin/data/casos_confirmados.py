@@ -222,10 +222,9 @@ class CasosConfirmados:
 
         today = datetime.today()
         ontem = today - timedelta(1)
-        # anteontem = ontem - timedelta(1)
-        last_week = ontem - timedelta(7)
+        data_retroativos = ontem - timedelta(1)
 
-        retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= last_week)].sort_values(by='data_liberacao')
+        retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= data_retroativos)].sort_values(by='data_liberacao')
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"w","utf-8-sig") as relatorio:
             relatorio.write(f"{today.strftime('%d/%m/%Y - %Hh%M')}\n")
@@ -264,7 +263,7 @@ class CasosConfirmados:
                 relatorio.write(f"divulgados no PR.\n")
 
                 relatorio.write(f"{len(retroativos)} casos retroativos confirmados no período de {retroativos.iloc[0]['data_liberacao'].strftime('%d/%m/%Y')} à {retroativos.iloc[-1]['data_liberacao'].strftime('%d/%m/%Y')}.\n")
-                relatorio.write(f"{len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > last_week)])} novos casos confirmados na data de hoje.\n\n")
+                relatorio.write(f"{len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > data_retroativos)])} novos casos confirmados na data de hoje.\n\n")
 
 
                 novos_casosPR['month'] = novos_casosPR.apply(lambda x: x['data_liberacao'].month, axis=1)
