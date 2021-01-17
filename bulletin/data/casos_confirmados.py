@@ -303,7 +303,7 @@ class CasosConfirmados:
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
         casos = casos.rename(columns={'rs_res_pr': 'rs'})
 
-        casos = casos.loc[casos['mun_resid'] != 'EXCLUIR']
+        print(f"Casos excluidos: {len(casos.loc[casos['excluir'] != 'SIM'])}")
         casos = casos.loc[casos['excluir'] != 'SIM']
 
         # municipios = static.municipios.copy()[['ibge','uf','municipio']]
@@ -338,7 +338,7 @@ class CasosConfirmados:
         obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
         obitos = obitos.rename(columns={'rs_res_pr': 'rs'})
 
-        obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
+        print(f"Obitos excluidos: {len(obitos.loc[obitos['excluir'] != 'SIM'])}")
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
