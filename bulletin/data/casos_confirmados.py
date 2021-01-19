@@ -297,13 +297,13 @@ class CasosConfirmados:
                                'Nome': normalize_text,
                                'Idade': lambda x: normalize_number(x,fill=0),
                                'IBGE_RES_PR': normalize_igbe,
-                               'Mun Resid': normalize_municipios
+                               'Mun Resid': normalize_text
                             })
 
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
         casos = casos.rename(columns={'rs_res_pr': 'rs'})
 
-        print(f"Casos excluidos: {len(casos.loc[casos['excluir'] != 'SIM'])}")
+        print(f"Casos excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
         casos = casos.loc[casos['excluir'] != 'SIM']
 
         # municipios = static.municipios.copy()[['ibge','uf','municipio']]
@@ -332,13 +332,13 @@ class CasosConfirmados:
                                'Nome': normalize_text,
                                'Idade': lambda x: normalize_number(x,fill=0),
                                'IBGE_RES_PR': normalize_igbe,
-                               'Município': normalize_municipios
+                               'Município': normalize_text
                             })
 
         obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
         obitos = obitos.rename(columns={'rs_res_pr': 'rs'})
 
-        print(f"Obitos excluidos: {len(obitos.loc[obitos['excluir'] != 'SIM'])}")
+        print(f"Obitos excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
         obitos['hash'] = obitos.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']))).hexdigest(), axis=1)
