@@ -273,9 +273,10 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:P',
+                            usecols = 'A,B,D:O',
                             dtype = {
-                               'Ordem': str
+                               'Ordem': int,
+                               'Identificacao': int
                             },
                             converters = {
                                 'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
