@@ -126,9 +126,9 @@ class Notifica:
 
         notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] = notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] + '/' + notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'uf_resid']
 
-        notifica['hash'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        notifica['hash_less'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        notifica['hash_more'] = notifica.apply(lambda row: sha256(str.encode(normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        notifica['hash'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        notifica['hash_less'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        notifica['hash_more'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
         notifica.to_pickle(self.database)
 
