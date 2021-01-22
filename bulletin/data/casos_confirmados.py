@@ -273,10 +273,10 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:O',
+                            # usecols = 'A,B,C,E:Q',
                             dtype = {
-                               'Ordem': int,
-                               'Identificacao': int
+                               'Ordem': str,
+                               'Identificacao': str
                             },
                             converters = {
                                 'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
@@ -286,7 +286,11 @@ class CasosConfirmados:
                                 'Mun Resid': normalize_text,
                                 'Mun atend': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99),
-                                'Laboratório': normalize_text
+                                'Laboratório': normalize_text,
+                                # 'Dt Diag': normalize_text,
+                                # 'Comunicação': normalize_text,
+                                # 'IS': normalize_text,
+                                # 'data_obito': normalize_text
                             },
                             parse_dates=False
                         )
@@ -297,7 +301,8 @@ class CasosConfirmados:
         casos['rs'] = casos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
         casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
-        print(f"Casos confirmados excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
+        casos_excluidos = casos.loc[casos['excluir'] == 'SIM']
+        print(f"Casos confirmados excluidos: {len(casos_excluidos)}")
         casos = casos.loc[casos['excluir'] != 'SIM']
 
         # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
@@ -311,7 +316,7 @@ class CasosConfirmados:
         casos['hash_less_atend'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_atend']), axis=1)
         casos['hash_more_atend'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']), axis=1)
 
-        casos['hash_dt_diag'] = casos.apply(lambda row: normalize_hash(row['nome'])+data_hash(row['dt_diag']), axis=1)
+        casos['hash_dt_diag'] = casos.apply(lambda row: normalize_hash(row['nome'])+row['dt_diag'].strftime('%d%m%Y'), axis=1)
 
         obitos = pd.read_excel(self.pathfile,
                             'Obitos',
@@ -336,9 +341,20 @@ class CasosConfirmados:
         obitos['rs'] = obitos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
         obitos['ibge7'] = obitos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
-        print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
-        obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
+        obitos_excluidos = obitos.loc[obitos['excluir'] == 'SIM']
+        print(f"Obitos confirmados excluidos: {len(obitos_excluidos)}")
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
+
+        writer = pd.ExcelWriter(join('output',"exclusoes.xlsx"),
+                        engine='xlsxwriter',
+                        datetime_format='dd/mm/yyyy',
+                        date_format='dd/mm/yyyy')
+
+        casos_excluidos.to_excel(writer,sheet_name='casos_excluidos',index=None)
+        obitos_excluidos.to_excel(writer,sheet_name='obitos_excluidos',index=None)
+
+        writer.save()
+        writer.close()
 
         # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
         # obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
@@ -346,7 +362,7 @@ class CasosConfirmados:
         obitos['hash'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
         obitos['hash_less'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']), axis=1)
         obitos['hash_more'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']), axis=1)
-        obitos['hash_dt_obito'] = obitos.apply(lambda row: normalize_hash(row['nome'])+data_hash(row['data_do_obito']), axis=1)
+        obitos['hash_dt_obito'] = obitos.apply(lambda row: normalize_hash(row['nome'])+row['data_do_obito'].strftime('%d%m%Y'), axis=1)
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])

@@ -60,7 +60,7 @@ class TbPacientes:
 
         tb_pacientes = pd.read_csv(self.pathfile, sep=';',
             dtype={
-                "Identificacao": 'int32',
+                "Identificacao": str,
                 "Idade": 'int32',
                 "idade_mais1": 'int32',
                 "idade_menos1": 'int32'
@@ -82,13 +82,13 @@ class TbPacientes:
 
         tb_pacientes['ibge_res_pr'] = tb_pacientes['ibge_res_pr'].apply(lambda x: str(x).zfill(7) if x != '9999999' else None)
 
-        tb_pacientes['hash'] = tb_pacientes.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        tb_pacientes['hash_less'] = tb_pacientes.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
-        tb_pacientes['hash_more'] = tb_pacientes.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']))).hexdigest(), axis=1)
+        tb_pacientes['hash'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        tb_pacientes['hash_less'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        tb_pacientes['hash_more'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
-        tb_pacientes['hash_atend'] = tb_pacientes.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
-        tb_pacientes['hash_less_atend'] = tb_pacientes.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
-        tb_pacientes['hash_more_atend'] = tb_pacientes.apply(lambda row: sha256(str.encode(normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']))).hexdigest(), axis=1)
+        tb_pacientes['hash_atend'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
+        tb_pacientes['hash_less_atend'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_atend']), axis=1)
+        tb_pacientes['hash_more_atend'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']), axis=1)
 
 
         tb_pacientes.to_pickle(self.database)

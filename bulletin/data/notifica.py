@@ -261,7 +261,7 @@ class Notifica:
         notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_idade_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
         notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_idade_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
         notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: normalize_hash(row['paciente'])+normalize_hash(row['nome_mae']), axis=1)
-        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: normalize_hash(row['paciente'])+str(row['data_nascimento']).replace('-',''), axis=1)
+        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: normalize_hash(row['paciente'])+row['data_nascimento'].strftime('%d%m%Y'), axis=1)
 
         self.__source = notifica
         print('Finished')
