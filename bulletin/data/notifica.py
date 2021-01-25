@@ -124,7 +124,7 @@ class Notifica:
         # notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'] if row['criterio_classificacao'] not in [1,4] else pd.NaT, axis=1)
         notifica.loc[notifica['data_liberacao'].isnull(), 'data_liberacao'] = notifica.apply(lambda row: row['data_notificacao'], axis=1)
 
-        notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] = notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] + '/' + notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'uf_resid']
+#         notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] = notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'mun_resid'] + '/' + notifica.loc[(notifica['rs'].isnull()) & (notifica['mun_resid'].notnull()), 'uf_resid']
 
         notifica['hash'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
         notifica['hash_less'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
