@@ -281,7 +281,7 @@ class CasosConfirmados:
                                 'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
-                                'Idade': lambda x: normalize_number(x,fill=0),
+                                'Idade': lambda x: normalize_number(x,fill=1),
                                 'Mun Resid': normalize_text,
                                 'Mun atend': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99),
@@ -322,7 +322,7 @@ class CasosConfirmados:
                                 'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
-                                'Idade': lambda x: normalize_number(x,fill=0),
+                                'Idade': lambda x: normalize_number(x,fill=1),
                                 'Município': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99)
                             },
@@ -336,7 +336,7 @@ class CasosConfirmados:
         obitos['ibge7'] = obitos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
         print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
-        obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
+        # obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
         # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
