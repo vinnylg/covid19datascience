@@ -67,7 +67,7 @@ class TbPacientes:
                 "IBGE_ATEND_PR": normalize_text,
                 "Nome": normalize_text,
                 "Sexo": normalize_text,
-                'Idade': lambda x: normalize_number(x,fill=1),
+                'Idade': lambda x: normalize_number(x,fill=0),
                 "Mun_Resid": normalize_text,
                 "Mun_atend": normalize_text,
                 "Obito": lambda x: normalize_text(x) if x else 'NAO'

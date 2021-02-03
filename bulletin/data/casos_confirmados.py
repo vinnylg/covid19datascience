@@ -281,7 +281,7 @@ class CasosConfirmados:
                                 'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
-                                'Idade': lambda x: normalize_number(x,fill=1),
+                                'Idade': lambda x: normalize_number(x,fill=0),
                                 'Mun Resid': normalize_text,
                                 'Mun atend': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99),
@@ -322,7 +322,7 @@ class CasosConfirmados:
                                 'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
                                 'Nome': normalize_text,
                                 'Sexo': normalize_text,
-                                'Idade': lambda x: normalize_number(x,fill=1),
+                                'Idade': lambda x: normalize_number(x,fill=0),
                                 'Município': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99)
                             },
