@@ -28,8 +28,12 @@ def normalize_cpf(cpf):
 def normalize_hash(text):
 	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))
 
-def data_hash(text):
-	return "".join(filter(lambda x: x >= '0' and x <= '9', str(text).upper()))
+def date_hash(date):
+	try:
+		date = pd.to_datetime(date)
+		return date.strftime("%d%m%Y")
+	except:
+		return '9999999'
 
 def normalize_text(text):
 	if text == None:

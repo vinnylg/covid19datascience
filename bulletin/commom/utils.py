@@ -1,5 +1,5 @@
 from time import time
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 import numpy as np
 from xlsxwriter.worksheet import (
@@ -7,6 +7,9 @@ from xlsxwriter.worksheet import (
 
 class Timer:
     def __init__(self):
+        self.__running = False
+
+    def start(self):
         self.__start = time()
         self.__running = True
 
@@ -21,14 +24,23 @@ class Timer:
 
     def time(self):
         if not self.__running:
-            return self.__time_elapsed
+            time_elapsed = self.__time_elapsed
         else:
-            return time() - self.__start
+            time_elapsed = time() - self.__start
 
-    def reset(self):
-        self.__running = True
-        self.__start = time()
-        self.__end = 0
+        return time_elapsed
+
+    def ftime(self):
+        if not self.__running:
+            time_elapsed = self.__time_elapsed
+        else:
+            time_elapsed = time() - self.__start
+
+        days, seconds = divmod(time_elapsed,60*60*24)
+        hours, seconds = divmod(seconds, 60*60)
+        minutes, seconds = divmod(seconds, 60)
+        miliseconds = (seconds - int(seconds)) * 1000
+        return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}"
 
 def isvaliddate(date,begin=date(2020,3,12),end=date.today()):
 	if date != pd.NaT:

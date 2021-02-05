@@ -55,10 +55,10 @@ SELECT
     ori.valor AS origem,
     nt.uf_unidade_notifica,
     nt.ibge_unidade_notifica,
-    nt.nome_unidade_notifica,
-    nt.nome_notificador,
-    nt.email_notificador,
-    nt.telefone_notificador,
+    -- nt.nome_unidade_notifica,
+    -- nt.nome_notificador,
+    -- nt.email_notificador,
+    -- nt.telefone_notificador,
     to_char(nt.data_notificacao,'DD/MM/YYYY') AS data_notificacao,
     to_char(nt.updated_at,'DD/MM/YYYY') AS updated_at
 
