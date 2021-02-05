@@ -143,8 +143,8 @@ class Notifica:
         # notifica.loc[(notifica['data_coleta']==pd.NaT) & (notifica['data_recebimento']==pd.NaT) & (notifica['data_liberacao']==pd.NaT) & (notifica['data_notificacao']!=pd.NaT) ,'data_diagnostico'] = notifica.loc[(notifica['data_coleta']==pd.NaT) & (notifica['data_recebimento']==pd.NaT) & (notifica['data_liberacao']==pd.NaT) & (notifica['data_notificacao']!=pd.NaT) ,'data_notificacao']
         notifica['data_diagnostico'] = notifica['data_notificacao']
         notifica.loc[notifica['data_liberacao'].notnull(), 'data_diagnostico'] = notifica.loc[notifica['data_liberacao'].notnull(), 'data_liberacao']
-        notifica.loc[notifica['data_recebimento'].notnull(), 'data_diagnostico'] = notifica.loc[notifica['data_recebimento'].notnull(), 'data_recebimento']
-        notifica.loc[notifica['data_coleta'].notnull(), 'data_diagnostico'] = notifica.loc[notifica['data_coleta'].notnull(), 'data_coleta']
+        # notifica.loc[notifica['data_recebimento'].notnull(), 'data_diagnostico'] = notifica.loc[notifica['data_recebimento'].notnull(), 'data_recebimento']
+        # notifica.loc[notifica['data_coleta'].notnull(), 'data_diagnostico'] = notifica.loc[notifica['data_coleta'].notnull(), 'data_coleta']
 
         #Calcula a idade com base na data de notificação
         notifica.loc[(notifica['data_nascimento'].notnull()) & (notifica['data_notificacao'].notnull()),'idade'] = notifica.loc[(notifica['data_nascimento'].notnull()) & (notifica['data_notificacao'].notnull())].apply(lambda row: row['data_notificacao'].year - row['data_nascimento'].year - ((row['data_notificacao'].month, row['data_notificacao'].day) < (row['data_nascimento'].month, row['data_nascimento'].day)), axis=1)
@@ -210,8 +210,8 @@ class Notifica:
         notificacoes_sem_sexo.to_excel(join(self.errorspath,'notificacoes_sem_sexo.xlsx')) if len(notificacoes_sem_sexo) > 0 else True
         notificacoes_sem_mun_resid = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['mun_resid'].isnull())]
         notificacoes_sem_mun_resid.to_excel(join(self.errorspath,'notificacoes_sem_mun_resid.xlsx')) if len(notificacoes_sem_mun_resid) > 0 else True
-        # notificacoes_sem_mun_atend = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['mun_atend'].isnull())]
-        # notificacoes_sem_mun_atend.to_excel(join(self.errorspath,'notificacoes_sem_mun_atend.xlsx'))
+        notificacoes_sem_mun_atend = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['mun_atend'].isnull())]
+        notificacoes_sem_mun_atend.to_excel(join(self.errorspath,'notificacoes_sem_mun_atend.xlsx'))
         notificacoes_sem_nome_mae = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['nome_mae'].isnull())]
         notificacoes_sem_nome_mae.to_excel(join(self.errorspath,'notificacoes_sem_nome_mae.xlsx')) if len(notificacoes_sem_nome_mae) > 0 else True
         notificacoes_sem_data_nascimento = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['data_nascimento']==pd.NaT)]
@@ -222,7 +222,7 @@ class Notifica:
         notificacoes_sem_data_cura_obito.to_excel(join(self.errorspath,'notificacoes_sem_data_cura_obito.xlsx')) if len(notificacoes_sem_data_cura_obito) > 0 else True
 
         #Remove notificações erradas
-        notifica = notifica.drop(index=set(notificacoes_sem_sexo.index.tolist() + notificacoes_sem_mun_resid.index.tolist() + notificacoes_sem_nome_mae.index.tolist() + notificacoes_sem_data_nascimento.index.tolist() + notificacoes_sem_data_diagnostico.index.tolist() + notificacoes_sem_data_cura_obito.index.tolist()))
+        notifica = notifica.drop(index=set(notificacoes_sem_sexo.index.tolist() + notificacoes_sem_mun_resid.index.tolist() + notificacoes_sem_data_nascimento.index.tolist() + notificacoes_sem_data_diagnostico.index.tolist() + notificacoes_sem_data_cura_obito.index.tolist()))
 
         #Gera hashes para identificar as notificacoes caso o campo da coluna necessaria nao for nulo
         notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
