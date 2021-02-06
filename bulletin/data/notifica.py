@@ -13,6 +13,7 @@ from bulletin import __file__ as __root__
 from bulletin.commom import static
 from bulletin.commom.utils import isvaliddate
 from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_cpf, date_hash
+from bulletin.metabase.request import download_metabase
 
 #----------------------------------------------------------------------------------------------------------------------
 class Notifica:
@@ -37,6 +38,17 @@ class Notifica:
     #----------------------------------------------------------------------------------------------------------------------
     def shape(self):
         return (len(self.__source),len(self.__source.loc[self.__source['cod_evolucao'] == 1]),len(self.__source.loc[self.__source['cod_evolucao'] == 2]),len(self.__source.loc[self.__source['cod_evolucao'] == 3]),len(self.__source.loc[self.__source['cod_evolucao'] == 4]))
+
+    def download_todas_notificacoes(self):
+        classificacao_final = ['0','1','2','3','5']
+
+        self.read(download_metabase(filename='null.csv',where=f"classificacao_final IS NULL"))
+        # notifica.read(join('input','queries','null.csv'))
+        for cf in classificacao_final:
+            self.read(download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}"), append=True)
+            # notifica.read(join('input','queries',f"{cf}.csv"), append=True)
+
+        self.save()
 
     #----------------------------------------------------------------------------------------------------------------------
     def read(self,pathfile,append=False):
