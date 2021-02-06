@@ -75,10 +75,10 @@ LEFT JOIN public.termo evo ON (evo.codigo::character varying = nt.evolucao::char
 LEFT JOIN public.termo snt ON (snt.codigo::character varying = nt.status_notificacao::character varying AND snt.tipo = 'status')
 LEFT JOIN public.etnia etn ON (etn.co_etnia::character varying = nt.etnia::character varying)
 
-WHERE nt.classificacao_final = 2
-    AND nt.excluir_ficha = 2
-    AND nt.status_notificacao IN (1, 2)
-ORDER BY id ASC
+-- WHERE nt.classificacao_final = 2
+--     AND nt.excluir_ficha = 2
+--     AND nt.status_notificacao IN (1, 2)
+-- ORDER BY id ASC
 
-LIMIT ALL
-OFFSET 0
+-- LIMIT ALL
+-- OFFSET 0
