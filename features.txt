@@ -1,0 +1,31 @@
+- Improve confirmed_cases.py
+- Create new get_new_cases and get_new_deaths
+- Improve notifica.py to get more data
+- Create Backup class
+- Create Report class
+- Create Logger class
+- Create Language class
+- Create Bulletin class to conect with others classes
+
+Final Goal:
+    -
+    Server
+    -
+    > bulletin.exe update
+    > bulletin.exe report from today
+    > bulletin.exe report from 05/02/2021
+    > bulletin.exe save backup
+    > bulletin.exe restore backup
+    > bulletin.exe get sheets of regionais
+    > bulletin.exe get sheet ativos1rs
+    > bulletin.exe get all sheets
+    -
+    Client
+    -
+    > dashboard.exe
+        - load reports
+        - plot data and graphs
+            - init simple
+            - improve (timeline, maps, vacination!!)
+        - send email with data for ministery
+

@@ -35,7 +35,7 @@ class CasosConfirmados:
 
     #----------------------------------------------------------------------------------------------------------------------
     def shape(self):
-        return (len(self.__source),len(self.__source.loc[self.__source['obito'] == "SIM"]),len(self.__source.loc[self.__source['recuperado'] == "SIM"]),len(self.__source.loc[self.__source['ativo'] == "SIM"]))
+        return (len(self.__source),len(self.__source.loc[self.__source['obito'] == 1]),len(self.__source.loc[self.__source['recuperado'] == 1]),len(self.__source.loc[self.__source['ativo'] == 1]))
 
     #----------------------------------------------------------------------------------------------------------------------
     def read(self,pathfile=join('input','casos_confirmados.xlsx'),append=False):
@@ -76,15 +76,15 @@ class CasosConfirmados:
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_obitos(self):
-        return self.__source.loc[self.__source['obito']=="SIM"].copy()
+        return self.__source.loc[self.__source['obito']].copy()
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_recuperados(self):
-        return self.__source.loc[self.__source['recuperado']=="SIM"].copy()
+        return self.__source.loc[self.__source['recuperado']].copy()
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_ativos(self):
-        return self.__source.loc[self.__source['ativo']=="SIM"].copy()
+        return self.__source.loc[self.__source['ativo']].copy()
 
     #----------------------------------------------------------------------------------------------------------------------
     def __get_uf(self,mun):
@@ -101,10 +101,11 @@ class CasosConfirmados:
         return mun
 
     #----------------------------------------------------------------------------------------------------------------------
-    def get_novos_casos(self, notifica):
+    def get_new_cases(self, notifica):
         casos_confirmados = self.__source
         novos_casos = notifica.loc[ ~(notifica['id'].isin(casos_confirmados['id'])) ]
-        pass
+        novos_casos += notifica.loc[ ~(notifica['hash_resid'].isin(casos_confirmados['hash_resid']))]
+        novos_casos += notifica.loc[ ~(notifica['hash_resid'].isin(casos_confirmados['hash_resid']))]
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_novos_obitos(self, notifica):

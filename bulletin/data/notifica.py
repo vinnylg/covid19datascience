@@ -43,10 +43,18 @@ class Notifica:
         classificacao_final = ['0','1','2','3','5']
 
         self.read(download_metabase(filename='null.csv',where=f"classificacao_final IS NULL"))
-        # notifica.read(join('input','queries','null.csv'))
         for cf in classificacao_final:
             self.read(download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}"), append=True)
-            # notifica.read(join('input','queries',f"{cf}.csv"), append=True)
+
+        self.save()
+
+    #----------------------------------------------------------------------------------------------------------------------
+    def read_todas_notificacoes(self):
+        classificacao_final = ['0','1','2','3','5']
+
+        self.read(join('input','queries','null.csv'))
+        for cf in classificacao_final:
+            self.read(join('input','queries',f"{cf}.csv"), append=True)
 
         self.save()
 
@@ -129,6 +137,8 @@ class Notifica:
     def __normalize(self, notifica):
         if not (isinstance(notifica, pd.DataFrame) and len(notifica) > 0):
             raise Exception(f"Dataframe: {notifica} vazio")
+
+        print('normalize notifica')
 
         #Anula datas invalidas
         mask = notifica['data_nascimento'].apply(lambda x: isvaliddate(x, begin=date(1900,1,1)))
