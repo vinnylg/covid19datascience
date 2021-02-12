@@ -292,10 +292,9 @@ class CasosConfirmados:
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
 
-        # casos = pd.read_excel(self.pathfile,'Casos confirmados',usecols='B,C,D,F,G')
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols='B,C,D,F,G,P',
+                            usecols='C,D,E,G,H,Q',
                             converters = {
                                'Nome': normalize_text,
                                'Idade': lambda x: normalize_number(x,fill=0),
