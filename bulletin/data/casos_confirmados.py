@@ -273,7 +273,7 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols = 'A,B,D:P',
+                            usecols = 'A,C,E:Q',
                             dtype = {
                                'Ordem': str
                             },
@@ -296,8 +296,8 @@ class CasosConfirmados:
         casos['rs'] = casos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
         casos['ibge7'] = casos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
-        print(f"Casos confirmados excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
-        casos = casos.loc[casos['excluir'] != 'SIM']
+        # print(f"Casos confirmados excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
+        # casos = casos.loc[casos['excluir'] != 'SIM']
 
         # casos['uf_resid'] = casos['mun_resid'].apply(self.get_uf)
         # casos['mun_resid'] = casos['mun_resid'].apply(self.get_mun)
@@ -335,9 +335,9 @@ class CasosConfirmados:
         obitos['rs'] = obitos['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
         obitos['ibge7'] = obitos['ibge7'].apply(lambda x: str(x).zfill(7) if x != 9999999 else None)
 
-        print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
+        # print(f"Obitos confirmados excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
         # obitos = obitos.loc[obitos['municipio'] != 'EXCLUIR']
-        obitos = obitos.loc[obitos['excluir'] != 'SIM']
+        # obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
         # obitos['uf'] = obitos['municipio'].apply(self.get_uf)
         # obitos['municipio'] = obitos['municipio'].apply(self.get_mun)
