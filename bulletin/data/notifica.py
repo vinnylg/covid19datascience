@@ -25,6 +25,8 @@ class Notifica:
         self.database = join(dirname(__root__),'resources','database','notifica.pkl')
         self.errorspath = join('output','errors',datetime.today().strftime('%Y'),datetime.today().strftime('%B').lower(),datetime.today().strftime('%d'))
 
+        self.was_download = []
+
         if not isdir(self.errorspath):
             makedirs(self.errorspath)
 
@@ -41,10 +43,21 @@ class Notifica:
 
     def download_todas_notificacoes(self):
         classificacao_final = ['0','1','2','3','5']
+        if not 'null' in self.was_download:
+            print(f"baixando pela primeira vez:")
+            download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
+            self.was_download.append('null')
 
-        self.read(download_metabase(filename='null.csv',where=f"classificacao_final IS NULL"))
+        self.was_read.append('null')
+
         for cf in classificacao_final:
-            self.read(download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}"), append=True)
+            if not cf in self.was_download:
+                print(f"baixando pela primeira vez:")
+                download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
+                self.was_download.append(cf)
+
+            self.read(f"input/queries/{cf}.csv", append=True)
+
 
         self.save()
 
@@ -107,7 +120,6 @@ class Notifica:
             self.__source = self.__source.append(notifica, ignore_index=True)
         else:
             self.__source = notifica
-
 
     #----------------------------------------------------------------------------------------------------------------------
     def load(self):
