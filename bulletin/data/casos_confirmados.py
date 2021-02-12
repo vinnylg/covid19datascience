@@ -101,11 +101,15 @@ class CasosConfirmados:
         return mun
 
     #----------------------------------------------------------------------------------------------------------------------
-    def get_new_cases(self, notifica):
+    def get_daily_news(self, notifica):
         casos_confirmados = self.__source
         novos_casos = notifica.loc[ ~(notifica['id'].isin(casos_confirmados['id'])) ]
-        novos_casos += notifica.loc[ ~(notifica['hash_resid'].isin(casos_confirmados['hash_resid']))]
-        novos_casos += notifica.loc[ ~(notifica['hash_resid'].isin(casos_confirmados['hash_resid']))]
+
+        notifica_obitos = notifica.loc[notifica['cod_evolucao']==2]
+        obitos_confirmados = casos_confirmados.loc[casos_confirmados['obito']==1]
+        novos_obitos = notifica_obitos.loc[ ~(notifica_obitos['id'].isin(obitos_confirmados['id'])) ]
+
+        return novos_casos, novos_obitos
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_novos_obitos(self, notifica):

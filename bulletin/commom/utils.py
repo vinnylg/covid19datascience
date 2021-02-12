@@ -54,6 +54,10 @@ def get_better_notifica(df):
     for i, serie in enumerate(df.iterrows()):
         _, row = serie
 
+        if row['manter'] == 1:
+            scores[i]+=1000
+            pass
+
         if row['idade'] != -99:
             scores[i]+=1
 
