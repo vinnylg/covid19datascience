@@ -48,8 +48,6 @@ class Notifica:
             download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
             self.was_download.append('null')
 
-        self.was_read.append('null')
-
         for cf in classificacao_final:
             if not cf in self.was_download:
                 print(f"baixando pela primeira vez:")
