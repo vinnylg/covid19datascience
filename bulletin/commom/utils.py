@@ -54,21 +54,14 @@ def get_better_notifica(df):
     for i, serie in enumerate(df.iterrows()):
         _, row = serie
 
-        if row['manter'] == 1:
-            scores[i]+=1000
-            pass
-
         if row['idade'] != -99:
-            scores[i]+=1
+            scores[i]+=10
 
         if row['nome_mae']:
-            scores[i]+=1
+            scores[i]+=10
 
         if row['cpf']:
-            scores[i]+=1
-
-        # if not row['nome_mae'] and not row['cpf'] and row['data_nascimento'] == pd.NaT:
-        #     scores-=500
+            scores[i]+=10
 
         if row['cod_classificacao_final'] == 2:
             scores[i]+=10
@@ -81,28 +74,22 @@ def get_better_notifica(df):
                 scores[i]+=10
 
         if row['cod_metodo'] == 1:
-            scores[i]+=1
+            scores[i]+=2
 
         if row['cod_status_notificacao'] in [1, 2]:
             scores[i]+=1
 
-        if row['excluir_ficha'] == 2:
-            scores[i]+=1
-
-        if row['cod_origem'] == 1:
-            scores[i]+=1
-
         if row['data_1o_sintomas'] != pd.NaT:
-            scores[i]+=1
+            scores[i]+=3
 
         if row['data_coleta'] != pd.NaT:
-            scores[i]+=1
+            scores[i]+=5
 
         if row['data_recebimento'] != pd.NaT:
-            scores[i]+=1
+            scores[i]+=4
 
         if row['data_liberacao'] != pd.NaT:
-            scores[i]+=1
+            scores[i]+=3
 
     i = np.argmax(scores)
     return df.iloc[i].name
