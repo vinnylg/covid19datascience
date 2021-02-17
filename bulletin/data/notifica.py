@@ -70,7 +70,7 @@ class Notifica:
         self.save()
 
     #----------------------------------------------------------------------------------------------------------------------
-    def read(self,pathfile,append=False):
+    def read(self,pathfile,save=True,append=False):
         notifica = pd.read_csv(pathfile,
                            dtype = {
                                'id': int,
@@ -114,11 +114,14 @@ class Notifica:
 
         notifica = self.__normalize(notifica)
 
-        if isinstance(self.__source, pd.DataFrame) and append:
-            self.__source = self.__source.append(notifica, ignore_index=True)
-        else:
-            self.__source = notifica
+        if save:
+            if isinstance(self.__source, pd.DataFrame) and append:
+                self.__source = self.__source.append(notifica, ignore_index=True)
+            else:
+                self.__source = notifica
 
+        return notifica
+                
     #----------------------------------------------------------------------------------------------------------------------
     def load(self):
         try:
@@ -262,8 +265,40 @@ class Notifica:
         notifica['hash_diag'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_diagnostico']), axis=1)
 
         #Gera hash para identificar alterações nos id das fichas
+        notifica['checksum'] = notifica.apply(
+            lambda row:
+                sha256(
+                    str.encode(
+                        normalize_hash(row['paciente']) + normalize_hash(row['idade']) +
+                        normalize_hash(row['nome_mae']) + normalize_hash(row['cpf']) +
+                        normalize_hash(row['cod_tipo_paciente']) + normalize_hash(row['sexo']) +
+                        normalize_hash(row['cod_raca_cor']) + normalize_hash(row['cod_etnia']) +
+                        normalize_hash(row['ibge_residencia']) + normalize_hash(row['cod_classificacao_final']) +
+                        normalize_hash(row['cod_criterio_classificacao']) + normalize_hash(row['cod_evolucao']) +
+                        normalize_hash(row['data_1o_sintomas']) + normalize_hash(row['data_cura_obito']) +
+                        normalize_hash(row['cod_metodo']) + normalize_hash(row['cod_exame']) +
+                        normalize_hash(row['cod_resultado']) + normalize_hash(row['cod_exame']) +
+                        normalize_hash(row['data_diagnostico']) + normalize_hash(row['cod_exame']) +
+                        normalize_hash(row['cod_status_notificacao']) + normalize_hash(row['excluir_ficha']) +
+                        normalize_hash(row['cod_origem']) + normalize_hash(row['ibge_unidade_notifica']) +
+                        normalize_hash(row['cod_origem']) + normalize_hash(row['ibge_unidade_notifica']) +
+                        normalize_hash(row['updated_at'])
+                    )
+                ).hexdigest()
+            ,axis = 1
+        )
 
         return notifica
+    
+    #----------------------------------------------------------------------------------------------------------------------
+    def download_notifica_by_id(self, comunicados):
+        query = ", ".join(str(id) for id in comunicados['id'])
+        print(f"Download {len(ids)} notificações para buscar alterações")
+        novos = self.read(download_metabase(filename='novos.csv',where=f"classificacao_final IN ({query})"))
+        old_and_new = pd.merge(comunicados[['id','checksum']], comunicados[['id','checksum']], on='id', how='left', sulffixes=['_old','_new'])
+        mudancas = old_and_new.loc[old_and_new['checksum_old']!=old_and_new['checksum_new']]
+        
+        
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_casos(self):

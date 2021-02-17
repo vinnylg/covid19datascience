@@ -105,12 +105,15 @@ class CasosConfirmados:
         casos_confirmados = self.__source
         novos_casos = notifica.loc[ ~(notifica['id'].isin(casos_confirmados['id'])) ]
 
-        notifica_obitos = notifica.loc[notifica['cod_evolucao']==2]
-        obitos_confirmados = casos_confirmados.loc[casos_confirmados['obito']==1]
-        novos_obitos = notifica_obitos.loc[ ~(notifica_obitos['id'].isin(obitos_confirmados['id'])) ]
-
-        return novos_casos, novos_obitos
-
+        return novos_casos
+    
+    #----------------------------------------------------------------------------------------------------------------------
+    def get_changes(self, notifica):
+        casos_confirmados = self.__source
+        
+        
+        
+    
     #----------------------------------------------------------------------------------------------------------------------
     def get_novos_obitos(self, notifica):
         pass
