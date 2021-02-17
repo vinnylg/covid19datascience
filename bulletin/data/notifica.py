@@ -147,7 +147,7 @@ class Notifica:
         print('normalize notifica')
 
         #Anula datas invalidas
-        mask = notifica['data_nascimento'].apply(lambda x: isvaliddate(x, begin=date(1900,1,1)))
+        mask = notifica['data_nascimento'].apply(lambda x: isvaliddate(x, begin=date(1800,1,1)))
         notifica.loc[~mask, 'data_nascimento'] = pd.NaT
         mask = notifica['data_1o_sintomas'].apply(isvaliddate)
         notifica.loc[~mask, 'data_1o_sintomas'] = pd.NaT
@@ -232,16 +232,22 @@ class Notifica:
         #Exporta notificações erradas
         notificacoes_sem_sexo = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['sexo'].isnull())]
         notificacoes_sem_sexo.to_excel(join(self.errorspath,'notificacoes_sem_sexo.xlsx')) if len(notificacoes_sem_sexo) > 0 else True
+        
         notificacoes_sem_mun_resid = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['mun_resid'].isnull())]
         notificacoes_sem_mun_resid.to_excel(join(self.errorspath,'notificacoes_sem_mun_resid.xlsx')) if len(notificacoes_sem_mun_resid) > 0 else True
+        
         notificacoes_sem_mun_atend = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['mun_atend'].isnull())]
         notificacoes_sem_mun_atend.to_excel(join(self.errorspath,'notificacoes_sem_mun_atend.xlsx'))
+        
         notificacoes_sem_nome_mae = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['nome_mae'].isnull())]
         notificacoes_sem_nome_mae.to_excel(join(self.errorspath,'notificacoes_sem_nome_mae.xlsx')) if len(notificacoes_sem_nome_mae) > 0 else True
+        
         notificacoes_sem_data_nascimento = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['data_nascimento']==pd.NaT)]
         notificacoes_sem_data_nascimento.to_excel(join(self.errorspath,'notificacoes_sem_data_nascimento.xlsx')) if len(notificacoes_sem_data_nascimento) > 0 else True
+        
         notificacoes_sem_data_diagnostico = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['data_diagnostico']==pd.NaT)]
         notificacoes_sem_data_diagnostico.to_excel(join(self.errorspath,'notificacoes_sem_data_diagnostico.xlsx')) if len(notificacoes_sem_data_diagnostico) > 0 else True
+        
         notificacoes_sem_data_cura_obito = notifica.loc[(notifica['cod_classificacao_final']==2) & (notifica['cod_evolucao']!=3) & (notifica['data_cura_obito']==pd.NaT)]
         notificacoes_sem_data_cura_obito.to_excel(join(self.errorspath,'notificacoes_sem_data_cura_obito.xlsx')) if len(notificacoes_sem_data_cura_obito) > 0 else True
 

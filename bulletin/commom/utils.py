@@ -64,32 +64,35 @@ def get_better_notifica(df):
             scores[i]+=10
 
         if row['cod_classificacao_final'] == 2:
-            scores[i]+=10
+            scores[i]+=100
 
         if row['cod_criterio_classificacao'] == 1:
             scores[i]+=5
 
         if row['cod_evolucao'] == 2:
             if row['data_cura_obito'] != pd.NaT:
-                scores[i]+=10
+                scores[i]+=100
+        
+        if row['cod_evolucao'] == 1:
+            scores[i]+=10
 
         if row['cod_metodo'] == 1:
-            scores[i]+=2
+            scores[i]+=10
 
         if row['cod_status_notificacao'] in [1, 2]:
-            scores[i]+=1
+            scores[i]+=10
 
         if row['data_1o_sintomas'] != pd.NaT:
-            scores[i]+=3
+            scores[i]+=5
 
         if row['data_coleta'] != pd.NaT:
             scores[i]+=5
 
         if row['data_recebimento'] != pd.NaT:
-            scores[i]+=4
+            scores[i]+=5
 
         if row['data_liberacao'] != pd.NaT:
-            scores[i]+=3
+            scores[i]+=10
 
     i = np.argmax(scores)
     return df.iloc[i].name
