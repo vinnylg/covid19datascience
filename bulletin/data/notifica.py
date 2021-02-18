@@ -43,21 +43,10 @@ class Notifica:
 
     def download_todas_notificacoes(self):
         classificacao_final = ['0','1','2','3','5']
-        if not 'null' in self.was_download:
-            print(f"baixando pela primeira vez:")
-            download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
-            self.was_download.append('null')
 
+        download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
         for cf in classificacao_final:
-            if not cf in self.was_download:
-                print(f"baixando pela primeira vez:")
-                download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
-                self.was_download.append(cf)
-
-            self.read(f"input/queries/{cf}.csv", append=True)
-
-
-        self.save()
+            download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
 
     #----------------------------------------------------------------------------------------------------------------------
     def read_todas_notificacoes(self):
@@ -281,7 +270,6 @@ class Notifica:
                         normalize_hash(row['data_diagnostico']) + normalize_hash(row['cod_exame']) +
                         normalize_hash(row['cod_status_notificacao']) + normalize_hash(row['excluir_ficha']) +
                         normalize_hash(row['cod_origem']) + normalize_hash(row['ibge_unidade_notifica']) +
-                        normalize_hash(row['cod_origem']) + normalize_hash(row['ibge_unidade_notifica']) +
                         normalize_hash(row['updated_at'])
                     )
                 ).hexdigest()
@@ -291,14 +279,18 @@ class Notifica:
         return notifica
     
     #----------------------------------------------------------------------------------------------------------------------
-    def download_notifica_by_id(self, comunicados):
+    def download_already_comunicados(self, comunicados):
         query = ", ".join(str(id) for id in comunicados['id'])
         print(f"Download {len(ids)} notificações para buscar alterações")
-        novos = self.read(download_metabase(filename='novos.csv',where=f"classificacao_final IN ({query})"))
+        novos = self.read(download_metabase(filename='novos.csv',where=f"classificacao_final IN ({query})"),save=False)
         old_and_new = pd.merge(comunicados[['id','checksum']], comunicados[['id','checksum']], on='id', how='left', sulffixes=['_old','_new'])
         mudancas = old_and_new.loc[old_and_new['checksum_old']!=old_and_new['checksum_new']]
-        
-        
+        return mudancas
+
+    def download_news_confirmados(self, comunicados):
+        query = ", ".join(str(id) for id in comunicados['id'])
+        novos = self.read(download_metabase(filename='novos.csv',where=f"classificacao_final NOT IN ({query})"),save=False)
+        return novos
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_casos(self):
