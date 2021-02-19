@@ -63,23 +63,23 @@ def get_better_notifica(df):
         if row['cpf']:
             scores[i]+=10
 
-        if row['cod_classificacao_final'] == 2:
-            scores[i]+=100
+        if row['classificacao_final'] == 2:
+            scores[i]+=1000
 
-        if row['cod_criterio_classificacao'] == 1:
+        if row['criterio_classificacao'] == 1:
             scores[i]+=5
 
-        if row['cod_evolucao'] == 2:
+        if row['evolucao'] == 2:
             if row['data_cura_obito'] != pd.NaT:
                 scores[i]+=100
-        
-        if row['cod_evolucao'] == 1:
+
+        if row['evolucao'] == 1:
             scores[i]+=10
 
-        if row['cod_metodo'] == 1:
+        if row['metodo'] == 1:
             scores[i]+=10
 
-        if row['cod_status_notificacao'] in [1, 2]:
+        if row['status_notificacao'] in [1, 2]:
             scores[i]+=10
 
         if row['data_1o_sintomas'] != pd.NaT:
