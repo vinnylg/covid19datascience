@@ -234,12 +234,12 @@ class Notifica:
             lambda row:
                 sha256(
                     str.encode(
-                        normalize_hash(row['paciente']) + normalize_hash(row['idade'])
+                        normalize_hash(row['paciente']) + normalize_hash(row['ibge_residencia']) + normalize_hash(row['classificacao_final']) +
+                        normalize_hash(row['criterio_classificacao']) + normalize_hash(row['evolucao'])
                     )
                 ).hexdigest()
             ,axis = 1
         )
-
         return notifica
 
     #----------------------------------------------------------------------------------------------------------------------
