@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------------------------------------------------------#
-# Classe de tratamento de dados do Notifica Covid-19 Paraná
+# Classe de tratamento de dados do SIVEP-Gripe Paraná
 # Todos os direitos reservados ao autor
 #-----------------------------------------------------------------------------------------------------------------------------#
 
@@ -31,7 +31,6 @@ class sivep:
 
     def read(self,pathfile, append=False):
         srag = Dbf5(pathfile, codec = 'cp860').to_dataframe()
-        #srag = self.__normalize(srag)
 
         if isinstance(self.__source, pd.DataFrame) and append:
             self.__source = self.__source.append(srag, ignore_index=True)
@@ -42,7 +41,7 @@ class sivep:
         last_digit = ['0', '1']
 
         for x in last_digit:
-            self.read(join('input','dbf',f"srag202{x}.dbf"), append=True)
+            self.read(join('input','dbf',f"SRAG202{x}.dbf"), append=True)
 
     def load(self):
         try:
@@ -399,5 +398,5 @@ class sivep:
         return self.__source.loc[(self.__source['classificacao_final'] == '2') & (self.__source['evolucao'] == '3')].copy()
 
     def get_obitos_nao_covid(self):
-        return self.__source.loc[self.__source['evolucao'] == '4'].copy()
+        return self.__source.loc[(self.__source['classificacao_final'] == '2') & (self.__source['evolucao'] == '4')].copy()
 
