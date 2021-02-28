@@ -3,14 +3,13 @@
 # Todos os direitos reservados ao autor
 #-----------------------------------------------------------------------------------------------------------------------------#
 
-from os.path import dirname, join, isfile, isdir
-from datetime import datetime, timedelta
+from os.path import dirname, join, isdir
+from datetime import datetime
 from os import makedirs
 import pandas as pd
 from simpledbf import Dbf5
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, normalize_hash, date_hash
 
 class sivep:
     
@@ -77,7 +76,7 @@ class sivep:
 
         self.__source = self.__source.rename(
             columns={
-                'NU_NOTIFIC': 'id_sivep',
+                'NU_NOTIFIC': 'id',
                 'LAB_PCR': 'lab_executor',
                 'DT_NOTIFIC': 'data_notificacao',
                 'DT_SIN_PRI': 'data_1o_sintomas',
@@ -349,7 +348,7 @@ class sivep:
 
         pais = static.pais[['co_pais','ds_pais']]
         pais = pais.rename(columns={'ds_pais':'ID_PAIS', 'co_pais': 'pais_residencia'})
-        self.__source['ID_PAIS'] = pais['ID_PAIS'].astype('string')
+        self.__source['ID_PAIS'] = self.__source['ID_PAIS'].astype('string')
         self.__source = pd.merge(left=self.__source, right=pais, how='left', on='ID_PAIS')
         self.__source.loc[self.__source['pais_residencia'].isnull(), 'pais_residencia'] = '0'
 
@@ -363,7 +362,7 @@ class sivep:
         nao = set(['NAO','CONSTA','INFO','INFORMADO','CONTEM',''])
         self.__source.loc[ [True if set(nome_mae.split(" ")).intersection(nao) else False for nome_mae in self.__source['nome_mae'] ], 'nome_mae'] = None
 
-        self.__source = self.__source[['id_sivep', 'data_notificacao', 'data_1o_sintomas', 'uf_unidade_notifica', 'ibge_unidade_notifica', 'nome_unidade_notifica',
+        self.__source = self.__source[['id', 'data_notificacao', 'data_1o_sintomas', 'uf_unidade_notifica', 'ibge_unidade_notifica', 'nome_unidade_notifica',
                      'cpf', 'paciente', 'sexo', 'data_nascimento', 'idade', 'gestante', 'periodo_gestacao', 'raca_cor', 'etnia',
                      'nome_mae', 'cep_residencia', 'pais_residencia', 'uf_residencia', 'ibge_residencia', 'bairro_residencia',
                      'logradouro_residencia', 'numero_residencia', 'febre', 'tosse', 'dor_garganta', 'dispneia', 'dispneia',
