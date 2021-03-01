@@ -7,6 +7,7 @@ from os.path import dirname, join, isdir
 from datetime import datetime
 from os import makedirs
 import pandas as pd
+import numpy as np
 from simpledbf import Dbf5
 from bulletin import __file__ as __root__
 from bulletin.commom import static
@@ -324,7 +325,7 @@ class sivep:
         self.__source.loc[self.__source['sexo'] == 'F','sexo'] = '2'
         self.__source.loc[self.__source['sexo'] == 'I','sexo'] = '2'
 
-        self.__source.loc[self.__source['cod_cbo'].isnull(), 'cod_cbo'] = '0'
+        #self.__source.loc[self.__source['cod_cbo'].isnull(), 'cod_cbo'] = '0'
 
         self.__source["data_notificacao"] = self.__source["data_notificacao"].apply(pd.to_datetime)
         self.__source["data_1o_sintomas"] = self.__source["data_1o_sintomas"].apply(pd.to_datetime)
@@ -339,24 +340,24 @@ class sivep:
         municipios = municipios.rename(columns={'ibge':'ibge_residencia', 'cod_uf': 'uf_residencia'})
         self.__source['ibge_residencia'] = pd.to_numeric(self.__source['ibge_residencia'], downcast = 'integer')
         self.__source = pd.merge(left=self.__source, right=municipios, how='left', on='ibge_residencia')
-        self.__source.loc[self.__source['uf_residencia'].isnull(), 'uf_residencia'] = '0'
+        #self.__source.loc[self.__source['uf_residencia'].isnull(), 'uf_residencia'] = '0'
 
         municipios = municipios.rename(columns={'ibge_residencia':'ibge_unidade_notifica', 'uf_residencia': 'uf_unidade_notifica'})
         self.__source['ibge_unidade_notifica'] = pd.to_numeric(self.__source['ibge_unidade_notifica'], downcast = 'integer')
         self.__source = pd.merge(left=self.__source, right=municipios, how='left', on='ibge_unidade_notifica')
-        self.__source.loc[self.__source['uf_unidade_notifica'].isnull(), 'uf_unidade_notifica'] = '0'
+        #self.__source.loc[self.__source['uf_unidade_notifica'].isnull(), 'uf_unidade_notifica'] = '0'
 
         pais = static.pais[['co_pais','ds_pais']]
         pais = pais.rename(columns={'ds_pais':'ID_PAIS', 'co_pais': 'pais_residencia'})
         self.__source['ID_PAIS'] = self.__source['ID_PAIS'].astype('string')
         self.__source = pd.merge(left=self.__source, right=pais, how='left', on='ID_PAIS')
-        self.__source.loc[self.__source['pais_residencia'].isnull(), 'pais_residencia'] = '0'
+        #self.__source.loc[self.__source['pais_residencia'].isnull(), 'pais_residencia'] = '0'
 
         etnia = static.etnia[['co_etnia','etnia']]
         etnia = etnia.rename(columns={'etnia':'CS_ETINIA', 'co_etnia': 'etnia'})
         self.__source['CS_ETINIA'] = self.__source['CS_ETINIA'].astype('string')
         self.__source = pd.merge(left=self.__source, right=etnia, how='left', on='CS_ETINIA')
-        self.__source.loc[self.__source['etnia'].isnull(), 'etnia'] = '0'
+        #self.__source.loc[self.__source['etnia'].isnull(), 'etnia'] = '0'
 
         self.__source.loc[self.__source['nome_mae'].isnull(), 'nome_mae'] = ''
         nao = set(['NAO','CONSTA','INFO','INFORMADO','CONTEM',''])
@@ -373,7 +374,10 @@ class sivep:
                      'classificacao_final', 'criterio_classificacao', 'evolucao', 'data_cura_obito', 'data_encerramento',
                      'nome_notificador', 'historico_viagem', 'local_viagem', 'data_ida_local', 'data_retorno_local',
                      'perda_olfato_paladar', 'perda_olfato_paladar', 'tomografia', 'numero_do', 'cod_cbo']]
-
+        
+        self.__source.loc[(self.__source['numero_do'] == 0) | (self.__source['numero_do'] == '0'), 'numero_do'] = None        
+        self.__source['numero_do'] = self.__source['numero_do'].astype('string')
+        self.__source['cns'] = ''
         self.__source['sistema'] = 'SIVEP'
     
     #Métodos usados após to_notifica()

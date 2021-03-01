@@ -104,10 +104,10 @@ class sim:
         nao = set(['NAO','CONSTA','INFO','INFORMADO','CONTEM',''])
         self.__source.loc[ [True if set(nome_mae.split(" ")).intersection(nao) else False for nome_mae in self.__source['nome_mae'] ], 'nome_mae'] = None
 
-        self.__source.loc[self.__source['cns'].isnull(), 'cns'] = '0'
-        self.__source.loc[self.__source['cod_cbo'].isnull(), 'cod_cbo'] = '0'
-        self.__source.loc[self.__source['numero_residencia'].isnull(), 'numero_residencia'] = '0'
-        self.__source.loc[self.__source['cep_residencia'].isnull(), 'cep_residencia'] = '0'
+        #self.__source.loc[self.__source['cns'].isnull(), 'cns'] = '0'
+        #self.__source.loc[self.__source['cod_cbo'].isnull(), 'cod_cbo'] = '0'
+        #self.__source.loc[self.__source['numero_residencia'].isnull(), 'numero_residencia'] = '0'
+        #self.__source.loc[self.__source['cep_residencia'].isnull(), 'cep_residencia'] = '0'
 
         self.__source['id'] = self.__source['NUMERODO'].str.cat(self.__source['NUMERODV'])
 
@@ -126,6 +126,9 @@ class sim:
                     'raca_cor', 'cod_cbo', 'uf_residencia', 'ibge_residencia', 'bairro_residencia', 'logradouro_residencia',
                     'cep_residencia', 'uf_unidade_notifica', 'ibge_unidade_notifica', 'evolucao']]
 
+        self.__source['numero_do'] = self.__source['id']   
+        #self.__source.loc[self.__source['numero_do'].isnull(), 'numero_do'] = '0'
+        self.__source['numero_do'] = self.__source['numero_do'].astype('str')
         self.__source['sistema'] = 'SIM'
 
     #Métodos usados após to_notifica()
