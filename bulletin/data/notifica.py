@@ -24,6 +24,7 @@ class Notifica:
         self.__source = None
         self.pathfile = pathfile
         self.database = join(dirname(__root__),'resources','database','notifica.pkl')
+        self.output = join('output')
         self.errorspath = join('output','errors',datetime.today().strftime('%Y'),datetime.today().strftime('%B').lower(),datetime.today().strftime('%d'))
 
         self.was_download = []
@@ -44,8 +45,15 @@ class Notifica:
 
     def download_todas_notificacoes(self):
         classificacao_final = ['0','1','2','3','5']
-
-        download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
+        tentar = True
+        while tentar:
+            try:
+                download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
+                tentar = False
+                sleep(10)
+            except:
+                print(f'Deu ruim, sleep 30 seconds')
+                sleep(30)
         for cf in classificacao_final:
             tentar = True
             while tentar:
@@ -54,7 +62,7 @@ class Notifica:
                     tentar = False
                     sleep(10)
                 except:
-                    print(f'Deu ruim no {cf}')
+                    print(f'Deu ruim no {cf}, sleep 30 seconds')
                     sleep(30)
 
 
@@ -234,7 +242,8 @@ class Notifica:
             lambda row:
                 sha256(
                     str.encode(
-                        normalize_hash(row['paciente']) + normalize_hash(row['idade'])
+                        normalize_hash(row['paciente']) + normalize_hash(row['mun_resid']) + 
+                        normalize_hash(row['evolucao'])
                     )
                 ).hexdigest()
             ,axis = 1
@@ -243,12 +252,15 @@ class Notifica:
         return notifica
 
     #----------------------------------------------------------------------------------------------------------------------
-    def download_already_comunicados(self, comunicados):
+    def verify_changes(self, comunicados):
         query = ", ".join(str(id) for id in comunicados['id'])
         print(f"Download {len(comunicados['id'])} notificações para buscar alterações")
-        downloaded = self.read(download_metabase(filename='novos.csv',where=f"classificacao_final == 2 AND id NOT IN ({query})"),save=False)
+        downloaded = self.read(download_metabase(filename='alteracoes.csv',where=f"classificacao_final == 2 AND id NOT IN ({query})"),save=False)
         old_and_new = pd.merge(comunicados[['id','checksum']], downloaded[['id','checksum']], on='id', how='left', sulffixes=['_old','_new'])
-        changes = old_and_new.loc[old_and_new['checksum_old']!=old_and_new['checksum_new']]
+        changed = old_and_new.loc[old_and_new['checksum_old']!=old_and_new['checksum_new']]
+        changes = pd.merge(comunicados.loc[comunicados['id'].isin(changed['id']),['id','paciente','mun_resid','evolucao']],downloaded.loc[downloaded['id'].isin(changed['id']),['id','paciente','mun_resid','evolucao']])
+        print(f"Foram encontrados {len(changes)} diferenças")
+        changes.to_excel(join(output,f"mudancas_{datetime.today().strftime('%d_%m')}"))
         return changes
 
     #----------------------------------------------------------------------------------------------------------------------

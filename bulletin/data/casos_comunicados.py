@@ -39,6 +39,31 @@ class CasosComunicados:
         return (len(self.__source),len(self.__source.loc[self.__source['evolucao'] == 1]),len(self.__source.loc[self.__source['evolucao'] == 2]),len(self.__source.loc[self.__source['evolucao'] == 3]))
 
     #----------------------------------------------------------------------------------------------------------------------
+    def read(self,pathfile=join('input','casos_comunicados.csv'),append=False):
+        self.pathfile = pathfile
+        casos_comunicados = pd.csv(pathfile)
+
+        casos_comunicados['hash_resid'] = casos_comunicados.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        casos_comunicados['hash_atend'] = casos_comunicados.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
+        casos_comunicados['hash_diag'] = casos_comunicados.apply(lambda row: normalize_hash(row['paciente'])+row['data_diagnostico'].strftime('%d%m%Y'), axis=1)
+
+        casos_comunicados['checksum'] = casos_comunicados.apply(
+            lambda row:
+                sha256(
+                    str.encode(
+                        normalize_hash(row['paciente']) + normalize_hash(row['idade']) + normalize_hash(row['mun_resid']) + 
+                        normalize_hash(row['evolucao'])
+                    )
+                ).hexdigest()
+            ,axis = 1
+        )
+
+        if isinstance(self.__source, pd.DataFrame) and append:
+            self.__source = self.__source.append(casos_comunicados, ignore_index=True)
+        else:
+            self.__source = casos_comunicados
+
+    #----------------------------------------------------------------------------------------------------------------------
     def load(self):
         self.__source = pd.read_pickle(self.database)
 
@@ -54,27 +79,12 @@ class CasosComunicados:
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_obitos(self):
-        return self.__source.loc[self.__source['obito']].copy()
+        return self.__source.loc[self.__source['evolucao']==2].copy()
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_recuperados(self):
-        return self.__source.loc[self.__source['recuperado']].copy()
+        return self.__source.loc[self.__source['evolucao']==1].copy()
 
     #----------------------------------------------------------------------------------------------------------------------
     def get_ativos(self):
-        return self.__source.loc[self.__source['ativo']].copy()
-
-    #----------------------------------------------------------------------------------------------------------------------
-    def get_daily_news(self, notifica):
-        casos_comunicados = self.__source
-        novos_casos = notifica.loc[ ~(notifica['id'].isin(casos_comunicados['id'])) ]
-
-        return novos_casos
-
-    #----------------------------------------------------------------------------------------------------------------------
-    def get_novos_obitos(self, notifica):
-        pass
-
-    #----------------------------------------------------------------------------------------------------------------------
-    def get_novos_recuperados(self, notifica):
-        pass
+        return self.__source.loc[self.__source['evolucao']==3].copy()
