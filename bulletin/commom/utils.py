@@ -134,7 +134,7 @@ def set_column_autowidth(worksheet: Worksheet, column: int):
     maxwidth = get_column_width(worksheet=worksheet, column=column)
     if maxwidth is None:
         return
-    worksheet.set_column(first_col=column, last_col=column, width=maxwidth+5)
+    worksheet.set_column(first_col=column, last_col=column, width=maxwidth+maxwidth*0.25)
 
 def auto_fit_columns(wk,df):
     for i, _ in enumerate(df.columns):

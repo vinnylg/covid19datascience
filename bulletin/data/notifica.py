@@ -179,7 +179,7 @@ class Notifica:
 
         #Copia lista de municipios, deixa o nome do municipio normalizado e altera nome das colunas
         municipios = static.municipios[['ibge','municipio','uf']].copy()
-        # municipios['municipio'] = municipios['municipio'].apply(normalize_text)
+        municipios['municipio'] = municipios['municipio'].apply(normalize_text)
         municipios = municipios.rename(columns={'ibge':'ibge_residencia','municipio':'mun_resid','uf':'uf_resid'})
 
         #Copia lista de regionais e altera nome das colunas

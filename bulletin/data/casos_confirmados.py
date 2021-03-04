@@ -43,8 +43,6 @@ class CasosConfirmados:
         casos_confirmados = pd.read_excel(pathfile)
 
         casos_confirmados['hash_resid'] = casos_confirmados.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
-        casos_confirmados['hash_resid_less'] = casos_confirmados.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
-        casos_confirmados['hash_resid_more'] = casos_confirmados.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
         casos_confirmados['hash_atend'] = casos_confirmados.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
         casos_confirmados['hash_diag'] = casos_confirmados.apply(lambda row: normalize_hash(row['paciente'])+row['data_diagnostico'].strftime('%d%m%Y'), axis=1)
 
