@@ -128,7 +128,7 @@ class sim:
 
         self.__source['numero_do'] = self.__source['id']   
         #self.__source.loc[self.__source['numero_do'].isnull(), 'numero_do'] = '0'
-        self.__source['numero_do'] = self.__source['numero_do'].astype('str')
+        #self.__source['numero_do'] = self.__source['numero_do'].astype('str')
         self.__source['sistema'] = 'SIM'
 
     #Métodos usados após to_notifica()

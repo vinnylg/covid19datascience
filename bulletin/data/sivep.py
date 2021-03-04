@@ -375,8 +375,8 @@ class sivep:
                      'nome_notificador', 'historico_viagem', 'local_viagem', 'data_ida_local', 'data_retorno_local',
                      'perda_olfato_paladar', 'perda_olfato_paladar', 'tomografia', 'numero_do', 'cod_cbo']]
         
-        self.__source.loc[(self.__source['numero_do'] == 0) | (self.__source['numero_do'] == '0'), 'numero_do'] = None        
-        self.__source['numero_do'] = self.__source['numero_do'].astype('string')
+        #self.__source.loc[(self.__source['numero_do'] == 0) | (self.__source['numero_do'] == '0'), 'numero_do'] = None        
+        #self.__source['numero_do'] = self.__source['numero_do'].astype('string')
         self.__source['cns'] = ''
         self.__source['sistema'] = 'SIVEP'
     
