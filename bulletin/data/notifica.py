@@ -10,6 +10,7 @@ from hashlib import sha256
 from os import error, makedirs, system
 from time import sleep
 import pandas as pd
+
 from bulletin import __file__ as __root__
 from bulletin.commom import static
 from bulletin.commom.utils import isvaliddate
@@ -45,25 +46,11 @@ class Notifica:
 
     def download_todas_notificacoes(self):
         classificacao_final = ['0','1','2','3','5']
-        tentar = True
-        while tentar:
-            try:
-                download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
-                tentar = False
-                sleep(10)
-            except:
-                print(f'Deu ruim, sleep 30 seconds')
-                sleep(30)
+
+        download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
         for cf in classificacao_final:
-            tentar = True
-            while tentar:
-                try:
-                    download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
-                    tentar = False
-                    sleep(10)
-                except:
-                    print(f'Deu ruim no {cf}, sleep 30 seconds')
-                    sleep(30)
+            download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
+
 
 
     #----------------------------------------------------------------------------------------------------------------------

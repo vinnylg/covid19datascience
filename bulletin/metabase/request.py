@@ -9,18 +9,19 @@ from clint.textui import progress
 from os import makedirs
 from os.path import join, dirname, isdir
 from bulletin import __file__ as __root__
+from retry import retry
 
 urllib3.disable_warnings()
 
 # class Metabase:
 #     def __init__(self):
-    
 #     def login(self):
 #         email = input('enter with email')
 #         email = input('enter with email')
 
 #     def logout(self):
 
+@retry(Exception, delay=30, tries=-1)
 def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.excluir_ficha = 2 AND nt.status_notificacao IN (1, 2)', limit='ALL', offset='0'):
     if not isdir(join('input','queries')):
         makedirs(join('input','queries'))
@@ -67,7 +68,8 @@ def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.ex
     if res.status_code in [ 200, 202 ] :
         print(f"Success code {res.status_code }")
     else:
-        raise Exception(f"Error code {res.status_code }")
+        print(f"Error code {res.status_code }")
+        raise Exception()
 
     if not filename:
         _, params = cgi.parse_header(res.headers['Content-Disposition'])
@@ -82,12 +84,13 @@ def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.ex
                 out.write(chunk)
                 out.flush()
 
-    print(f"Download finish, time elapsed: {res.elapsed}")
 
     try:
+        print(f"Download finish, time elapsed: {res.elapsed}")
         print(f"downloaded shape {pd.read_csv(pathfile).shape}\n")
     except:
-        raise Exception('not save')
-        
+        print(f"download error")
+        raise Exception()
+
 
     return pathfile
