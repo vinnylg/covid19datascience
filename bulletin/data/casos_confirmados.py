@@ -12,7 +12,7 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace, normalize_hash
 
 class CasosConfirmados:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False, hard=False):
+    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados PR.xlsb'),force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
         self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
@@ -292,72 +292,23 @@ class CasosConfirmados:
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
 
-        casos = pd.read_excel(self.pathfile,
-                            'Casos confirmados',
-                            usecols='C,D,E,G,H,Q',
-                            converters = {
-                               'Nome': normalize_text,
-                               'Idade': lambda x: normalize_number(x,fill=0),
-                               'IBGE_RES_PR': normalize_igbe,
-                               'Mun Resid': normalize_municipios
-                            })
-
-        casos.columns = [ normalize_labels(x) for x in casos.columns ]
-        casos = casos.rename(columns={'rs_res_pr': 'rs'})
+        casos = pd.read_excel(self.pathfile,'Casos confirmados',engine='pyxlsb')
 
         print(f"Casos excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
         casos = casos.loc[casos['excluir'] != 'SIM']
 
-        # municipios = static.municipios.copy()[['ibge','uf','municipio']]
-        # municipios['municipio'] = municipios['municipio'].apply(normalize_text)
+        casos['hash'] = casos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        casos['hash_less'] = casos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        casos['hash_more'] = casos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
-        # casosPR = casos.loc[casos['ibge_res_pr'] != -1].copy()
-        # municipiosPR = municipios.loc[municipios['uf']=='PR']
-        # casosPR = pd.merge(left=casosPR, right=municipiosPR, how='left', left_on='ibge_res_pr', right_on='ibge')
-
-
-        # casosFora = casos.loc[casos['ibge_res_pr'] == -1].copy()
-        # municipiosFora = municipios.loc[municipios['uf']!='PR']
-        # casosFora = pd.merge(left=casosFora, right=municipiosFora, how='left', left_on='mun_resid', right_on='municipio')
-
-        # casos = casosPR.append(casosFora, ignore_index=True).sort_values(by='nome')
-        # casos = casos.drop(columns=(['ibge_res_pr']))
-
-        casos['hash'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
-        casos['hash_less'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
-        casos['hash_more'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
-
-        obitos = pd.read_excel(self.pathfile,
-                            'Obitos',
-                            usecols='B,C,D,F,G,I,J',
-                            converters = {
-                               'Nome': normalize_text,
-                               'Idade': lambda x: normalize_number(x,fill=0),
-                               'IBGE_RES_PR': normalize_igbe,
-                               'Município': normalize_municipios
-                            })
-
-        obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
-        obitos = obitos.rename(columns={'rs_res_pr': 'rs'})
+        obitos = pd.read_excel(self.pathfile, 'Obitos',engine='pyxlsb')
 
         print(f"Obitos excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
-        obitos['hash'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
-        obitos['hash_less'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']), axis=1)
-        obitos['hash_more'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']), axis=1)
-
-
-        # index_idade_less = obitos.loc[obitos['hash_less'].isin(casos['hash'])].index
-        # obitos.loc[index_idade_less,'idade'] -= 1
-        # obitos.loc[index_idade_less,'hash'] = obitos.loc[index_idade_less].apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
-
-        # index_idade_more = obitos.loc[obitos['hash_more'].isin(casos['hash'])].index
-        # obitos.loc[index_idade_more,'idade'] += 1
-        # obitos.loc[index_idade_more,'hash'] = obitos.loc[index_idade_more].apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
-
-        # obitos1 = obitos[['hash','data_do_obito']]
-        # casos = pd.merge(left=casos, right=obitos1, how='left', on='hash')
+        obitos['hash'] = obitos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        obitos['hash_less'] = obitos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        obitos['hash_more'] = obitos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])
