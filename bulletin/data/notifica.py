@@ -107,7 +107,7 @@ class Notifica:
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_unidade_notifica')
 
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
-        notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+        notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2))
 
         # notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
         # notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
