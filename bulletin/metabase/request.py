@@ -21,7 +21,7 @@ urllib3.disable_warnings()
 
 #     def logout(self):
 
-@retry(Exception, delay=30, tries=-1)
+@retry(Exception, delay=10, tries=-1)
 def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.excluir_ficha = 2 AND nt.status_notificacao IN (1, 2)', limit='ALL', offset='0'):
     if not isdir(join('input','queries')):
         makedirs(join('input','queries'))
