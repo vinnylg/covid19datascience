@@ -109,6 +109,7 @@ class CasosConfirmados:
         casos_raw = casos_raw.drop(index=index_duplicados)
 
         casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] = casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + casos_raw.loc[(casos_raw['rs'].isnull()) & (casos_raw['mun_resid'].notnull()), 'uf_resid']
+        # casos_raw = casos_raw.loc[casos_raw['rs'].notnull()]
         casos_raw['data_com'] = date.today()
 
         novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
@@ -138,6 +139,11 @@ class CasosConfirmados:
         print(f"obitos novos notifica {obitos_raw.shape[0]} + {obitos_curitiba.shape[0]} curitiba\n")
 
         obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
+
+        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'].isna()]
+        print(f"obitos novos sem data: {dropar.shape[0]}")
+        dropar.to_excel(join(self.errorspath,'obitos_raw_sem_data.xlsx'))
+        obitos_raw = obitos_raw.drop(index=dropar.index)
 
         dropar = obitos_raw.loc[obitos_raw['data_cura_obito'] > datetime.today()]
         print(f"obitos novos com data no futuro: {dropar.shape[0]}")
@@ -189,6 +195,7 @@ class CasosConfirmados:
         obitos_raw = obitos_raw.drop(index=index_duplicados)
 
         obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] = obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'mun_resid'] + '/' + obitos_raw.loc[(obitos_raw['rs'].isnull()) & (obitos_raw['mun_resid'].notnull()), 'uf_resid']
+        # obitos_raw = obitos_raw.loc[obitos_raw['rs'].notnull()]
 
         print(f"{len(obitos_raw) - len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} do notifica e {len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} de Curitiba serão adicionados\n")
         novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
@@ -227,7 +234,10 @@ class CasosConfirmados:
         ontem = today - timedelta(1)
         data_retroativos = ontem - timedelta(1)
 
+        print(f"data retroativo: {data_retroativos}")
+
         retroativos = novos_casosPR.loc[(novos_casosPR['data_liberacao'] <= data_retroativos)].sort_values(by='data_liberacao')
+        obitos_retroativos = novos_obitosPR.loc[(novos_obitosPR['data_cura_obito'] <= data_retroativos)].sort_values(by='data_cura_obito')
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"w","utf-8-sig") as relatorio:
             relatorio.write(f"{today.strftime('%d/%m/%Y - %Hh%M')}\n")
@@ -253,7 +263,7 @@ class CasosConfirmados:
             relatorio.write(f"{len(obitos_confirmados)+len(novos_obitos):,} total geral.\n\n".replace(',','.'))
 
             for _, row in novos_obitos.iterrows():
-                relatorio.write(f"{row['sexo']}\t{row['idade']}\t{row['mun_resid'] if row['rs'] else row['mun_resid']}\t{row['rs'] if row['rs'] else '#N/D'}\t{row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month-1]}\n")
+                relatorio.write(f"{row['sexo']}\t{row['idade']}\t{row['mun_resid'] if row['rs'] else row['mun_resid']}\t{row['rs'] if row['rs'] else '#N/D'}\t{row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month -1]}/{row['data_cura_obito'].year}\n")
             relatorio.write('\n')
 
             if len(retroativos) > 0:
@@ -268,17 +278,21 @@ class CasosConfirmados:
                 relatorio.write(f"{len(retroativos)} casos retroativos confirmados no período de {retroativos.iloc[0]['data_liberacao'].strftime('%d/%m/%Y')} à {retroativos.iloc[-1]['data_liberacao'].strftime('%d/%m/%Y')}.\n")
                 relatorio.write(f"{len(novos_casosPR.loc[(novos_casosPR['data_liberacao'] > data_retroativos)])} novos casos confirmados na data de hoje.\n\n")
 
+                relatorio.write(f"{len(obitos_retroativos)} obitos retroativos confirmados no período de {obitos_retroativos.iloc[0]['data_cura_obito'].strftime('%d/%m/%Y')} à {obitos_retroativos.iloc[-1]['data_cura_obito'].strftime('%d/%m/%Y')}.\n")
+                relatorio.write(f"{len(novos_obitosPR.loc[(novos_casosPR['data_cura_obito'] > data_retroativos)])} novos casos confirmados na data de hoje.\n\n")
 
                 novos_casosPR['month'] = novos_casosPR.apply(lambda x: x['data_liberacao'].month, axis=1)
+                novos_casosPR['year'] = novos_casosPR.apply(lambda x: x['data_liberacao'].year, axis=1)
                 relatorio.write('Novos casos por meses:\n')
-                for group, value in novos_casosPR.groupby(by='month'):
-                    relatorio.write(f"{static.meses[int(group)-1]}: {len(value)}\n")
+                for group, value in novos_casosPR.groupby(by=['year','month']):
+                    relatorio.write(f"{static.meses[int(group[1])-1]}/{group[0]}: {len(value)}\n")
                 relatorio.write('\n')
 
                 relatorio.write('Novos obitos por meses:\n')
                 novos_obitosPR['month'] = novos_obitosPR.apply(lambda x: x['data_cura_obito'].month, axis=1)
-                for group, value in novos_obitosPR.groupby(by='month'):
-                    relatorio.write(f"{static.meses[int(group)-1]}: {len(value)}\n")
+                novos_obitosPR['year'] = novos_obitosPR.apply(lambda x: x['data_cura_obito'].year, axis=1)
+                for group, value in novos_obitosPR.groupby(by=['year','month']):
+                    relatorio.write(f"{static.meses[int(group[1])-1]}/{group[0]}: {len(value)}\n")
                 relatorio.write('\n')
 
                 relatorio.write('Novos obitos por dia:\n')

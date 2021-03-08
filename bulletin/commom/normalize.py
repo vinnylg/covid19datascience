@@ -40,8 +40,6 @@ def normalize_number(num,cast=int,error='fill',fill='-1'):
 
 def normalize_municipios(mun):
 	mun = normalize_text(mun)
-	if '-' in mun:
-		mun = mun.split('-')[-1]
 	if '/' in mun:
 		mun = mun.split('/')[0]
 
