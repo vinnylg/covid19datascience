@@ -12,7 +12,7 @@ from bulletin.commom import static
 from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace, normalize_hash
 
 class CasosConfirmados:
-    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False, hard=False):
+    def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados PR.xlsx'),force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
         self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
@@ -58,7 +58,7 @@ class CasosConfirmados:
         return (len(self.__source['casos']),len(self.__source['obitos']))
 
     def novos_casos(self, casos_raw):
-        casos_raw.to_excel(join("output","casos_raw.xlsx"))
+        print(casos_raw['uf_residencia'])
         casos_confirmados =  self.__source['casos']
         casos_raw = casos_raw.sort_values(by='paciente')
 
@@ -112,13 +112,19 @@ class CasosConfirmados:
         # casos_raw = casos_raw.loc[casos_raw['rs'].notnull()]
         casos_raw['data_com'] = date.today()
 
-        novos_casos = casos_raw[['id','paciente','sexo','idade','mun_resid', 'mun_atend', 'rs', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
+        casos_raw['ibge_residencia'] = casos_raw.apply( lambda row: row['ibge_residencia'] if row['uf_residencia'] == 41 else '999999', axis=1)
+
+        novos_casos = casos_raw[['id','ibge_residencia','rs','ibge_unidade_notifica','paciente','sexo','idade','mun_resid', 'mun_atend', 'nome_exame','data_liberacao','data_com','data_1o_sintomas','hash']]
+
+        # novos_casos.loc[~novos_casos['evolucao'].isin([1,2]),'evolucao'] = None
+        # novos_casos.loc[novos_casos['evolucao']==1,'evolucao'] = 'CURA'
+        # novos_casos.loc[novos_casos['evolucao']==2,'evolucao'] = 'OBITO'
+
         novos_casos.to_excel(join('output','novos_casos.xlsx'), index=False)
 
         return novos_casos
 
     def novos_obitos(self, novos_casos, obitos_raw):
-        obitos_raw.to_excel(join("output","obitos_raw.xlsx"))
         casos_confirmados =  self.__source['casos']
         obitos_confirmados = self.__source['obitos']
         obitos_raw = obitos_raw.sort_values(by='paciente')
@@ -130,7 +136,7 @@ class CasosConfirmados:
         obitos_curitiba['idade'] = obitos_curitiba['idade'].apply(lambda x: normalize_number(x,fill=0))
 
         obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: normalize_number(x,fill='99'))
-        obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+        obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2))
 
         obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
         obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
@@ -198,7 +204,10 @@ class CasosConfirmados:
         # obitos_raw = obitos_raw.loc[obitos_raw['rs'].notnull()]
 
         print(f"{len(obitos_raw) - len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} do notifica e {len(obitos_raw.loc[obitos_raw['hash'].isin(obitos_curitiba['hash'])])} de Curitiba serão adicionados\n")
-        novos_obitos = obitos_raw[['id','paciente','sexo','idade','mun_resid', 'rs', 'data_cura_obito','hash']]
+
+        obitos_raw['data_com_evolucao'] = date.today()
+        novos_obitos = obitos_raw[['id','ibge_residencia','rs','paciente','sexo','idade','mun_resid','data_cura_obito','data_com_evolucao','hash']]
+
         novos_obitos.to_excel(join('output','novos_obitos.xlsx'), index=False)
 
         return novos_obitos
@@ -207,25 +216,25 @@ class CasosConfirmados:
     def relatorio(self, novos_casos, novos_obitos):
         casos_confirmados =  self.get_casos()
 
-        casos_confirmadosPR = casos_confirmados.loc[casos_confirmados['rs'].notnull()]
+        casos_confirmadosPR = casos_confirmados.loc[casos_confirmados['rs']!='99']
 
         obitos_confirmados =  self.get_obitos()
 
-        obitos_confirmadosPR = obitos_confirmados.loc[obitos_confirmados['rs'].notnull()]
+        obitos_confirmadosPR = obitos_confirmados.loc[obitos_confirmados['rs']!='99']
 
         print(f"Total de casos: {len(casos_confirmados)} + {len(novos_casos)}")
         print(f"Total de obitos: {len(obitos_confirmados)} + {len(novos_obitos)}\n\n")
 
-        novos_casosPR = novos_casos.loc[novos_casos['rs'].notnull()].copy()
+        novos_casosPR = novos_casos.loc[novos_casos['rs']!='99'].copy()
         print(f"Total de casos PR: {len(casos_confirmadosPR)} + {len(novos_casosPR)}")
 
-        novos_obitosPR = novos_obitos.loc[novos_obitos['rs'].notnull()].copy()
+        novos_obitosPR = novos_obitos.loc[novos_obitos['rs']!='99'].copy()
         print(f"Total de obitos PR: {len(obitos_confirmadosPR)} + {len(novos_obitosPR)}")
 
-        novos_casosFora = novos_casos.loc[novos_casos['rs'].isnull()].copy()
+        novos_casosFora = novos_casos.loc[novos_casos['rs']=='99'].copy()
         print(f"Total de casos Fora: {len(casos_confirmados) - len(casos_confirmadosPR)} + {len(novos_casosFora)}")
 
-        novos_obitosFora = novos_obitos.loc[novos_obitos['rs'].isnull()].copy()
+        novos_obitosFora = novos_obitos.loc[novos_obitos['rs']=='99'].copy()
         print(f"Total de obitos Fora: {len(obitos_confirmados) - len(obitos_confirmadosPR)} + {len(novos_obitosFora)}")
 
         novos_obitosPR_group = novos_obitosPR.groupby(by='mun_resid')
@@ -306,9 +315,10 @@ class CasosConfirmados:
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
 
+        # casos = pd.read_excel(self.pathfile,'Casos confirmados',usecols='B,C,D,F,G')
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols='C,D,E,G,H,Q',
+                            usecols='B,C,D,F,G,P',
                             converters = {
                                'Nome': normalize_text,
                                'Idade': lambda x: normalize_number(x,fill=0),
@@ -322,56 +332,18 @@ class CasosConfirmados:
         print(f"Casos excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
         casos = casos.loc[casos['excluir'] != 'SIM']
 
-        # municipios = static.municipios.copy()[['ibge','uf','municipio']]
-        # municipios['municipio'] = municipios['municipio'].apply(normalize_text)
+        casos['hash'] = casos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        casos['hash_less'] = casos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        casos['hash_more'] = casos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
-        # casosPR = casos.loc[casos['ibge_res_pr'] != -1].copy()
-        # municipiosPR = municipios.loc[municipios['uf']=='PR']
-        # casosPR = pd.merge(left=casosPR, right=municipiosPR, how='left', left_on='ibge_res_pr', right_on='ibge')
-
-
-        # casosFora = casos.loc[casos['ibge_res_pr'] == -1].copy()
-        # municipiosFora = municipios.loc[municipios['uf']!='PR']
-        # casosFora = pd.merge(left=casosFora, right=municipiosFora, how='left', left_on='mun_resid', right_on='municipio')
-
-        # casos = casosPR.append(casosFora, ignore_index=True).sort_values(by='nome')
-        # casos = casos.drop(columns=(['ibge_res_pr']))
-
-        casos['hash'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
-        casos['hash_less'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
-        casos['hash_more'] = casos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
-
-        obitos = pd.read_excel(self.pathfile,
-                            'Obitos',
-                            usecols='B,C,D,F,G,I,J',
-                            converters = {
-                               'Nome': normalize_text,
-                               'Idade': lambda x: normalize_number(x,fill=0),
-                               'IBGE_RES_PR': normalize_igbe,
-                               'Município': normalize_municipios
-                            })
-
-        obitos.columns = [ normalize_labels(x) for x in obitos.columns ]
-        obitos = obitos.rename(columns={'rs_res_pr': 'rs'})
+        obitos = pd.read_excel(self.pathfile, 'Obitos',dtype={'ibge_resid': str, 'ibge_atend': str, 'rs': str})
 
         print(f"Obitos excluidos: {len(obitos.loc[obitos['excluir'] == 'SIM'])}")
         obitos = obitos.loc[obitos['excluir'] != 'SIM']
 
-        obitos['hash'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
-        obitos['hash_less'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']-1)+normalize_hash(row['municipio']), axis=1)
-        obitos['hash_more'] = obitos.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['municipio']), axis=1)
-
-
-        # index_idade_less = obitos.loc[obitos['hash_less'].isin(casos['hash'])].index
-        # obitos.loc[index_idade_less,'idade'] -= 1
-        # obitos.loc[index_idade_less,'hash'] = obitos.loc[index_idade_less].apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
-
-        # index_idade_more = obitos.loc[obitos['hash_more'].isin(casos['hash'])].index
-        # obitos.loc[index_idade_more,'idade'] += 1
-        # obitos.loc[index_idade_more,'hash'] = obitos.loc[index_idade_more].apply(lambda row: normalize_hash(row['nome'])+str(row['idade'])+normalize_hash(row['municipio']), axis=1)
-
-        # obitos1 = obitos[['hash','data_do_obito']]
-        # casos = pd.merge(left=casos, right=obitos1, how='left', on='hash')
+        obitos['hash'] = obitos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+        obitos['hash_less'] = obitos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+        obitos['hash_more'] = obitos.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
         casos.to_pickle(self.database['casos'])
         obitos.to_pickle(self.database['obitos'])
