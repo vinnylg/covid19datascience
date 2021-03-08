@@ -307,7 +307,19 @@ class CasosConfirmados:
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
 
-        casos = pd.read_excel(self.pathfile,'Casos confirmados',dtype={'ibge_resid': str, 'ibge_atend': str, 'rs': str})
+        # casos = pd.read_excel(self.pathfile,'Casos confirmados',usecols='B,C,D,F,G')
+        casos = pd.read_excel(self.pathfile,
+                            'Casos confirmados',
+                            usecols='B,C,D,F,G,P',
+                            converters = {
+                               'Nome': normalize_text,
+                               'Idade': lambda x: normalize_number(x,fill=0),
+                               'IBGE_RES_PR': normalize_igbe,
+                               'Mun Resid': normalize_municipios
+                            })
+
+        casos.columns = [ normalize_labels(x) for x in casos.columns ]
+        casos = casos.rename(columns={'rs_res_pr': 'rs'})
 
         print(f"Casos excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
         casos = casos.loc[casos['excluir'] != 'SIM']
