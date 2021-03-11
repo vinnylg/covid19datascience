@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 
 from bulletin.data.notifica import Notifica
+from bulletin.data.casos_confirmados import CasosConfirmados
+
 from bulletin.commom.utils import auto_fit_columns
 
 def inserir_totais(df):
@@ -16,26 +18,34 @@ def inserir_totais(df):
 
     return df.sort_index(axis=0)
 
-baixar_notifica = True if input("Enter para continuar, S para baixar notifica") == 'S' else False
-ler_notifica = True if input("Enter para continuar, S para ler notifica") == 'S' else False
+cc = CasosConfirmados()
+cc.load()
+casosc = cc.get_casos().rename(columns={'identificacao':'id'})
+
+ativos = casosc.loc[casosc['ativo']==1]
 
 
-notifica = Notifica()
-if ler_notifica or baixar_notifica:
-    if baixar_notifica:
-        notifica.download_todas_notificacoes()
-    if ler_notifica:
-        notifica.read_todas_notificacoes()
-        notifica.save()
-else:
-    notifica.load()
+
+# baixar_notifica = True if input("Enter para continuar, S para baixar notifica") == 'S' else False
+# ler_notifica = True if input("Enter para continuar, S para ler notifica") == 'S' else False
 
 
-notificacoes = notifica.get_casos()
-print(notifica.shape())
+# notifica = Notifica()
+# if ler_notifica or baixar_notifica:
+#     if baixar_notifica:
+#         notifica.download_todas_notificacoes()
+#     if ler_notifica:
+#         notifica.read_todas_notificacoes()
+#         notifica.save()
+# else:
+#     notifica.load()
 
-notificacoes.loc[notificacoes['status_notificacao'].isnull()] = -1
-notificacoes.loc[notificacoes['evolucao'].isnull()] = -1
+
+# notificacoes = notifica.get_casos()
+# print(notifica.shape())
+
+# notificacoes.loc[notificacoes['status_notificacao'].isnull()] = -1
+# notificacoes.loc[notificacoes['evolucao'].isnull()] = -1
 
 def groupando(notificacoes, grupinho:list, writer):
     grupo = notificacoes.groupby(grupinho)[['id']].count().rename(columns={'id':'quantidade'}).reset_index()
@@ -49,15 +59,15 @@ writer = pd.ExcelWriter("output/grupos.xlsx",
                     date_format='dd/mm/yyyy')
 
 
-groupando(notificacoes,['classificacao_final'],writer)
-groupando(notificacoes,['status_notificacao'],writer)
-groupando(notificacoes,['evolucao'],writer)
+groupando(ativos,['rs'],writer)
+# groupando(notificacoes,['status_notificacao'],writer)
+# groupando(notificacoes,['evolucao'],writer)
 
-groupando(notificacoes,['rs','classificacao_final'],writer)
-groupando(notificacoes,['rs','status_notificacao'],writer)
-groupando(notificacoes,['rs','evolucao'],writer)
+# groupando(notificacoes,['rs','classificacao_final'],writer)
+# groupando(notificacoes,['rs','status_notificacao'],writer)
+# groupando(notificacoes,['rs','evolucao'],writer)
 
-groupando(notificacoes,['rs','classificacao_final','status_notificacao'],writer)
-groupando(notificacoes,['rs','classificacao_final','evolucao'],writer)
+# groupando(notificacoes,['rs','classificacao_final','status_notificacao'],writer)
+# groupando(notificacoes,['rs','classificacao_final','evolucao'],writer)
 
 writer.save()
