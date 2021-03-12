@@ -6,7 +6,7 @@
 from os.path import dirname, join, isfile, isdir
 from datetime import datetime, date, timedelta
 from unidecode import unidecode
-from hashlib import sha256
+from hashlib import sha256, md5
 from os import error, makedirs, system
 from time import sleep
 import pandas as pd
@@ -217,24 +217,26 @@ class Notifica:
         #Remove notificações erradas
         notifica = notifica.drop(index=set(notificacoes_sem_sexo.index.tolist() + notificacoes_sem_mun_resid.index.tolist() + notificacoes_sem_data_nascimento.index.tolist() + notificacoes_sem_data_diagnostico.index.tolist() + notificacoes_sem_data_cura_obito.index.tolist()))
 
+        parser = lambda x: md5(str.encode(x)).hexdigest() if (x != None) else None
+
         #Gera hashes para identificar as notificacoes caso o campo da coluna necessaria nao for nulo
-        notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
-        notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
-        notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: normalize_hash(row['paciente'])+normalize_hash(row['nome_mae']), axis=1)
-        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_nascimento']), axis=1)
+        notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: parser(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid'])), axis=1)
+        notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: parser(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend'])), axis=1)
+        notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: parser(normalize_hash(row['paciente'])+normalize_hash(row['nome_mae'])), axis=1)
+        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: parser(normalize_hash(row['paciente'])+date_hash(row['data_nascimento'])), axis=1)
         notifica['hash_diag'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_diagnostico']), axis=1)
 
         #Gera hash para identificar alterações nos id das fichas
-        notifica['checksum'] = notifica.apply(
-            lambda row:
-                sha256(
-                    str.encode(
-                        normalize_hash(row['paciente']) + normalize_hash(row['mun_resid']) + 
-                        normalize_hash(row['evolucao'])
-                    )
-                ).hexdigest()
-            ,axis = 1
-        )
+        # notifica['checksum'] = notifica.apply(
+        #     lambda row:
+        #         sha256(
+        #             str.encode(
+        #                 normalize_hash(row['paciente']) + normalize_hash(row['mun_resid']) + 
+        #                 normalize_hash(row['evolucao'])
+        #             )
+        #         ).hexdigest()
+        #     ,axis = 1
+        # )
 
         return notifica
 

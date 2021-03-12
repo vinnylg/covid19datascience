@@ -23,7 +23,7 @@ def normalize_cpf(cpf):
 	if validacao != digitos[-2]:
 		return None
 
-	return cpf[:3] + '.' + cpf[3:6] + '.' + cpf[6:9] + '-' + cpf[9:]
+	return cpf#[:3] + '.' + cpf[3:6] + '.' + cpf[6:9] + '-' + cpf[9:]
 
 def normalize_hash(text):
 	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))
