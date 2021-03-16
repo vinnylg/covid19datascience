@@ -40,7 +40,7 @@ class Timer:
         hours, seconds = divmod(seconds, 60*60)
         minutes, seconds = divmod(seconds, 60)
         miliseconds = (seconds - int(seconds)) * 1000
-        return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}"
+        print(f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}")
 
     def restart(self):
         if self.__running:
@@ -144,3 +144,10 @@ def set_column_autowidth(worksheet: Worksheet, column: int):
 def auto_fit_columns(wk,df):
     for i, _ in enumerate(df.columns):
         set_column_autowidth(wk,i)
+
+def get_nome_sobrenome(paciente):
+    parts = paciente.split(' ')
+    if parts >= 2:
+        return parts[0] + ' ' + parts[-1]
+    else:
+        raise Exception('Sem Nome')

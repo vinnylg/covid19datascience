@@ -55,6 +55,7 @@ if __name__ == "__main__":
     notificacoes = notifica.get_casos()
     # notificacoes = notificacoes.loc[(notificacoes['ibge_residencia']==412810) & (notificacoes['classificacao_final']==2)]
 
+    ids = notificacoes[['id']].values
     hash_notificacoes = notificacoes[['hash_cpf','hash_mae','hash_nasc','hash_resid','hash_atend']]
     hash_notificacoes = hash_notificacoes.where(pd.notnull(notificacoes), None)
 
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     qgram = KGram(alfabet,q)
     chunk_size = 100000
 
-    for i,set_spliced in enumerate([ set_hash_notificacoes[i:i+100000] for i in range(0,len(set_hash_notificacoes)+1,chunk_size)]):
+    for i,set_spliced in enumerate([ set_hash_notificacoes[i:i+chunk_size] for i in range(0,len(set_hash_notificacoes)+1,chunk_size)]):
         print(f"{i}:{i*len(set_spliced)+len(set_spliced)}/{len(set_hash_notificacoes)}")
         freq_list = []
         gc.collect()
@@ -81,9 +82,9 @@ if __name__ == "__main__":
             freq_list.append(qgram.freqkgrams(hash)[1])
 
         freq_list = np.array(freq_list)
-
+        ids_spliced = list(ids)[i:i+chunk_size]
         with open(f'data/qgram/{i}.npz','wb') as fileout:
-            np.savez_compressed(fileout,freq_list)
+            np.savez_compressed(fileout,data=freq_list, source=ids_spliced)
 
     timer.stop()
     timer_total.stop()
