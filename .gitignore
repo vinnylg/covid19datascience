@@ -11,3 +11,4 @@ input
 tmp
 *_checksum
 *.txt
+*.npz

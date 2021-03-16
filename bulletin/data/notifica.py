@@ -217,12 +217,13 @@ class Notifica:
         #Remove notificações erradas
         notifica = notifica.drop(index=set(notificacoes_sem_sexo.index.tolist() + notificacoes_sem_mun_resid.index.tolist() + notificacoes_sem_data_nascimento.index.tolist() + notificacoes_sem_data_diagnostico.index.tolist() + notificacoes_sem_data_cura_obito.index.tolist()))
 
-        parser = lambda x: md5(str.encode(x)).hexdigest() if (x != None) else None
+        parser = lambda x: x #md5(str.encode(x)).hexdigest() if (x != None) else None
 
         #Gera hashes para identificar as notificacoes caso o campo da coluna necessaria nao for nulo
         notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: parser(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid'])), axis=1)
         notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: parser(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend'])), axis=1)
         notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: parser(normalize_hash(row['paciente'])+normalize_hash(row['nome_mae'])), axis=1)
+        notifica.loc[ notifica['cpf'].notnull(), 'hash_cpf'] = notifica.loc[ notifica['cpf'].notnull() ].apply(lambda row: parser((row['cpf'])), axis=1)
         notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: parser(normalize_hash(row['paciente'])+date_hash(row['data_nascimento'])), axis=1)
         notifica['hash_diag'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_diagnostico']), axis=1)
 

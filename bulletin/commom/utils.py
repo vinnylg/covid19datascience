@@ -42,6 +42,11 @@ class Timer:
         miliseconds = (seconds - int(seconds)) * 1000
         return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}"
 
+    def restart(self):
+        if self.__running:
+            self.stop()
+        self.start()
+
 def isvaliddate(date,begin=date(2020,3,12),end=date.today()):
 	if date != pd.NaT:
 		if date >= begin and date <= end:
