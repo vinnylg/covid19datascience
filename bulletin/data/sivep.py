@@ -294,6 +294,12 @@ class sivep:
         self.__source.loc[self.__source['OBESIDADE'] == '2','obesidade'] = '2'
         self.__source.loc[self.__source['OBESIDADE'] == '9', 'obesidade'] = '3'
         self.__source.loc[self.__source['OBESIDADE'].isnull(), 'obesidade'] = '3'
+        
+        #IMUNODEPRE para imunodeficiencia DEFAULT 3
+        self.__source.loc[self.__source['IMUNODEPRE'] == '1', 'imunodeficiencia'] = '1'
+        self.__source.loc[self.__source['IMUNODEPRE'] == '2','imunodeficiencia'] = '2'
+        self.__source.loc[self.__source['IMUNODEPRE'] == '9', 'imunodeficiencia'] = '3'
+        self.__source.loc[self.__source['IMUNODEPRE'].isnull(), 'imunodeficiencia'] = '3'
 
         #OUT_MORBI para outras_morbidades DEFAULT 3
         self.__source.loc[self.__source['OUT_MORBI'] == '1', 'outras_morbidades'] = '1'
@@ -309,7 +315,7 @@ class sivep:
 
         #UTI para tipo_internacao DEFAULT 3
         self.__source.loc[self.__source['UTI'] == '1', 'tipo_internacao'] = '2'
-        self.__source.loc[((self.__source['UTI'] == '2') | (self.__source['hospitalizado'] == '1'), 'tipo_internacao'] = '1'
+        self.__source.loc[(self.__source['UTI'] == '2') | (self.__source['hospitalizado'] == '1'), 'tipo_internacao'] = '1'
         self.__source.loc[(self.__source['UTI'] == '9') | (self.__source['UTI'].isnull()), 'tipo_internacao'] = '3'
 
         #AMOSTRA para coleta_amostra DEFAULT 3
@@ -330,11 +336,11 @@ class sivep:
         self.__source.loc[(self.__source['PERD_OLFT'] == '9') | (self.__source['PERD_PALA'] == '9'), 'perda_olfato_paladar'] = '3'
         self.__source.loc[(self.__source['PERD_OLFT'].isnull()) & (self.__source['PERD_PALA'].isnull()), 'perda_olfato_paladar'] = '3'
 
-        #SEXO para sexo DEFAULT 3
-        self.__source.loc[self.__source['SEXO'] == 'M', 'sexo'] = '1'
-        self.__source.loc[self.__source['SEXO'] == 'F','sexo'] = '2'
-        self.__source.loc[self.__source['SEXO'] == 'I','sexo'] = '3'
-        self.__source.loc[self.__source['SEXO'].isnull(), 'sexo'] = '3'
+        #CS_SEXO para sexo DEFAULT 3
+        self.__source.loc[self.__source['CS_SEXO'] == 'M', 'sexo'] = '1'
+        self.__source.loc[self.__source['CS_SEXO'] == 'F','sexo'] = '2'
+        self.__source.loc[self.__source['CS_SEXO'] == 'I','sexo'] = '3'
+        self.__source.loc[self.__source['CS_SEXO'].isnull(), 'sexo'] = '3'
                            
         #self.__source.loc[self.__source['cod_cbo'].isnull(), 'cod_cbo'] = '0'
 
