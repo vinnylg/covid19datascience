@@ -140,7 +140,6 @@ class CasosConfirmados:
         dropar = obitos_raw.loc[obitos_raw['data_cura_obito'].isnull()]
         print(f"obitos novos com data no futuro: {dropar.shape[0]}")
         dropar.to_excel(join(self.errorspath,'obitos_sem_data.xlsx'))
-        obitos_raw = obitos_raw.drop(index=dropar.index)
 
         obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
 
@@ -202,6 +201,8 @@ class CasosConfirmados:
 
 
     def relatorio(self, novos_casos, novos_obitos):
+        novos_obitos['mun_resid_swap'] = novos_obitos['mun_resid'].str.title()
+
         casos_confirmados =  self.get_casos()
 
         casos_confirmadosPR = casos_confirmados.loc[casos_confirmados['rs'].notnull()]
@@ -225,7 +226,7 @@ class CasosConfirmados:
         novos_obitosFora = novos_obitos.loc[novos_obitos['rs'].isnull()].copy()
         print(f"Total de obitos Fora: {len(obitos_confirmados) - len(obitos_confirmadosPR)} + {len(novos_obitosFora)}")
 
-        novos_obitosPR_group = novos_obitosPR.groupby(by='mun_resid')
+        novos_obitosPR_group = novos_obitosPR.groupby(by='mun_resid_swap')
 
         today = datetime.today()
         ontem = today - timedelta(1)
@@ -255,9 +256,9 @@ class CasosConfirmados:
             relatorio.write('\n')
             relatorio.write(f"{len(obitos_confirmadosPR)+len(novos_obitosPR):,} óbitos residentes do PR.\n".replace(',','.'))
             relatorio.write(f"{len(obitos_confirmados)+len(novos_obitos):,} total geral.\n\n".replace(',','.'))
-
+            
             for _, row in novos_obitos.iterrows():
-               relatorio.write(f"{row['sexo']}\t{row['idade']}\t{row['mun_resid'] if row['rs'] else row['mun_resid']}\t{row['rs'] if row['rs'] else '#N/D'}\t{row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month-1]}/{row['data_cura_obito'].year}\n")
+               relatorio.write(f"{row['sexo']}\t{row['idade']}\t{row['mun_resid_swap'] if row['rs'] else row['mun_resid_swap']}\t{row['rs'] if row['rs'] else '#N/D'}\t{row['data_cura_obito'].day}/{static.meses[row['data_cura_obito'].month-1]}/{row['data_cura_obito'].year}\n")
             relatorio.write('\n')
 
             if len(retroativos) > 0:
@@ -290,10 +291,39 @@ class CasosConfirmados:
                 relatorio.write('Novos obitos por dia:\n')
                 for group, value in novos_obitosPR.groupby(by='data_cura_obito'):
                     relatorio.write(f"{group.strftime('%d/%m/%Y')}: {len(value)}\n")
+                
+                #-----RELATÓRIO DA COMUNICAÇÃO--------------
+                obitos_list = []
+                munic = []
+                for municipio, obitos in novos_obitosPR_group:
+                    #relatorio.write(f"{len(obitos):,} {municipio}\n".replace(',','.'))
+                    obito = len(obitos)
+                    obitos_list.append(obito)
+                    munic.append(municipio)             
+
+                dicionario = (dict(zip(list(munic),list(obitos_list))))
+                #print(dicionario)
+                dicionario = sorted(dicionario.items(),key=lambda x: x[1], reverse = True)
+                #print(dicionario)
+                
+              
+                relatorio.write(f"\n MANDAR ESSE ÚLTIMO PARÁGRAFO PARA A COMUNICAÇÃO NO PRIVADO\nOs pacientes que foram a óbito residiam em: ")
+                for municip, obit in dict(dicionario).items():
+                    if obit != 1:
+                        relatorio.write(f"{municip} ({obit})")
+                        relatorio.write(f",")
+                relatorio.write(f".\n")
+                relatorio.write(f"A Sesa registra ainda a morte de uma pessoa que residia em cada um dos seguintes municípios:  ")
+                for municip, obit in dict(dicionario).items():
+                    if obit == 1:
+                        relatorio.write(f"{municip}")
+                        relatorio.write(f",")
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"r","utf-8-sig") as relatorio:
             print("\nrelatorio:\n")
             print(relatorio.read())
+
+         
 
     def update(self):
         print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
