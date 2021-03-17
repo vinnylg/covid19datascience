@@ -311,13 +311,13 @@ class CasosConfirmados:
                 for municip, obit in dict(dicionario).items():
                     if obit != 1:
                         relatorio.write(f"{municip} ({obit})")
-                        relatorio.write(f",")
+                        relatorio.write(f", ")
                 relatorio.write(f".\n")
                 relatorio.write(f"A Sesa registra ainda a morte de uma pessoa que residia em cada um dos seguintes municípios:  ")
                 for municip, obit in dict(dicionario).items():
                     if obit == 1:
                         relatorio.write(f"{municip}")
-                        relatorio.write(f",")
+                        relatorio.write(f", ")
 
         with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"r","utf-8-sig") as relatorio:
             print("\nrelatorio:\n")
