@@ -147,7 +147,8 @@ def auto_fit_columns(wk,df):
 
 def get_nome_sobrenome(paciente):
     parts = paciente.split(' ')
-    if parts >= 2:
+    if len(parts) >= 2:
         return parts[0] + ' ' + parts[-1]
     else:
+        print(paciente)
         raise Exception('Sem Nome')

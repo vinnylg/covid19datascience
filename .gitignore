@@ -12,3 +12,6 @@ tmp
 *_checksum
 *.txt
 *.npz
+node_modules
+*.tar
+*.gz
