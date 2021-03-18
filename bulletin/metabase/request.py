@@ -27,15 +27,15 @@ def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.ex
         makedirs(join('input','queries'))
 
     header = {
-        'Host':'metabase.appsesa.pr.gov.br',
+        'Host':'metabase.saude.pr.gov.br',
         'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0',
         'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language':'pt-BR',
         'Accept-Encoding':'gzip, deflate, br',
         'Content-Type':'application/x-www-form-urlencoded',
-        'Origin':'https://metabase.appsesa.pr.gov.br',
+        'Origin':'https://metabase.saude.pr.gov.br',
         'Connection':'keep-alive',
-        'Referer':'https://metabase.appsesa.pr.gov.br/question',
+        'Referer':'https://metabase.saude.pr.gov.br/question',
         'Cookie':'metabase.SESSION=ef910b1d-a273-477c-ba8c-ffcfe7503034',
         'Upgrade-Insecure-Requests':'1'
     }
@@ -58,7 +58,7 @@ def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.ex
 
     query = json.dumps(query)
 
-    res = requests.post("https://metabase.appsesa.pr.gov.br/api/dataset/csv",
+    res = requests.post("https://metabase.saude.pr.gov.br/api/dataset/csv",
                             headers = header,
                             data = {'query': query},
                             verify=False,
