@@ -296,7 +296,6 @@ class CasosConfirmados:
                 obitos_list = []
                 munic = []
                 for municipio, obitos in novos_obitosPR_group:
-                    #relatorio.write(f"{len(obitos):,} {municipio}\n".replace(',','.'))
                     obito = len(obitos)
                     obitos_list.append(obito)
                     munic.append(municipio)             
