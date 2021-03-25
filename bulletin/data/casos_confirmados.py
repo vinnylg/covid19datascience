@@ -8,8 +8,8 @@ import codecs
 from sys import exit
 
 from bulletin import __file__ as __root__
-from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace, normalize_hash
+from bulletin.utils import static
+from bulletin.utils.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace, normalize_hash
 
 class CasosConfirmados:
     def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados.xlsx'),force=False, hard=False):
