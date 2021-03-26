@@ -8,7 +8,7 @@ import pandas as pd
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_igbe, normalize_municipios
+from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_ibge, normalize_municipios
 
 class TbPacientes:
     def __init__(self, pathfile=join('input','tb_pacientes.csv'), force=False, hard=False):
@@ -105,7 +105,7 @@ class TbPacientes:
         casos[mun] = casos[mun].apply(lambda x: normalize_municipios(x)[0])
         casos['uf_resid'] = casos[mun].apply(lambda x: normalize_municipios(x)[1])
 
-        casos['ibge'] = casos[ibge].apply(normalize_igbe)
+        casos['ibge'] = casos[ibge].apply(normalize_ibge)
 
         casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
         casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])

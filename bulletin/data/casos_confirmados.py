@@ -10,7 +10,7 @@ import codecs
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, normalize_hash, data_hash
+from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_ibge, normalize_hash, data_hash
 
 class CasosConfirmados:
     def __init__(self, pathfile=join('input','Casos Confirmados PR.xlsx'),force=False, hard=False):
@@ -376,7 +376,7 @@ class CasosConfirmados:
         casos[mun] = casos[mun].apply(lambda x: normalize_municipios(x)[0])
         casos['uf_resid'] = casos[mun].apply(lambda x: normalize_municipios(x)[1])
 
-        casos['ibge'] = casos['ibge7'].apply(normalize_igbe)
+        casos['ibge'] = casos['ibge7'].apply(normalize_ibge)
 
         casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
         casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])
