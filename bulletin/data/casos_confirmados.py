@@ -10,10 +10,10 @@ import codecs
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, normalize_hash, data_hash
+from bulletin.commom.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_ibge, normalize_hash, data_hash
 
 class CasosConfirmados:
-    def __init__(self, pathfile=join('input','Casos Confirmados PR.xlsx'),force=False, hard=False):
+    def __init__(self, pathfile=join('../input','Casos Confirmados PR.xlsx'),force=False, hard=False):
 
         self.pathfile = pathfile
         self.__source = None
@@ -62,7 +62,9 @@ class CasosConfirmados:
             exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
 
     def shape(self):
-        return (len(self.__source['casos']),len(self.__source['obitos']))
+        casos = self.__source['casos']
+        obitos = casos.loc[casos['obito']=="SIM"]
+        return (len(casos),len(obitos))
 
     def novos_casos(self, casos_raw):
         casos_confirmados =  self.__source['casos']
@@ -273,7 +275,6 @@ class CasosConfirmados:
     def update(self):
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            # usecols = 'A,B,C,E:Q',
                             dtype = {
                                'Ordem': str,
                                'Identificacao': str
@@ -286,11 +287,7 @@ class CasosConfirmados:
                                 'Mun Resid': normalize_text,
                                 'Mun atend': normalize_text,
                                 'RS': lambda x: normalize_number(x,fill=99),
-                                'Laboratório': normalize_text,
-                                # 'Dt Diag': normalize_text,
-                                # 'Comunicação': normalize_text,
-                                # 'IS': normalize_text,
-                                # 'data_obito': normalize_text
+                                'Laboratório': normalize_text
                             },
                             parse_dates=False
                         )
@@ -393,7 +390,7 @@ class CasosConfirmados:
         casos[mun] = casos[mun].apply(lambda x: normalize_municipios(x)[0])
         casos['uf_resid'] = casos[mun].apply(lambda x: normalize_municipios(x)[1])
 
-        casos['ibge'] = casos['ibge7'].apply(normalize_igbe)
+        casos['ibge'] = casos['ibge7'].apply(normalize_ibge)
 
         casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
         casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])

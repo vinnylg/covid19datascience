@@ -8,10 +8,10 @@ import pandas as pd
 
 from bulletin import __file__ as __root__
 from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_igbe, normalize_municipios
+from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_ibge, normalize_municipios
 
 class TbPacientes:
-    def __init__(self, pathfile=join('input','tb_pacientes.csv'), force=False, hard=False):
+    def __init__(self, pathfile=join('../input','tb_pacientes.csv'), force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
         self.checksum_file = join(dirname(__root__),'resources','database','tb_pacientes_checksum')
@@ -56,20 +56,24 @@ class TbPacientes:
     def __len__(self):
         return len(self.__source)
 
+    def shape(self):
+        casos = self.__source
+        obitos = casos.loc[casos['obito']=="SIM"]
+        return (len(casos),len(obitos))
+
     def update(self):
 
         tb_pacientes = pd.read_csv(self.pathfile, sep=';',
+            low_memory=False,
             dtype={
-                "Identificacao": str,
-                "Idade": 'int32',
-                "idade_mais1": 'int32',
-                "idade_menos1": 'int32'
+                "Identificacao": 'str'
             },
             converters={
                 "IBGE_RES_PR": normalize_text,
                 "IBGE_ATEND_PR": normalize_text,
                 "Nome": normalize_text,
                 "Sexo": normalize_text,
+                'Idade': lambda x: normalize_number(x,fill=0),
                 "Mun_Resid": normalize_text,
                 "Mun_atend": normalize_text,
                 "Obito": lambda x: normalize_text(x) if x else 'NAO'
@@ -107,7 +111,7 @@ class TbPacientes:
         casos[mun] = casos[mun].apply(lambda x: normalize_municipios(x)[0])
         casos['uf_resid'] = casos[mun].apply(lambda x: normalize_municipios(x)[1])
 
-        casos['ibge'] = casos[ibge].apply(normalize_igbe)
+        casos['ibge'] = casos[ibge].apply(normalize_ibge)
 
         casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
         casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])
