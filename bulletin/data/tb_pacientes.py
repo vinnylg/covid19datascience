@@ -56,9 +56,15 @@ class TbPacientes:
     def __len__(self):
         return len(self.__source)
 
+    def shape(self):
+        casos = self.__source
+        obitos = casos.loc[casos['obito']=="SIM"]
+        return (len(casos),len(obitos))
+
     def update(self):
 
         tb_pacientes = pd.read_csv(self.pathfile, sep=';',
+            low_memory=False,
             dtype={
                 "Identificacao": 'str'
             },

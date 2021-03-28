@@ -62,7 +62,9 @@ class CasosConfirmados:
             exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
 
     def shape(self):
-        return (len(self.__source['casos']),len(self.__source['obitos']))
+        casos = self.__source['casos']
+        obitos = casos.loc[casos['obito']=="SIM"]
+        return (len(casos),len(obitos))
 
     def novos_casos(self, casos_raw):
         casos_confirmados =  self.__source['casos']
