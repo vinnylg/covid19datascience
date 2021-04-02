@@ -6,6 +6,8 @@
 *__pycache__*
 .ipynb_checkpoints*
 *.pkl
-notifica.csv
-output
+
+output/*.csv
+input/*.csv
+
 bulletin/tmp/*
