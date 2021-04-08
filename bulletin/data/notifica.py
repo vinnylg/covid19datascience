@@ -6,10 +6,11 @@
 from os.path import dirname, join, isfile, isdir
 from datetime import datetime, date, timedelta
 from unidecode import unidecode
-from hashlib import sha256
+from hashlib import sha256, md5
 from os import error, makedirs, system
 from time import sleep
 import pandas as pd
+
 from bulletin import __file__ as __root__
 from bulletin.commom import static
 from bulletin.commom.utils import isvaliddate
@@ -24,6 +25,7 @@ class Notifica:
         self.__source = None
         self.pathfile = pathfile
         self.database = join(dirname(__root__),'resources','database','notifica.pkl')
+        self.output = join('output')
         self.errorspath = join('output','errors',datetime.today().strftime('%Y'),datetime.today().strftime('%B').lower(),datetime.today().strftime('%d'))
 
         self.was_download = []
@@ -47,15 +49,8 @@ class Notifica:
 
         download_metabase(filename='null.csv',where=f"classificacao_final IS NULL")
         for cf in classificacao_final:
-            tentar = True
-            while tentar:
-                try:
-                    download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
-                    tentar = False
-                    sleep(10)
-                except:
-                    print(f'Deu ruim no {cf}')
-                    sleep(30)
+            download_metabase(filename=f"{cf}.csv",where=f"classificacao_final = {cf}")
+
 
 
     #----------------------------------------------------------------------------------------------------------------------
@@ -171,7 +166,7 @@ class Notifica:
 
         #Copia lista de municipios, deixa o nome do municipio normalizado e altera nome das colunas
         municipios = static.municipios[['ibge','municipio','uf']].copy()
-        # municipios['municipio'] = municipios['municipio'].apply(normalize_text)
+        municipios['municipio'] = municipios['municipio'].apply(normalize_text)
         municipios = municipios.rename(columns={'ibge':'ibge_residencia','municipio':'mun_resid','uf':'uf_resid'})
 
         #Copia lista de regionais e altera nome das colunas
@@ -222,11 +217,14 @@ class Notifica:
         #Remove notificações erradas
         notifica = notifica.drop(index=set(notificacoes_sem_sexo.index.tolist() + notificacoes_sem_mun_resid.index.tolist() + notificacoes_sem_data_nascimento.index.tolist() + notificacoes_sem_data_diagnostico.index.tolist() + notificacoes_sem_data_cura_obito.index.tolist()))
 
+        parser = lambda x: x #md5(str.encode(x)).hexdigest() if (x != None) else None
+
         #Gera hashes para identificar as notificacoes caso o campo da coluna necessaria nao for nulo
-        notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
-        notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend']), axis=1)
-        notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: normalize_hash(row['paciente'])+normalize_hash(row['nome_mae']), axis=1)
-        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_nascimento']), axis=1)
+        notifica.loc[notifica['mun_resid'].notnull() & (notifica['idade']!=-99), 'hash_resid'] = notifica.loc[notifica['mun_resid'].notnull()].apply(lambda row: parser(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid'])), axis=1)
+        notifica.loc[notifica['mun_atend'].notnull() & (notifica['idade']!=-99), 'hash_atend'] = notifica.loc[notifica['mun_atend'].notnull()].apply(lambda row: parser(normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_atend'])), axis=1)
+        notifica.loc[ notifica['nome_mae'].notnull(), 'hash_mae'] = notifica.loc[ notifica['nome_mae'].notnull() ].apply(lambda row: parser(normalize_hash(row['paciente'])+normalize_hash(row['nome_mae'])), axis=1)
+        notifica.loc[ notifica['cpf'].notnull(), 'hash_cpf'] = notifica.loc[ notifica['cpf'].notnull() ].apply(lambda row: parser((row['cpf'])), axis=1)
+        notifica.loc[notifica['data_nascimento']!=pd.NaT, 'hash_nasc'] = notifica.loc[notifica['data_nascimento']!=pd.NaT].apply(lambda row: parser(normalize_hash(row['paciente'])+date_hash(row['data_nascimento'])), axis=1)
         notifica['hash_diag'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_diagnostico']), axis=1)
 
         #Gera hash para identificar alterações nos id das fichas
@@ -243,12 +241,15 @@ class Notifica:
         return notifica
 
     #----------------------------------------------------------------------------------------------------------------------
-    def download_already_comunicados(self, comunicados):
+    def verify_changes(self, comunicados):
         query = ", ".join(str(id) for id in comunicados['id'])
         print(f"Download {len(comunicados['id'])} notificações para buscar alterações")
-        downloaded = self.read(download_metabase(filename='novos.csv',where=f"classificacao_final == 2 AND id NOT IN ({query})"),save=False)
+        downloaded = self.read(download_metabase(filename='alteracoes.csv',where=f"classificacao_final == 2 AND id NOT IN ({query})"),save=False)
         old_and_new = pd.merge(comunicados[['id','checksum']], downloaded[['id','checksum']], on='id', how='left', sulffixes=['_old','_new'])
-        changes = old_and_new.loc[old_and_new['checksum_old']!=old_and_new['checksum_new']]
+        changed = old_and_new.loc[old_and_new['checksum_old']!=old_and_new['checksum_new']]
+        changes = pd.merge(comunicados.loc[comunicados['id'].isin(changed['id']),['id','paciente','mun_resid','evolucao']],downloaded.loc[downloaded['id'].isin(changed['id']),['id','paciente','mun_resid','evolucao']])
+        print(f"Foram encontrados {len(changes)} diferenças")
+        changes.to_excel(join(output,f"mudancas_{datetime.today().strftime('%d_%m')}"))
         return changes
 
     #----------------------------------------------------------------------------------------------------------------------

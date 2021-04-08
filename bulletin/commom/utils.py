@@ -40,7 +40,12 @@ class Timer:
         hours, seconds = divmod(seconds, 60*60)
         minutes, seconds = divmod(seconds, 60)
         miliseconds = (seconds - int(seconds)) * 1000
-        return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}"
+        print(f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}")
+
+    def restart(self):
+        if self.__running:
+            self.stop()
+        self.start()
 
 def isvaliddate(date,begin=date(2020,3,12),end=date.today()):
 	if date != pd.NaT:
@@ -134,8 +139,16 @@ def set_column_autowidth(worksheet: Worksheet, column: int):
     maxwidth = get_column_width(worksheet=worksheet, column=column)
     if maxwidth is None:
         return
-    worksheet.set_column(first_col=column, last_col=column, width=maxwidth+5)
+    worksheet.set_column(first_col=column, last_col=column, width=maxwidth+maxwidth*0.25)
 
 def auto_fit_columns(wk,df):
     for i, _ in enumerate(df.columns):
         set_column_autowidth(wk,i)
+
+def get_nome_sobrenome(paciente):
+    parts = paciente.split(' ')
+    if len(parts) >= 2:
+        return parts[0] + ' ' + parts[-1]
+    else:
+        print(paciente)
+        raise Exception('Sem Nome')
