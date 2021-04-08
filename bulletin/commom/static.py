@@ -7,7 +7,9 @@ __populacao = pd.read_csv(join(dirname(__root__),'resources','csv','populacao.cs
 
 municipios_sesa_ibge = pd.merge(left=__municipios, right=__populacao, how='outer', on='ibge', suffixes=('_sesa','_ibge'))
 
+etnia = pd.read_csv(join(dirname(__root__),'resources','csv','etnia.csv'))
 municipios = pd.read_csv(join(dirname(__root__),'resources','csv','populacao.csv'))
+pais = pd.read_csv(join(dirname(__root__),'resources','csv','pais.csv'))
 regionais = pd.read_csv(join(dirname(__root__),'resources','csv','regionais.csv'))
 termos = pd.read_csv(join(dirname(__root__),'resources','csv','termos.csv'))
 se = pd.read_csv(join(dirname(__root__),'resources','csv','se.csv'), parse_dates=['inicio','fim'])
