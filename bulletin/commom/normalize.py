@@ -87,7 +87,8 @@ def normalize_municipios(mun):
 
 	return (mun,est)
 
-def normalize_igbe(ibge):
+def normalize_ibge(ibge):
+	ibge = str(ibge)
 	if ibge:
 		ibge = ibge[:len(ibge)-1]
 

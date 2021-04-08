@@ -128,7 +128,7 @@ def get_column_width(worksheet: Worksheet, column: int):
             lengths.add(iter_length)
     if not lengths:
         return None
-    return max(lengths)
+    return max(lengths)+5
 
 def set_column_autowidth(worksheet: Worksheet, column: int):
     """
