@@ -3,7 +3,11 @@
 *.json
 *.log
 *.xls*
-*.csv
 *__pycache__*
-tmp
 .ipynb_checkpoints*
+*.pkl
+
+output/*.csv
+input/*.csv
+
+bulletin/tmp/*
