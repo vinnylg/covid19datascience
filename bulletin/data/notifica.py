@@ -228,17 +228,16 @@ class Notifica:
         notifica['hash_diag'] = notifica.apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_diagnostico']), axis=1)
 
         #Gera hash para identificar alterações nos id das fichas
-        # notifica['checksum'] = notifica.apply(
-        #     lambda row:
-        #         sha256(
-        #             str.encode(
-        #                 normalize_hash(row['paciente']) + normalize_hash(row['mun_resid']) + 
-        #                 normalize_hash(row['evolucao'])
-        #             )
-        #         ).hexdigest()
-        #     ,axis = 1
-        # )
-
+        notifica['checksum'] = notifica.apply(
+            lambda row:
+                sha256(
+                    str.encode(
+                        normalize_hash(row['paciente']) + normalize_hash(row['ibge_residencia']) + normalize_hash(row['classificacao_final']) +
+                        normalize_hash(row['criterio_classificacao']) + normalize_hash(row['evolucao'])
+                    )
+                ).hexdigest()
+            ,axis = 1
+        )
         return notifica
 
     #----------------------------------------------------------------------------------------------------------------------
