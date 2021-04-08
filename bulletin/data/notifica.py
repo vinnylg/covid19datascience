@@ -12,9 +12,9 @@ from time import sleep
 import pandas as pd
 
 from bulletin import __file__ as __root__
-from bulletin.commom import static
-from bulletin.commom.utils import isvaliddate
-from bulletin.commom.normalize import normalize_text, normalize_number, normalize_hash, normalize_cpf, date_hash
+from bulletin.utils import static
+from bulletin.utils.utils import isvaliddate
+from bulletin.utils.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe, normalize_hash
 from bulletin.metabase.request import download_metabase
 
 #----------------------------------------------------------------------------------------------------------------------

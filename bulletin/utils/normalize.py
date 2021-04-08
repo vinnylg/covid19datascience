@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from unidecode import unidecode as unidecode
 
-from sys import exit
-from bulletin.commom import static
+def normalize_hash(text):
+	return "".join(filter(lambda x: x >= 'A' and x <= 'Z', str(text).upper()))
 
 def trim_overspace(text):
 	parts = filter(lambda x: len(x) > 0,text.split(" "))
@@ -63,25 +63,8 @@ def normalize_number(num,cast=int,error='fill',fill='-1'):
 
 def normalize_municipios(mun):
 	mun = normalize_text(mun)
-	est = 'PR'
-
-	if '-' in mun or '/' in mun:
-		mun = mun.split('-')[-1]
-
-		if '/' in mun:
-			mun, est = mun.split('/')
-			est = trim_overspace(est)
-		else:
-			municipios = static.municipios_sesa_ibge.loc[static.municipios_sesa_ibge['uf']!='PR']
-			municipios['municipio_sesa'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
-			municipios['municipio_ibge'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
-
-			municipio = municipios.loc[municipios['municipio_sesa']==normalize_hash(mun)]
-			if len(municipio) == 0:
-				municipio = municipios.loc[municipios['municipio_ibge']==normalize_hash(mun)]
-
-			if len(municipio) != 0:
-				est = municipio.iloc[0]['uf']
+	if '/' in mun:
+		mun = mun.split('/')[0]
 
 	mun = trim_overspace(mun)
 
