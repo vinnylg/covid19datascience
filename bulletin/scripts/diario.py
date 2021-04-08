@@ -30,7 +30,7 @@ notifica.shape()
 casos_confirmados = CasosConfirmados(force=force, hard=hard)
 casos_confirmados.shape()
 
-notifica.filter_date(anteontem)
+# notifica.filter_date(anteontem)
 
 notifica_novos_casos = notifica.get_casos()
 
@@ -39,5 +39,9 @@ notifica_novos_obitos = notifica.get_obitos()
 novos_casos = casos_confirmados.novos_casos(notifica_novos_casos)
 
 novos_obitos = casos_confirmados.novos_obitos(novos_casos, notifica_novos_obitos)
+
+#recuperados
+#merge casos_obitos_recuperados
+#save novos_casos/novos_obitos, novo_casos_confirmados, regionais, casos_obitos_se, ativos
 
 casos_confirmados.relatorio(novos_casos, novos_obitos)

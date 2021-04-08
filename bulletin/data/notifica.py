@@ -6,8 +6,8 @@ import pandas as pd
 from sys import exit
 
 from bulletin import __file__ as __root__
-from bulletin.commom import static
-from bulletin.commom.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe, normalize_hash
+from bulletin.utils import static
+from bulletin.utils.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe, normalize_hash
 
 class Notifica:
     def __init__(self, pathfile:str=join(dirname(__root__),'tmp','notifica.csv'), force=False, hard=False):
@@ -107,7 +107,7 @@ class Notifica:
         notifica = pd.merge(left=notifica, right=municipios, how='left', on='ibge_unidade_notifica')
 
         notifica['rs'] = notifica['rs'].apply(lambda x: normalize_number(x,fill='99'))
-        notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2) if x != 99 else None)
+        notifica['rs'] = notifica['rs'].apply(lambda x: str(x).zfill(2))
 
         # notifica.loc[notifica['mun_resid'].isnull()].to_excel('sem_municipio_residencia.xlsx', index=None)
         # notifica.loc[ notifica['data_liberacao'].isnull() ].to_excel('sem_data_liberacao.xlsx', index=None)
