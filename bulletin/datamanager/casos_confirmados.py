@@ -1,61 +1,42 @@
-from os.path import dirname, join, isfile
-from datetime import datetime, date, timedelta
+#-----------------------------------------------------------------------------------------------------------------------------#
+# Esse arquivo faz parte de um pacote de scripts criados para realizar o tratamento de dados do Notifica Covid-19 Paraná.
+# Todos os direitos reservados ao autor
+#-----------------------------------------------------------------------------------------------------------------------------#
+
+from os.path import dirname, join, isfile, isdir
+from datetime import datetime, timedelta, date
 from unidecode import unidecode
 from hashlib import sha256
+from os import makedirs
 import pandas as pd
 import codecs
-
-from sys import exit
-
 from bulletin import __file__ as __root__
 from bulletin.utils import static
 from bulletin.utils.normalize import normalize_text, normalize_labels, normalize_number, normalize_municipios, normalize_igbe, trim_overspace, normalize_hash
 
+#----------------------------------------------------------------------------------------------------------------------
 class CasosConfirmados:
     def __init__(self, pathfile:str=join(dirname(__root__),'tmp','Casos confirmados PR.xlsx'),force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
-        self.database = { 'casos': join(dirname(__root__),'tmp','casos.pkl'), 'obitos': join(dirname(__root__),'tmp','obitos.pkl')}
-        self.checksum_file = join(dirname(__root__),'tmp','casos_confirmados_checksum')
-        self.errorspath = join('output','errors')
+        self.pathfile = pathfile
+        self.database = join(dirname(__root__),'resources','database','casos_confirmados.pkl')
+        self.errorspath = join('output','errors','casos_confirmados',datetime.today().strftime('%B_%Y'))
 
-        if isfile(self.pathfile):
-            saved_checksum = None
-            if isfile(self.checksum_file):
-                with open(self.checksum_file, "r") as checksum:
-                    saved_checksum = checksum.read()
-                    print(f"saved checksum: {saved_checksum}")
+        if not isdir(self.errorspath):
+            makedirs(self.errorspath)
 
-            with open(self.pathfile, "rb") as filein:
-                bytes = filein.read()
-                self.checksum = sha256(bytes).hexdigest()
-                print(f"current checksum: {self.checksum}")
+        if not isdir(dirname(self.database)):
+            makedirs(dirname(self.database))
 
-            if saved_checksum != self.checksum:
-                print(f"Parece que o arquivo {self.pathfile} sofreu alterações, considere usar o método update ou o passe force=True")
-                if force:
-                    print(f"Utilizando o método update")
-                    self.update()
-            else:
-                print(f"Tudo certo, nenhuma alteração detectada")
-                if hard:
-                    print(f"Utilizando forcadamente com método update")
-                    self.update()
+    def __len__(self):
+        return len(self.__source)
 
-            if isfile(self.database['casos']) and isfile(self.database['obitos']):
-                casos = pd.read_pickle(self.database['casos'])
-                obitos = pd.read_pickle(self.database['obitos'])
-                self.__source = { 'casos': casos, 'obitos': obitos }
-                print(f"{self.database} carregado")
-            else:
-                print(f"{self.database} não encontrado, utilizando o método update")
-                self.update()
-
-        else:
-            exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
-
+    #----------------------------------------------------------------------------------------------------------------------
     def shape(self):
-        return (len(self.__source['casos']),len(self.__source['obitos']))
+        casos = self.__source['casos']
+        obitos = casos.loc[casos['obito']=="SIM"]
+        return (len(casos),len(obitos))
 
     def novos_casos(self, casos_raw):
         # casos_raw.to_excel(join("output","casos_raw.xlsx"))
@@ -101,6 +82,7 @@ class CasosConfirmados:
         print(f"casos já em casos com a idade - 1: {len(index_casos_duplicados_idade_less)}")
         index_casos_duplicados_idade_more = casos_raw.loc[casos_raw['hash_more'].isin(casos_confirmados['hash'])].index.to_list()
         print(f"casos já em casos com a idade + 1: {len(index_casos_duplicados_idade_more)}")
+
         print(f"dentre os quais {len(set(index_casos_duplicados_idade_more).intersection(index_casos_duplicados)) + len(set(index_casos_duplicados_idade_less).intersection(index_casos_duplicados))} são casos em comum, o que leva a crer que estão duplicados na planilha já com idade a mais ou idade a menos")
         index_duplicados = list(set(index_casos_duplicados + index_casos_duplicados_idade_less + index_casos_duplicados_idade_more))
         print(f"sendo assim, {len(index_duplicados)} casos que já se encontram na planilha serão removidos")
@@ -130,26 +112,26 @@ class CasosConfirmados:
         obitos_confirmados = self.__source['obitos']
         obitos_raw = obitos_raw.sort_values(by='paciente')
 
-        obitos_curitiba = pd.read_excel(join(dirname(__root__),'tmp','obitos_curitiba.xlsx'))
+        print(f"obitos novos notifica {obitos_raw.shape[0]}", end=" ")
 
-        obitos_curitiba['paciente'] = obitos_curitiba['paciente'].apply(lambda x: trim_overspace(normalize_text(x)))
-        obitos_curitiba['mun_resid'] = obitos_curitiba['mun_resid'].apply(lambda x: trim_overspace(normalize_text(x)))
-        obitos_curitiba['idade'] = obitos_curitiba['idade'].apply(lambda x: normalize_number(x,fill=0))
+        if isfile(join('input','obitos_curitiba.xlsx')):
+            obitos_curitiba = pd.read_excel(join('input','obitos_curitiba.xlsx'),
+                            converters = {
+                               'paciente': normalize_text,
+                               'idade': lambda x: normalize_number(x,fill=0),
+                               'mun_resid': normalize_text,
+                               'rs': lambda x: str(normalize_number(x,fill=99)).zfill(2) if x != 99 else None
+                            },
+                            parse_dates=['data_cura_obito'])
 
-        obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: normalize_number(x,fill='99'))
-        obitos_curitiba['rs'] = obitos_curitiba['rs'].apply(lambda x: str(x).zfill(2))
+            obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
+            obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
+            obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
 
-        obitos_curitiba['hash'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade'])+normalize_hash(row['mun_resid']), axis=1)
-        obitos_curitiba['hash_less'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']-1)+normalize_hash(row['mun_resid']), axis=1)
-        obitos_curitiba['hash_more'] = obitos_curitiba.apply(lambda row: normalize_hash(row['paciente'])+str(row['idade']+1)+normalize_hash(row['mun_resid']), axis=1)
+            print(f" + {obitos_curitiba.shape[0]} curitiba", end="")
 
-        print(f"obitos novos notifica {obitos_raw.shape[0]} + {obitos_curitiba.shape[0]} curitiba\n")
-
-        dropar = obitos_raw.loc[obitos_raw['data_cura_obito'].isnull()]
-        print(f"obitos novos com data no futuro: {dropar.shape[0]}")
-        dropar.to_excel(join(self.errorspath,'obitos_sem_data.xlsx'))
-
-        obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
+            obitos_raw = obitos_raw.append(obitos_curitiba, ignore_index=True)
+        print("\n")
 
         dropar = obitos_raw.loc[obitos_raw['data_cura_obito'].isna()]
         print(f"obitos novos sem data: {dropar.shape[0]}")
@@ -181,6 +163,8 @@ class CasosConfirmados:
         obitos_duplicados_idade_diferente = list(set(index_obitos_duplicados_idade_more).intersection(index_obitos_duplicados).union(set(index_obitos_duplicados_idade_less).intersection(index_obitos_duplicados)))
         if len(obitos_duplicados_idade_diferente) > 0:
             print(f"dentre os quais {len(obitos_duplicados_idade_diferente)} são obitos duplicados com idade diferente")
+
+        print(f"obitos que estão nos casos com a mesma idade {obitos_raw.loc[obitos_raw['hash'].isin(casos_confirmados['hash'])].shape[0]}")
 
         index_idade_less = obitos_raw.loc[obitos_raw['hash_less'].isin(casos_confirmados['hash'])].index
         print(f"obitos que estão nos casos porém com um ano a menos {index_idade_less.shape[0]}")
@@ -261,18 +245,6 @@ class CasosConfirmados:
             if len(novos_casosFora) > 0:
                 relatorio.write(f"e {len(novos_casosFora):,} não residente{'s' if len(novos_casosFora) > 1 else ''} ".replace(',','.'))
             relatorio.write(f"divulgados no PR.\n")
-
-            relatorio.write(f"{len(casos_confirmadosPR)+len(novos_casosPR):,} casos confirmados residentes do PR.\n".replace(',','.'))
-            relatorio.write(f"{len(casos_confirmados)+len(novos_casos):,} total geral.\n\n".replace(',','.'))
-            relatorio.write(f"{len(novos_obitosPR):,} Óbitos residentes do PR:\n".replace(',','.'))
-
-            for municipio, obitos in novos_obitosPR_group:
-                relatorio.write(f"{len(obitos):,} {municipio}\n".replace(',','.'))
-
-            if len(novos_obitosFora) > 0:
-                relatorio.write('\n')
-                relatorio.write(f"{len(novos_obitosFora):,} Óbito{'s' if len(novos_obitosFora) > 1 else ''} não residente{'s' if len(novos_obitosFora) > 1 else ''} do PR.\n".replace(',','.'))
-
             relatorio.write('\n')
             relatorio.write(f"{len(obitos_confirmadosPR)+len(novos_obitosPR):,} óbitos residentes do PR.\n".replace(',','.'))
             relatorio.write(f"{len(obitos_confirmados)+len(novos_obitos):,} total geral.\n\n".replace(',','.'))
@@ -340,29 +312,32 @@ class CasosConfirmados:
                         relatorio.write(f"{municip}")
                         relatorio.write(f", ")
 
-        with codecs.open(join('output','relatorios',f"relatorio_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt"),"r","utf-8-sig") as relatorio:
-            print("\nrelatorio:\n")
-            print(relatorio.read())
+    #----------------------------------------------------------------------------------------------------------------------
+    def __get_mun(self, mun):
+        if '/' in mun:
+            mun, _ = mun.split('/')
+        return mun
 
          
 
     def update(self):
-        print(f"Atualizando o arquivo {self.database} com o {self.pathfile}...")
-
-        # casos = pd.read_excel(self.pathfile,'Casos confirmados',usecols='B,C,D,F,G')
         casos = pd.read_excel(self.pathfile,
                             'Casos confirmados',
-                            usecols='C,D,E,G,H,Q',
-                            # engine='pyxlsb',
                             converters = {
-                               'Nome': normalize_text,
-                               'Idade': lambda x: normalize_number(x,fill=0),
-                               'IBGE_RES_PR': normalize_igbe,
-                               'Mun Resid': normalize_municipios
-                            })
+                                'IBGE_RES_PR': lambda x: normalize_number(x,fill=9999999),
+                                'Nome': normalize_text,
+                                'Sexo': normalize_text,
+                                'Idade': lambda x: normalize_number(x,fill=0),
+                                'Mun Resid': normalize_text,
+                                'Mun atend': normalize_text,
+                                'RS': lambda x: normalize_number(x,fill=99),
+                                'Laboratório': normalize_text
+                            },
+                            parse_dates=False
+                        )
 
         casos.columns = [ normalize_labels(x) for x in casos.columns ]
-        casos = casos.rename(columns={'rs_res_pr': 'rs'})
+        casos = casos.rename(columns={'ibge_res_pr': 'ibge7'})
 
         print(f"Casos excluidos: {len(casos.loc[casos['excluir'] == 'SIM'])}")
         casos = casos.loc[casos['excluir'] != 'SIM']
@@ -386,36 +361,91 @@ class CasosConfirmados:
         with open(self.checksum_file, "w") as checksum:
             checksum.write(self.checksum)
 
-        print(f"{self.database} salvo e {self.checksum_file} atualizado")
-
         self.__source = { 'casos': casos, 'obitos': obitos }
 
+    def update_casos(self, new_casos):
+        new_casos.to_pickle(self.database['casos'])
+        self.__source['casos'] = new_casos
+
+    def update_obitos(self, new_obitos):
+        new_obitos.to_pickle(self.database['obitos'])
+
+        self.__source['obitos'] = new_obitos
+
     def get_casos(self):
-        try:
-            return self.__source['casos'].copy()
-        except:
-            exit("Fonte de dados não encontrada, primeiro utilize o método update")
+        return self.__source['casos'].copy()
 
     def get_obitos(self):
-        try:
-            return self.__source['obitos'].copy()
-        except:
-            exit("Fonte de dados não encontrada, primeiro utilize o método update")
-    #
-    # def get_recuperados(self):
-    #     try:
-    #         return self.__source.loc[self.__source['evolucao'] == 1].copy()
-    #     except e:
-    #         exit("Fonte de dados não encontrada, primeiro utilize o método update")
-    #
-    # def get_casos_ativos(self):
-    #     try:
-    #         return self.__source.loc[self.__source['evolucao'] == 3].copy()
-    #     except e:
-    #         exit("Fonte de dados não encontrada, primeiro utilize o método update")
-    #
-    # def get_obitos_nao_covid(self):
-    #     try:
-    #         return self.__source.loc[self.__source['evolucao'] == 4].copy()
-    #     except e:
-    #         exit("Fonte de dados não encontrada, primeiro utilize o método update")
+        return self.__source['obitos'].copy()
+
+    def fix_mun_resid_casos(self, mun='mun_resid'):
+        casos = self.get_casos()
+
+        casos[mun] = casos[mun].apply(lambda x: normalize_municipios(x)[0])
+        casos['uf_resid'] = casos[mun].apply(lambda x: normalize_municipios(x)[1])
+
+        casos['ibge'] = casos['ibge7'].apply(normalize_ibge)
+
+        casos_sem_ibge = casos.loc[casos['ibge'].isnull()].copy()
+        casos_sem_ibge = casos_sem_ibge.drop(columns=['ibge'])
+        casos_sem_ibge['mun_hash'] = casos_sem_ibge[mun].apply(normalize_hash)
+
+        municipios = static.municipios.copy()
+
+        casos_com_ibge = casos.loc[casos['ibge'].notnull()].copy()
+        casos_com_ibge = pd.merge(left=casos_com_ibge, right=municipios, how='left', on='ibge')
+
+        municipios = municipios.loc[municipios['uf']!='PR']
+        municipios['mun_hash'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
+        municipios_hash = municipios.drop_duplicates('mun_hash')
+
+        casos_sem_ibge = pd.merge(left=casos_sem_ibge, right=municipios_hash, how='left', on='mun_hash')
+        casos_sem_ibge = casos_sem_ibge.drop(columns=['mun_hash'])
+
+        casos_com_ibge = casos_com_ibge.append(casos_sem_ibge.loc[casos_sem_ibge['ibge'].notnull()], ignore_index=True).sort_values('ordem')
+
+        casos_sem_ibge = casos_sem_ibge.loc[casos_sem_ibge['ibge'].isnull()].copy()
+        casos_sem_ibge = casos_sem_ibge.drop(columns=["cod_uf", "uf", "estado", "ibge", "municipio_sesa", "municipio_ibge"])
+        casos_sem_ibge['mun_hash'] = casos_sem_ibge[mun].apply(normalize_hash)
+
+        municipios['mun_hash'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
+        municipios_hash = municipios.drop_duplicates('mun_hash')
+
+        casos_sem_ibge = pd.merge(left=casos_sem_ibge, right=municipios_hash, how='left', on='mun_hash')
+        casos = casos_com_ibge.append(casos_sem_ibge, ignore_index=True).sort_values('ordem')
+
+        casos['ibge'] = casos['ibge'].fillna('99')
+        casos['ibge'] = casos['ibge'].apply(lambda x: str(x).zfill(2) if x != '99' else None)
+
+        casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].notnull()) & (casos['uf'] != 'PR'), 'uf_resid'] = casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].notnull()) & (casos['uf'] != 'PR'), 'uf']
+        casos.loc[(casos['uf_resid'] == 'PR') & (casos['uf'].isnull()), 'uf_resid'] = 'ERRO'
+        # casos.loc[casos['uf']!='PR', mun] = casos.loc[casos['uf']!='PR', mun] + '/' + casos.loc[casos['uf']!='PR', 'uf_resid']
+
+        return casos
+
+    def get_est(self, mun):
+        est = 'ERRO'
+        municipios = static.municipios.loc[static.municipios['uf']!='PR']
+        municipios['municipio_sesa'] = municipios['municipio_sesa'].apply(lambda x: normalize_hash(normalize_text(x)))
+        municipios['municipio_ibge'] = municipios['municipio_ibge'].apply(lambda x: normalize_hash(normalize_text(x)))
+
+        municipio = municipios.loc[municipios['municipio_sesa']==normalize_hash(mun)]
+        if len(municipio) == 0:
+            municipio = municipios.loc[municipios['municipio_ibge']==normalize_hash(mun)]
+
+        if len(municipio) != 0:
+            est = municipio.iloc[0]['uf']
+
+        return est
+
+    def fix_mun_resid_obitos(self):
+        obitos = self.get_obitos()
+
+        obitos['municipio'] = obitos['municipio'].apply(lambda x: normalize_municipios(x)[0])
+        # obitos['uf'] = obitos['municipio'].apply(lambda x: normalize_municipios(x)[1])
+
+        obitos.loc[obitos['rs'].isnull(), 'uf'] = obitos.loc[obitos['rs'].isnull(), 'municipio'].apply(self.get_est)
+
+        obitos.loc[obitos['rs'].isnull(), 'municipio'] = obitos.loc[obitos['rs'].isnull(), 'municipio'] + '/' + obitos.loc[obitos['rs'].isnull(), 'uf']
+
+        return obitos

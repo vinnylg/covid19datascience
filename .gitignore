@@ -6,8 +6,13 @@
 *__pycache__*
 .ipynb_checkpoints*
 *.pkl
+output
+input
+tmp
+*_checksum
+*.txt
+*.npz
+node_modules
+*.tar
+*.gz
 
-output/*.csv
-input/*.csv
-
-bulletin/tmp/*
