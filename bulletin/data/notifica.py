@@ -14,7 +14,7 @@ import pandas as pd
 from bulletin import __file__ as __root__
 from bulletin.utils import static
 from bulletin.utils.utils import isvaliddate
-from bulletin.utils.normalize import normalize_text, normalize_number, normalize_municipios, normalize_igbe, normalize_hash
+from bulletin.utils.normalize import normalize_text, normalize_number, normalize_municipios, normalize_hash
 from bulletin.metabase.request import download_metabase
 
 #----------------------------------------------------------------------------------------------------------------------

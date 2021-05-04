@@ -1,4 +1,4 @@
-from bulletin.commom.normalize import trim_overspace
+from bulletin.utils.normalize import trim_overspace
 import requests
 import pandas as pd
 import json
@@ -36,7 +36,7 @@ def download_metabase(filename=None, where='nt.classificacao_final = 2 AND nt.ex
         'Origin':'https://metabase.saude.pr.gov.br',
         'Connection':'keep-alive',
         'Referer':'https://metabase.saude.pr.gov.br/question',
-        'Cookie':'metabase.SESSION=ef910b1d-a273-477c-ba8c-ffcfe7503034',
+        'Cookie':'metabase.SESSION=c13edfa7-567f-4b67-b26d-390d4af6738b',
         'Upgrade-Insecure-Requests':'1'
     }
 
