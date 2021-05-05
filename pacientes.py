@@ -1,15 +1,12 @@
 from os import makedirs
 from os.path import isdir
 import numpy as np
-from numpy.core.arrayprint import repr_format
 import pandas as pd
 from tqdm import tqdm
-from hashlib import md5
-import multiprocessing as mp
 import gc
-from bulletin.data.notifica import Notifica
-from bulletin.commom.qgram import KGram
-from bulletin.commom.utils import Timer
+from bulletin.notifica import Notifica
+from bulletin.utils.qgram import KGram
+from bulletin.utils.utils import Timer
 
 def agrupar_pacientes(pthread, notificacoes, begin, end):
     pacientes = [notificacoes[begin]]

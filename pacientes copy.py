@@ -1,10 +1,8 @@
-import numpy as np
 import pandas as pd
 
-from bulletin.data.notifica import Notifica
-from bulletin.data.casos_confirmados import CasosConfirmados
+from bulletin.casos_confirmados import CasosConfirmados
 
-from bulletin.commom.utils import auto_fit_columns
+from bulletin.utils.utils import auto_fit_columns
 
 def inserir_totais(df):
     df.loc['total_geral'] = df.sum(axis=0)

@@ -1,19 +1,13 @@
 # To add a new cell, type '# %%'
 # To add a new markdown cell, type '# %% [markdown]'
 # %%
-from sys import exit
-from time import sleep
-import numpy as np
 import pandas as pd
-from os.path import dirname, join, isfile, isdir
+from os.path import join, isdir
 from os import makedirs
-from datetime import datetime, timedelta, date
 
-from bulletin.data.notifica import Notifica
-from bulletin.data.casos_confirmados import CasosConfirmados
-from bulletin.commom.utils import Timer, get_better_notifica
-from bulletin.commom.static import meses
-from bulletin.metabase.request import download_metabase
+from bulletin.notifica import Notifica
+from bulletin.casos_confirmados import CasosConfirmados
+from bulletin.utils.utils import Timer, get_better_notifica
 
 pd.set_option('display.max_columns', None)
 

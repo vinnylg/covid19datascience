@@ -2,22 +2,15 @@
 
 
 import json
-import numpy as np
 import pandas as pd
-from sys import exit, stderr, stdin, stdout
-from time import sleep
 
-from tqdm import tqdm
-from os.path import dirname, join, isfile, isdir
+from os.path import isdir
 from os import makedirs
 import subprocess
-from datetime import datetime, timedelta, date
 
-from bulletin.data.notifica import Notifica
-from bulletin.commom.utils import Timer, get_better_notifica
-from bulletin.commom.normalize import normalize_hash
-from bulletin.commom.static import meses
-from bulletin.metabase.request import download_metabase
+from bulletin.notifica import Notifica
+from bulletin.utils.utils import Timer
+from bulletin.utils.normalize import normalize_hash
 
 pd.set_option('display.max_columns', None)
 

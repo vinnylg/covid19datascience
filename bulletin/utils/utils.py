@@ -1,57 +1,21 @@
-from time import time
-from datetime import date, timedelta
-import pandas as pd
+import functools
+import threading
 import numpy as np
+import pandas as pd
+from time import time, sleep
+from datetime import date, timedelta
+from contextlib import contextmanager
+
 from xlsxwriter.worksheet import (
     Worksheet, cell_number_tuple, cell_string_tuple)
 
-class Timer:
-    def __init__(self):
-        self.__running = False
+def isvaliddate(dt: date, begin=date(2020, 3, 12), end=date.today()):
+    if isinstance(dt,date):
+        if dt >= begin:
+            if dt <= end:
+                return True
 
-    def start(self):
-        self.__start = time()
-        self.__running = True
-
-    def stop(self):
-        if self.__running:
-            self.__running = False
-            self.__end = time()
-            self.__time_elapsed = self.__end - self.__start
-            return self.__time_elapsed
-        else:
-            print('Timer already stoped')
-
-    def time(self):
-        if not self.__running:
-            time_elapsed = self.__time_elapsed
-        else:
-            time_elapsed = time() - self.__start
-
-        return time_elapsed
-
-    def ftime(self):
-        if not self.__running:
-            time_elapsed = self.__time_elapsed
-        else:
-            time_elapsed = time() - self.__start
-
-        days, seconds = divmod(time_elapsed,60*60*24)
-        hours, seconds = divmod(seconds, 60*60)
-        minutes, seconds = divmod(seconds, 60)
-        miliseconds = (seconds - int(seconds)) * 1000
-        print(f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(miliseconds):02}")
-
-    def restart(self):
-        if self.__running:
-            self.stop()
-        self.start()
-
-def isvaliddate(date,begin=date(2020,3,12),end=date.today()):
-	if date != pd.NaT:
-		if date >= begin and date <= end:
-			return True
-	return False
+    return False
 
 def get_better_notifica(df):
     scores = np.zeros(len(df))
@@ -60,44 +24,44 @@ def get_better_notifica(df):
         _, row = serie
 
         if row['idade'] != -99:
-            scores[i]+=10
+            scores[i] += 10
 
         if row['nome_mae']:
-            scores[i]+=10
+            scores[i] += 10
 
         if row['cpf']:
-            scores[i]+=10
+            scores[i] += 10
 
         if row['classificacao_final'] == 2:
-            scores[i]+=1000
+            scores[i] += 1000
 
         if row['criterio_classificacao'] == 1:
-            scores[i]+=5
+            scores[i] += 5
 
         if row['evolucao'] == 2:
             if row['data_cura_obito'] != pd.NaT:
-                scores[i]+=100
+                scores[i] += 100
 
         if row['evolucao'] == 1:
-            scores[i]+=10
+            scores[i] += 10
 
         if row['metodo'] == 1:
-            scores[i]+=10
+            scores[i] += 10
 
         if row['status_notificacao'] in [1, 2]:
-            scores[i]+=10
+            scores[i] += 10
 
         if row['data_1o_sintomas'] != pd.NaT:
-            scores[i]+=5
+            scores[i] += 5
 
         if row['data_coleta'] != pd.NaT:
-            scores[i]+=5
+            scores[i] += 5
 
         if row['data_recebimento'] != pd.NaT:
-            scores[i]+=5
+            scores[i] += 5
 
         if row['data_liberacao'] != pd.NaT:
-            scores[i]+=10
+            scores[i] += 10
 
     i = np.argmax(scores)
     return df.iloc[i].name
@@ -128,7 +92,8 @@ def get_column_width(worksheet: Worksheet, column: int):
             lengths.add(iter_length)
     if not lengths:
         return None
-    return max(lengths)+5
+    return max(lengths) + 5
+
 
 def set_column_autowidth(worksheet: Worksheet, column: int):
     """
@@ -139,16 +104,18 @@ def set_column_autowidth(worksheet: Worksheet, column: int):
     maxwidth = get_column_width(worksheet=worksheet, column=column)
     if maxwidth is None:
         return
-    worksheet.set_column(first_col=column, last_col=column, width=maxwidth+maxwidth*0.25)
+    worksheet.set_column(first_col=column, last_col=column, width=maxwidth + maxwidth * 0.25)
 
-def auto_fit_columns(wk,df):
+
+def auto_fit_columns(wk, df):
     for i, _ in enumerate(df.columns):
-        set_column_autowidth(wk,i)
+        set_column_autowidth(wk, i)
 
-def get_nome_sobrenome(paciente):
-    parts = paciente.split(' ')
-    if len(parts) >= 2:
-        return parts[0] + ' ' + parts[-1]
-    else:
-        print(paciente)
-        raise Exception('Sem Nome')
+#
+# def get_nome_sobrenome(paciente):
+#     parts = paciente.split(' ')
+#     if len(parts) >= 2:
+#         return parts[0] + ' ' + parts[-1]
+#     else:
+#         print(paciente)
+#         raise Exception('Sem Nome')

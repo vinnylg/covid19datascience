@@ -2,46 +2,37 @@
 # coding: utf-8
 
 from sys import argv
-import pandas as pd
 from datetime import datetime, timedelta
 
-from bulletin.data.notifica import Notifica
-from bulletin.data.casos_confirmados import CasosConfirmados
+from bulletin import Notifica
+from bulletin import CasosConfirmados
 
-hoje = datetime.today()
-ontem = hoje - timedelta(1)
-anteontem = ontem - timedelta(1)
+download = True if 'S' in input('Download notifica? S/N') else False
+read_cc = True if 'S' in input('Read ncasos_confirmadosotifica? S/N') else False
 
-force = False
-hard = False
-if len(argv) == 2:
-    if argv[1] == '--force':
-        force = True
-    elif argv[1] == '--hard':
-        hard = True
-elif len(argv) == 3:
-    if (argv[1] == '--force' or argv[1] == '--hard') and (argv[2] == '--hard' or argv[2] == '--force'):
-        force = True
-        hard = True
 
-notifica = Notifica(force=force, hard=hard)
-notifica.shape()
+notifica = Notifica()
+if download:
+    diario = notifica.download_metabase('diario.sql','diario.csv')
+    notifica.read(diario)
+else:
+    notifica.load()
 
-casos_confirmados = CasosConfirmados(force=force, hard=hard)
-casos_confirmados.shape()
+casos_notifica = notifica.get_casos()
+obitos_notifica = notifica.get_obitos()
 
-# notifica.filter_date(anteontem)
+casos_confirmados = CasosConfirmados()
+if read_cc:
+    casos_confirmados.read()
+else:
+    casos_confirmados.load()
 
-notifica_novos_casos = notifica.get_casos()
+novos_casos = casos_confirmados.novos_casos(casos_notifica)
+novos_obitos = casos_confirmados.novos_obitos(obitos_notifica)
+# recuperados = casos_notifica.loc[casos_notifica['']]
+# adicionar(novos_casos,novos_obitos,recuperados,gal)
+# check dash
+# casos_confirmados.relatorio(novos_casos, novos_obitos)
+# generate new casos confirmados
+# generate regionais
 
-notifica_novos_obitos = notifica.get_obitos()
-
-novos_casos = casos_confirmados.novos_casos(notifica_novos_casos)
-
-novos_obitos = casos_confirmados.novos_obitos(novos_casos, notifica_novos_obitos)
-
-#recuperados
-#merge casos_obitos_recuperados
-#save novos_casos/novos_obitos, novo_casos_confirmados, regionais, casos_obitos_se, ativos
-
-casos_confirmados.relatorio(novos_casos, novos_obitos)
