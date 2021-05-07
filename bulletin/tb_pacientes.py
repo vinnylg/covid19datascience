@@ -66,7 +66,7 @@ class TbPacientes:
 
         tb_pacientes = pd.read_csv(self.pathfile,
             low_memory=False,
-            sep=',',
+            sep=';',
             dtype={
                 "Identificacao": int
             },
