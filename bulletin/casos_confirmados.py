@@ -44,7 +44,7 @@ class CasosConfirmados:
                 }
         )
         tmp_df.columns = [normalize_labels(x) for x in tmp_df.columns]
-
+        
         tmp_df['hash'] = (tmp_df['nome'].apply(normalize_hash) +
                           tmp_df['idade'].astype(str) +
                           tmp_df['mun_resid'].apply(normalize_hash))
