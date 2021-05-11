@@ -111,11 +111,9 @@ def auto_fit_columns(wk, df):
     for i, _ in enumerate(df.columns):
         set_column_autowidth(wk, i)
 
-#
-# def get_nome_sobrenome(paciente):
-#     parts = paciente.split(' ')
-#     if len(parts) >= 2:
-#         return parts[0] + ' ' + parts[-1]
-#     else:
-#         print(paciente)
-#         raise Exception('Sem Nome')
+
+# def relatorio_exclusoes(df):
+#     with codecs.open(f"relatorio_exclusoes_{(today.strftime('%d/%m/%Y_%Hh').replace('/','_').replace(' ',''))}.txt","w","utf-8-sig") as relatorio:
+#         relatorio.write()
+#         for row in df.iterroes():
+#             relatorio.write()

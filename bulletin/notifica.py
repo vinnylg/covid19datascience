@@ -8,7 +8,7 @@ from datetime import datetime, date
 from os import makedirs
 import pandas as pd
 
-from bulletin import __file__ as __root__
+from bulletin import __root__, __default_input__,__default_output__
 from bulletin.utils import static
 from bulletin.utils.timer import Timer
 from bulletin.utils.utils import isvaliddate
