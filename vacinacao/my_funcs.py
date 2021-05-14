@@ -15,6 +15,8 @@ from contextlib import contextmanager
 import functools
 import threading
 
+from simpledbf import Dbf5
+
 def get_tb_vacinados():
     if isfile('tb_vacinados.feather'):
         return pd.read_feather('tb_vacinados.feather')
@@ -156,6 +158,37 @@ def get_casos_confirmados(load=False):
         casos_confirmados.to_feather('casos_confirmados.feather')
     
     return casos_confirmados 
+
+to_datetime = lambda x: pd.to_datetime(x,format='%d/%m/%Y')
+
+def get_srag(load=False):
+    if load and isfile('srag.pkl'):
+        srag = pd.read_pickle('srag.pkl')
+    else:
+        srag1 = Dbf5('../input/SRAGHOSPITALIZADO2020.dbf', codec = 'cp860').to_dataframe()
+        print(len(srag1))
+        srag2 = Dbf5('../input/SRAGHOSPITALIZADO2021.dbf', codec = 'cp860').to_dataframe()
+        print(len(srag2))
+        srag = pd.concat([srag1,srag2])
+        print(len(srag))
+        srag = srag[['NU_NOTIFIC', 'DT_NOTIFIC', 'NU_CPF', 'NM_PACIENT', 'CS_SEXO', 'DT_NASC', 'NU_IDADE_N', 'NM_MAE_PAC', 'SG_UF', 'CO_MUN_RES', 'FATOR_RISC', 'HOSPITAL', 'DT_INTERNA', 'UTI', 'DT_COLETA', 'PCR_RESUL', 'DT_PCR', 'CLASSI_FIN', 'EVOLUCAO', 'DT_EVOLUCA', 'PCR_SARS2', 'AN_SARS2', 'NU_CNS', ]]
+
+        srag.columns = [ x.lower() for x in srag.columns ]
+        srag.loc[srag['nu_cns'].isin(['0','999999999999999','000000000000000']),'nu_cns'] = None        
+        
+        srag.loc[~srag['nm_mae_pac'].isna(),'hash_mae'] =  srag.loc[~srag['nm_mae_pac'].isna(),'nm_pacient'].apply(normalize_hash) + srag.loc[~srag['nm_mae_pac'].isna(),'nm_mae_pac'].apply(normalize_hash)
+        
+        srag['dt_nasc'] = srag['dt_nasc'].apply(to_datetime) 
+        srag['dt_pcr'] = srag['dt_pcr'].apply(to_datetime) 
+        srag['dt_evoluca'] = srag['dt_evoluca'].apply(to_datetime) 
+        
+        srag.loc[~srag['dt_nasc'].isna(),'hash_nasc'] =  srag.loc[~srag['dt_nasc'].isna(),'nm_pacient'].apply(normalize_hash) +  srag.loc[~srag['dt_nasc'].isna(),'dt_nasc'].apply(lambda x: date_hash(x,date(1900, 1, 1))) 
+        
+        srag['hash_resid'] = srag.apply(lambda x: normalize_hash(x['nm_pacient']) + str(x['co_mun_res']),axis=1)
+        
+        srag.to_pickle('srag.pkl')
+        
+    return srag 
 
 def ftime_elapsed(start_time):
     time_elapsed = time() - start_time

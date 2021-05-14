@@ -37,6 +37,8 @@ class CasosConfirmados:
         tmp_df = pd.read_excel(arquivo, 'Casos confirmados')
         
         tmp_df.columns = [normalize_labels(x) for x in tmp_df.columns]
+        tmp_df = tmp_df.loc[tmp_df['excluir'] != 'SIM']
+        
         del tmp_df['rs_res_pr']
         tmp_df = tmp_df.rename(columns={'ibge_res_pr':'ibge7'})
         

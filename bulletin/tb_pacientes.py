@@ -77,8 +77,7 @@ class TbPacientes:
                 "Sexo": normalize_text,
                 'Idade': lambda x: normalize_number(x,fill=0),
                 "Mun_Resid": normalize_text,
-                "Mun_atend": normalize_text,
-                "Obito": lambda x: 'SIM' if x else 'NAO'
+                "Mun_atend": normalize_text
             },
             parse_dates=["Dt_diag", "dt_notificacao", "dt_inicio_sintomas", "15_dia_Isolamento", "Data_de_internamento", "Dt_alta", "Dt_obito", "DT_ATUALIZACAO", "Dt_internamento","dt_com_obito","dt_com_recuperado",],
             date_parser=lambda x: pd.to_datetime(x,errors='coerce',format='%d/%m/%Y')
@@ -95,6 +94,7 @@ class TbPacientes:
         tb_pacientes['hash_more_atend'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+str(row['idade']+1)+normalize_hash(row['mun_atend']), axis=1)
 
         tb_pacientes['hash_diag'] = tb_pacientes.apply(lambda row: normalize_hash(row['nome'])+date_hash(row['dt_diag']), axis=1)
+        
         tb_pacientes.loc[tb_pacientes['dt_obito'].notnull(),'hash_obito'] = tb_pacientes.loc[tb_pacientes['dt_obito'].notnull()] .apply(lambda row: normalize_hash(row['nome'])+date_hash(row['dt_obito']), axis=1)
 
         tb_pacientes.to_pickle(self.database)
