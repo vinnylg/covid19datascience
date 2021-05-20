@@ -71,8 +71,8 @@ class TbPacientes:
                 "Identificacao": int
             },
             converters={
-                "IBGE_RES_PR": lambda x: normalize_ibge(normalize_number(x,fill=999999)),
-                "IBGE_ATEND_PR": lambda x: normalize_ibge(normalize_number(x,fill=999999)),
+                "IBGE_RES_PR": lambda x: normalize_number(x,fill=9999999),
+                "IBGE_ATEND_PR": lambda x: normalize_number(x,fill=9999999),
                 "Nome": normalize_text,
                 "Sexo": normalize_text,
                 'Idade': lambda x: normalize_number(x,fill=0),

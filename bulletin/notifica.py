@@ -8,12 +8,12 @@ from datetime import datetime, date
 from os import makedirs
 import pandas as pd
 
-from bulletin import root, default_input,default_output
+from bulletin import root, default_input, default_output
 from bulletin.utils import static
 from bulletin.utils.timer import Timer
 from bulletin.utils.utils import isvaliddate
 from bulletin.utils.normalize import date_hash, normalize_cpf, normalize_text, normalize_number, normalize_hash
-from bulletin.services.metabase import download_metabase
+from bulletin.services.metabase import Metabase
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -21,12 +21,12 @@ class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.__df = None
-        self.database = join(dirname(__root__), 'database', 'notifica.pkl')
-        self.queries = join(dirname(__root__), 'resources', 'notifica', 'sql')
+        self.notifica = None
+        self.database = join(root, 'database', 'notifica.pkl')
+        self.queries = join(root, 'resources', 'notifica', 'sql')
 
         self.errorspath = join(
-                'output', 'errors', datetime.today().strftime('%d_%m_%Y')
+                default_output, 'errors', 'notifica', datetime.today().strftime('%d%m%Y%H%M')
         )
 
 
@@ -38,12 +38,18 @@ class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __len__(self):
-        return len(self.__df)
+        if isinstance(self.notifica,pd.DataFrame) and len(self.notifica) > 0: 
+            return len(self.notifica)
+        else:
+            return -1
 
     # ----------------------------------------------------------------------------------------------------------------------
     def shape(self):
-        return tuple([len(self.__df.loc[self.__df['evolucao'] == evolucao]) for evolucao in [1, 2, 3, 4]])
-
+        if isinstance(self.notifica,pd.DataFrame) and len(self.notifica) > 0:   
+            return tuple([len(self.notifica.loc[self.notifica['evolucao'] == evolucao]) for evolucao in [1, 2, 3, 4]])
+        else:
+            return -1
+        
     @staticmethod
     def download_todas_notificacoes():
         classificacao_final = ['0', '1', '2', '3', '5']
@@ -96,17 +102,17 @@ class Notifica:
 
         notifica = self.__normalize(notifica)
 
-        if isinstance(self.__df, pd.DataFrame) and append:
-            self.__df = self.__df.append(notifica)
+        if isinstance(self.notifica, pd.DataFrame) and append:
+            self.notifica = self.notifica.append(notifica)
         else:
-            self.__df = notifica
+            self.notifica = notifica
 
         return notifica
 
     # ----------------------------------------------------------------------------------------------------------------------
     def load(self):
         try:
-            self.__df = pd.read_pickle(self.database)
+            self.notifica = pd.read_pickle(self.database)
         except ValueError:
             raise Exception(f"{ValueError}\nArquivo {self.database} não encontrado")
 
@@ -114,9 +120,9 @@ class Notifica:
     def save(self, df=None):
         if isinstance(df, pd.DataFrame) and len(df) > 0:
             new_df = df
-            self.__df = new_df
-        elif isinstance(self.__df, pd.DataFrame) and len(self.__df) > 0:
-            new_df = self.__df
+            self.notifica = new_df
+        elif isinstance(self.notifica, pd.DataFrame) and len(self.notifica) > 0:
+            new_df = self.notifica
         else:
             raise Exception(
                     'Não é possível salvar um DataFrame inexistente, '
@@ -305,20 +311,20 @@ class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_casos(self):
-        return self.__df.copy()
+        return self.notifica.copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_obitos(self):
-        return self.__df.loc[self.__df['evolucao'] == 2].copy()
+        return self.notifica.loc[self.notifica['evolucao'] == 2].copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_recuperados(self):
-        return self.__df.loc[self.__df['evolucao'] == 1].copy()
+        return self.notifica.loc[self.notifica['evolucao'] == 1].copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_casos_ativos(self):
-        return self.__df.loc[self.__df['evolucao'] == 3].copy()
+        return self.notifica.loc[self.notifica['evolucao'] == 3].copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_obitos_nao_covid(self):
-        return self.__df.loc[self.__df['evolucao'] == 4].copy()
+        return self.notifica.loc[self.notifica['evolucao'] == 4].copy()
