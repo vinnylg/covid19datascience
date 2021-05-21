@@ -18,9 +18,7 @@ class CasosConfirmados:
     def __init__(self):
         self.df = None
         self.database = join(root, 'database', 'casos_confirmados.pkl')
-        self.backup = join(root, 'backup', f'casos_confirmados_{datetime.now().strftime('%d_%m_%Y')}')
         print(f"database: {self.database}")
-        print(f"backup: {self.backup}")
     
     def __len__(self):
         return len(self.df)
@@ -28,7 +26,7 @@ class CasosConfirmados:
     def __str__(self):
         return self.database
 
-    @Timer('reading from Casos confirmados PR.xlsx')
+    @Timer('reading from xlsx')
     def read_excel(self, arquivo: str = join(default_input,'Casos confirmados PR.xlsx'), append: str = False):
         if not isfile(arquivo):
             raise Exception(f"Arquivo {arquivo} não encontrado")

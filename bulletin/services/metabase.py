@@ -15,16 +15,19 @@ urllib3.disable_warnings()
 
 class Metabase:
     def __init__(self):
-        self.cookie = input('Paste cookie and press enter')
-
-    @retry(Exception, delay=10, tries=-1)
-    def download_metabase(self,filename='diario.csv',sqlfile='diario.sql',sql=None):
-        output_queries = join(default_input,'queries')
-
-        if not isdir(output_queries):
-            makedirs(output_queries)
-
-        print(f"{self.cookie[:3]}...{self.cookie[:-3]}")
+        self.cookie = self.__request_cookie__()
+        self.output = join(default_input,'queries')
+        
+        if not isdir(self.output):
+            makedirs(self.output)
+            
+    def download_query(self, query_name='diario'):
+        if query_name not in self.saved_queries:
+            raise Exception(f"Query {query_name}.sql not found in {self.sql_dir}")
+        
+        with open(join(dirname(__root__),'resources','notifica',f"{query_name}.sql")) as file:
+            sql = " ".join([ row.replace('\n',' ') for row in file.readlines() if not '--' in row ])
+            sql = trim_overspace(f"{sql} WHERE {where} ORDER BY id ASC LIMIT {limit} OFFSET {offset}")
 
         header = {
             'Host':'metabase.saude.pr.gov.br',
@@ -39,12 +42,15 @@ class Metabase:
             'Cookie': self.cookie,
             'Upgrade-Insecure-Requests':'1'
         }
+        
+    
+    @retry(Exception, delay=10, tries=-1)
+    def __download_chunck_query__(self,tmp_file='tmp.feather',sql=None,limit=0,offset=0):
 
-        with open(join(dirname(__root__),'resources','notifica','sql',sqlfile)) as file:
-            sql = " ".join([ row.replace('\n',' ') for row in file.readlines() if not '--' in row ])
-            sql = trim_overspace(f"{sql} WHERE {where} ORDER BY id ASC LIMIT {limit} OFFSET {offset}")
 
         print(f"Requesting {where}")
+        
+        
 
         query = {
             "database": 2,
