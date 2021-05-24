@@ -42,7 +42,7 @@ class Metabase:
         
         print("\nsaved_queries:",self.saved_queries)
     
-    @Timer('Download aux_tables')
+    @Timer('Download tables')
     def download_tables(self, update=False):
         
         notificacao = pd.read_csv(self.download("select table_name, column_name, udt_name from information_schema.columns where table_name = 'notificacao' order by table_name", join(self.tables,'notificacao.csv')))
