@@ -1,8 +1,8 @@
-from bulletin.utils.normalize import trim_overspace
 import requests
 import pandas as pd
 import json
 import io
+import os
 import urllib3
 import cgi
 from clint.textui import progress
@@ -14,6 +14,10 @@ import re
 import glob
 from pathlib import Path    
 
+from bulletin.utils.normalize import trim_overspace
+from bulletin.utils.timer import Timer
+from bulletin.notifica import Notifica
+
 urllib3.disable_warnings()
 
 class Metabase:
@@ -22,20 +26,37 @@ class Metabase:
 
         self.cookie = self.__request_cookie()
         self.output = join(default_input,'queries')
-        self.sql_dir = join(dirname(root),'bulletin','resources','notifica')
+        self.sql_dir = join(root,'resources','sql')
+        self.tables = join(root,'resources','tables')
         
         if not isdir(self.output):
             makedirs(self.output)
         
         if not isdir(self.sql_dir):
             makedirs(self.sql_dir)
-            
+                
+        if not isdir(self.tables):
+            makedirs(self.tables)
+        
         self.saved_queries = [ Path(path).stem for path in glob.glob(join(self.sql_dir,"*.sql"))]
         
         print("\nsaved_queries:",self.saved_queries)
-            
+    
+    @Timer('Download aux_tables')
+    def download_tables(self, update=False):
         
-    def download_query(self, query_name='diario'):
+        notificacao = pd.read_csv(self.download("select table_name, column_name, udt_name from information_schema.columns where table_name = 'notificacao' order by table_name", join(self.tables,'notificacao.csv')))
+        
+        columns = pd.read_csv(self.download("select table_name, column_name, udt_name from information_schema.columns where table_name != 'notificacao' order by table_name", join(self.tables,'columns.csv')))
+        
+        constraint = pd.read_csv(self.download("SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = 'FOREIGN KEY'",join(self.tables,'notifica_constraint.csv')))
+    
+        notificacao = pd.merge(notificacao,constraint,on=['table_name','column_name'],how='left').fillna('')
+        
+        return notificacao, columns, constraint
+            
+    @Timer('Download query')
+    def download_query(self, query_name='diario', remove_parts=True):
         if query_name not in self.saved_queries:
             raise Exception(f"Query {query_name}.sql not found in {self.sql_dir}")
 
@@ -50,29 +71,38 @@ class Metabase:
         sql['limit'] = re.search('limit (.*) offset', raw_sql).group(1)
         sql['offset'] = re.search('offset (.*)', raw_sql).group(1)
         
-        query_size = pd.read_csv(self.__download(f"select count(*) from {sql['from']} where {sql['where']}", f"{query_name}_len.csv")).iloc[0,0]
+        query_size = pd.read_csv(self.download(f"select count(*) from {sql['from']} where {sql['where']}", join(self.output,f"{query_name}_len.csv"))).iloc[0,0]
         print(f"\nquery_size: {query_size}\n")
-        queries = []
+                
+        parts = []
         for offset in range(0,query_size,self.limit):
             print(f"select ... limit {self.limit} offset {offset}")
-            queries.append(self.__download(f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}",f"{query_name}_{offset}.csv"))
+        
+            parts.append(
+                self.download(
+                    f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}",join(self.output,f"{query_name}_{offset}.csv")
+                )
+            )
 
-        print(queries)
+#         print(f"\n{parts}\n")
+        output_path = join(self.output,f"{query_name}.csv")
+    
+        output_query = pd.concat([ pd.read_csv(part, low_memory=False) for part in parts ])
+        print(f"saving in {output_path}")
+        output_query.to_csv(output_path,index=False)
         
-        pathfile = join(self.output,f"{query_name}.csv")
+        if remove_parts:
+            print(f"removing {' '.join(parts)}")
+            for part in parts: os.remove(part) 
         
-        res = pd.concat([ pd.read_csv(pathfile,low_memory=False) for pathfile in queries ])
-        res.to_csv(pathfile,index=False)
-        print(pathfile)               
-            
-        return pathfile     
+        return output_path     
                                                                                              
     def __request_cookie(self):
-        return input('enter with cookie')                                                                     
+        return input('enter with cookie')                                                                  
                                                                                              
                                                                                              
     @retry(Exception, delay=10, tries=-1)
-    def __download(self,sql,filename):
+    def download(self,sql,pathfile):
         
         header = {
             'Host':'metabase.saude.pr.gov.br',
@@ -111,8 +141,6 @@ class Metabase:
         else:
             print(f"Error code {res.status_code }")
             raise Exception()
-
-        pathfile = join(self.output,filename)
 
         with open(pathfile,'wb') as out:
             print(f'Saving in {pathfile}')

@@ -13,20 +13,17 @@ from bulletin.utils import static
 from bulletin.utils.timer import Timer
 from bulletin.utils.utils import isvaliddate
 from bulletin.utils.normalize import date_hash, normalize_cpf, normalize_text, normalize_number, normalize_hash
-from bulletin.services.metabase import Metabase
-
 
 # ----------------------------------------------------------------------------------------------------------------------
 class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        self.notifica = None
-        self.database = join(root, 'database', 'notifica.pkl')
-        self.queries = join(root, 'resources', 'notifica', 'sql')
+        self.df = None
+        self.database = join(root,'database', f"notifica_{datetime.today().strftime('%d%m%Y%H%M')}.pkl")
 
         self.errorspath = join(
-                default_output, 'errors', 'notifica', datetime.today().strftime('%d%m%Y%H%M')
+                default_output, 'errors', 'notifica', datetime.today().strftime('%d%m%Y')
         )
 
 
@@ -38,35 +35,17 @@ class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __len__(self):
-        if isinstance(self.notifica,pd.DataFrame) and len(self.notifica) > 0: 
-            return len(self.notifica)
+        if isinstance(self.df,pd.DataFrame) and len(self.df) > 0: 
+            return len(self.df)
         else:
             return -1
 
     # ----------------------------------------------------------------------------------------------------------------------
     def shape(self):
-        if isinstance(self.notifica,pd.DataFrame) and len(self.notifica) > 0:   
-            return tuple([len(self.notifica.loc[self.notifica['evolucao'] == evolucao]) for evolucao in [1, 2, 3, 4]])
+        if isinstance(self.df,pd.DataFrame) and len(self.df) > 0:   
+            return tuple([len(self.df.loc[self.df['evolucao'] == evolucao]) for evolucao in [1, 2, 3, 4]])
         else:
             return -1
-        
-    @staticmethod
-    def download_todas_notificacoes():
-        classificacao_final = ['0', '1', '2', '3', '5']
-    
-        download_metabase(filename='null.csv', where=f"classificacao_final IS NULL")
-        for cf in classificacao_final:
-            download_metabase(filename=f"{cf}.csv", where=f"classificacao_final = {cf}")
-
-    # ----------------------------------------------------------------------------------------------------------------------
-    def read_todas_notificacoes(self):
-        classificacao_final = ['0', '1', '2', '3', '5']
-    
-        self.read(join('input', 'queries', 'null.csv'))
-        for cf in classificacao_final:
-            self.read(join('input', 'queries', f"{cf}.csv"), append=True)
-    
-        self.save()
 
     # ----------------------------------------------------------------------------------------------------------------------
     @Timer('reading Notifica')
@@ -102,17 +81,17 @@ class Notifica:
 
         notifica = self.__normalize(notifica)
 
-        if isinstance(self.notifica, pd.DataFrame) and append:
-            self.notifica = self.notifica.append(notifica)
+        if isinstance(self.df, pd.DataFrame) and append:
+            self.df = self.df.append(notifica)
         else:
-            self.notifica = notifica
+            self.df = notifica
 
         return notifica
 
     # ----------------------------------------------------------------------------------------------------------------------
     def load(self):
         try:
-            self.notifica = pd.read_pickle(self.database)
+            self.df = pd.read_pickle(self.database)
         except ValueError:
             raise Exception(f"{ValueError}\nArquivo {self.database} não encontrado")
 
@@ -120,9 +99,9 @@ class Notifica:
     def save(self, df=None):
         if isinstance(df, pd.DataFrame) and len(df) > 0:
             new_df = df
-            self.notifica = new_df
-        elif isinstance(self.notifica, pd.DataFrame) and len(self.notifica) > 0:
-            new_df = self.notifica
+            self.df = new_df
+        elif isinstance(self.df, pd.DataFrame) and len(self.df) > 0:
+            new_df = self.df
         else:
             raise Exception(
                     'Não é possível salvar um DataFrame inexistente, '
@@ -131,6 +110,10 @@ class Notifica:
 
         new_df.to_pickle(self.database)
 
+    def to_csv(self, *args, **kargs):
+        self.df.to_csv(args,kargs)
+    
+    
     @staticmethod
     def parser(_):
         return _
@@ -311,20 +294,20 @@ class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_casos(self):
-        return self.notifica.copy()
+        return self.df.copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_obitos(self):
-        return self.notifica.loc[self.notifica['evolucao'] == 2].copy()
+        return self.df.loc[self.df['evolucao'] == 2].copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_recuperados(self):
-        return self.notifica.loc[self.notifica['evolucao'] == 1].copy()
+        return self.df.loc[self.df['evolucao'] == 1].copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_casos_ativos(self):
-        return self.notifica.loc[self.notifica['evolucao'] == 3].copy()
+        return self.df.loc[self.df['evolucao'] == 3].copy()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_obitos_nao_covid(self):
-        return self.notifica.loc[self.notifica['evolucao'] == 4].copy()
+        return self.df.loc[self.df['evolucao'] == 4].copy()

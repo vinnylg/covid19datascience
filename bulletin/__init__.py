@@ -6,7 +6,11 @@ from os import makedirs
 from pathlib import Path
 
 root = Path(__file__).parent
+print('root:',root)
+
+
 parent = root.parent
+print('parent:',parent)
 
 default_input = join(parent,'input')
 
