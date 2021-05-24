@@ -5,6 +5,8 @@ from os import makedirs
 
 from pathlib import Path
 
+print('\n---------------------------------------------------------------\n')
+
 root = Path(__file__).parent
 print('root:',root)
 
@@ -23,3 +25,5 @@ default_output = join(parent,'output')
 print('default_output:',default_output)
 if not isdir(default_output):
     makedirs(default_output)
+
+print('\n---------------------------------------------------------------\n')

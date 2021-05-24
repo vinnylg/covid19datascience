@@ -33,6 +33,14 @@ SELECT
         ELSE ''
     END AS data_liberacao,
     CASE
+        WHEN nt.data_coleta IS NOT NULL THEN to_char(nt.data_coleta,'DD/MM/YYYY') 
+        ELSE ''
+    END AS data_coleta,
+    CASE
+        WHEN nt.data_recebimento IS NOT NULL THEN to_char(nt.data_recebimento,'DD/MM/YYYY') 
+        ELSE ''
+    END AS data_recebimento,
+    CASE
         WHEN nt.data_1o_sintomas IS NOT NULL THEN to_char(nt.data_1o_sintomas,'DD/MM/YYYY') 
         ELSE ''
     END AS data_1o_sintomas,
@@ -49,7 +57,7 @@ LEFT JOIN public.exame exa
 WHERE nt.classificacao_final = 2
     AND nt.excluir_ficha = 2
     AND nt.status_notificacao IN (1, 2)
-    AND ((nt.data_notificacao >= NOW() - INTERVAL '3 DAY') or (nt.data_liberacao >= NOW() - INTERVAL '3 DAY') or (nt.updated_at >= NOW() - INTERVAL '3 DAY')) 
+    AND ((nt.data_notificacao >= NOW() - INTERVAL '7 DAY') or (nt.data_liberacao >= NOW() - INTERVAL '7 DAY') or (nt.updated_at >= NOW() - INTERVAL '7 DAY')) 
 ORDER BY id ASC
 LIMIT all
 OFFSET 0

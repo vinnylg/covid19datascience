@@ -5,93 +5,76 @@ import pandas as pd
 from os import makedirs
 from pathlib import Path
 from os.path import dirname, join, isfile, isdir
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from bulletin import root, default_input, default_output
 from bulletin.notifica import Notifica
 from bulletin.utils.normalize import normalize_number, normalize_labels, normalize_hash, date_hash, normalize_ibge, normalize_text
 from bulletin.utils.timer import Timer
+import glob
+
+ontem = date.today() - timedelta(days=1)
 
 # ----------------------------------------------------------------------------------------------------------------------
 class CasosConfirmados:
 
     def __init__(self):
         self.df = None
-        self.database = join(root, 'database', 'casos_confirmados.pkl')
-        print(f"database: {self.database}")
-    
+        self.database_dir = join(root, 'database', 'casos_confirmados')
+
+        if not isdir(self.database_dir):
+            makedirs(self.database_dir)
+        else:
+            self.databases = [ Path(path).stem for path in glob.glob(join(self.database_dir,"cc_*.pkl"))]
+            print("databases:",self.databases)
+            
+        self.default_columns = [ 'identificacao', 'id_notifica', 'uf_resid', 'ibge_resid', 'ibge_atend',
+                                 'nome', 'sexo', 'idade', 'laboratorio', 'dt_diag', 'comunicacao', 'is',
+                                 'evolucao', 'data_evolucao', 'data_com_evolucao']
+
+        
     def __len__(self):
         return len(self.df)
 
     def __str__(self):
         return self.database
-
-    @Timer('reading from xlsx')
-    def read_excel(self, arquivo: str = join(default_input,'Casos confirmados PR.xlsx'), append: str = False):
-        if not isfile(arquivo):
-            raise Exception(f"Arquivo {arquivo} não encontrado")
-
-        print(f"arquivo: {arquivo}")
-
-        tmp_df = pd.read_excel(arquivo,'Casos confirmados')
-        
-        tmp_df.columns = [normalize_labels(x) for x in tmp_df.columns]
-        tmp_df = tmp_df.loc[tmp_df['excluir'] != 'SIM']
-        
-        tmp_df = tmp_df.rename(columns={'ibge_res_pr':'ibge7'})
-        
-        tmp_df['ibge7'] = tmp_df['ibge7'].apply(lambda x: normalize_number(x, fill='9999999'))
-        tmp_df['rs'] = tmp_df['rs'].apply(lambda x: normalize_number(x, fill='99'))
-        
-        tmp_df['hash'] = (tmp_df['nome'].apply(normalize_hash) +
-                          tmp_df['idade'].astype(str) +
-                          tmp_df['mun_resid'].apply(normalize_hash))
-
-        tmp_df['hash_less'] = ( tmp_df['nome'].apply(normalize_hash) +
-                                tmp_df['idade'].apply(lambda x: str(x - 1)) +
-                                tmp_df['mun_resid'].apply(normalize_hash))
-
-        tmp_df['hash_more'] = ( tmp_df['nome'].apply(normalize_hash) +
-                                tmp_df['idade'].apply(lambda x: str(x + 1)) +
-                                tmp_df['mun_resid'].apply(normalize_hash))
-
-        tmp_df['hash_atend'] = (tmp_df['nome'].apply(normalize_hash) +
-                                tmp_df['idade'].astype(str) +
-                                tmp_df['mun_atend'].apply(normalize_hash))
-
-        tmp_df['hash_less_atend'] = ( tmp_df['nome'].apply(normalize_hash) +
-                                tmp_df['idade'].apply(lambda x: str(x - 1)) +
-                                tmp_df['mun_atend'].apply(normalize_hash))
-
-        tmp_df['hash_more_atend'] = ( tmp_df['nome'].apply(normalize_hash) +
-                                tmp_df['idade'].apply(lambda x: str(x + 1)) +
-                                tmp_df['mun_atend'].apply(normalize_hash))
-
-
-        tmp_df['hash_diag'] = (tmp_df['nome'].apply(normalize_hash) + tmp_df['dt_diag'].apply(date_hash))
-
-        tmp_df.loc[tmp_df['data_obito'].notna(), 'hash_obito'] = tmp_df.loc[tmp_df['data_obito'].notna()].apply(
-                lambda row: normalize_hash(row['nome']) + date_hash(row['data_obito']), axis=1
-        )
-
-        if isinstance(self.df, pd.DataFrame) and append:
-            self.df = self.df.append(tmp_df)
-        else:
-            self.df = tmp_df
             
     @Timer('saving Casos Confirmados to pkl')
-    def save(self,df=None):
-        if isinstance(df,pd.DataFrame):
-            df.to_pickle(self.database)
-        else:
-            self.df.to_pickle(self.database)
-
-    @Timer('loading Casos Confirmados from pkl')
-    def load(self):
-        if not isfile(self.database):
-            raise Exception(f"{self.database} not found, can you use read_excel for generate new database or import from")
+    def save(self,database,replace=False):
+        pathfile = join(self.database_dir,f"{database}.pkl")
         
-        self.df = pd.read_pickle(self.database)
+        if database in self.databases and not replace:
+            raise Exception(f"{pathfile} already saved, set replace=True to replace")
+        
+        self.df[self.default_columns].to_pickle(pathfile)
+            
+            
+    @Timer('loading Casos Confirmados from pkl')
+    def load(self, database=f"cc_{ontem.strftime('%d_%m_%Y')}"):
+        pathfile = join(self.database_dir,f"{database}.pkl")
+        
+        if database not in self.databases:
+            raise Exception(f"{pathfile} not found")
+        
+        df = pd.read_pickle(pathfile)[self.default_columns]
+        
+        df['hash'] = ( df['nome'].apply(normalize_hash) +
+                       df['idade'].astype(str) +
+                       df['ibge_resid'].astype(str) )
+        
+        df['hash_less'] = ( df['nome'].apply(normalize_hash) +
+                            df['idade'].apply(lambda x: str(x-1)) +
+                            df['ibge_resid'].astype(str) )
+        
+        df['hash_more'] = ( df['nome'].apply(normalize_hash) +
+                            df['idade'].apply(lambda x: str(x+1)) +
+                            df['ibge_resid'].astype(str) )
+        
+        df['hash_diag'] = ( df['nome'].apply(normalize_hash) +
+                            df['dt_diag'].apply(date_hash) )
+        
+        self.df = df
+    
 
     def export(self, output_file):
         pass
@@ -112,7 +95,7 @@ class CasosConfirmados:
         )]
 
     def novos_obitos(self, obitos_notifica):
-        obitos = self.df.loc[self.df['obito'] == 'SIM']
+        obitos = self.get_obitos()
         return obitos_notifica.loc[~(
                 (obitos_notifica['hash_resid'].isin(obitos['hash'])) |
                 (obitos_notifica['hash_resid'].isin(obitos['hash_less'])) |
