@@ -25,14 +25,14 @@ class CasosConfirmados:
         if not isdir(self.database_dir):
             makedirs(self.database_dir)
         else:
-            self.databases = [ Path(path).stem for path in glob.glob(join(self.database_dir,"cc_*.pkl"))]
+            self.databases = sorted([ Path(path).stem for path in glob.glob(join(self.database_dir,"cc_*.pkl"))])
             print("databases:",self.databases)
-            
+ 
         self.default_columns = [ 'identificacao', 'id_notifica', 'uf_resid', 'ibge_resid', 'ibge_atend',
                                  'nome', 'sexo', 'idade', 'laboratorio', 'dt_diag', 'comunicacao', 'is',
                                  'evolucao', 'data_evolucao', 'data_com_evolucao']
 
-        
+
     def __len__(self):
         return len(self.df)
 
@@ -40,21 +40,30 @@ class CasosConfirmados:
         return self.database
             
     @Timer('saving Casos Confirmados to pkl')
-    def save(self,database,replace=False):
+    def save(self,database=None,replace=False):
+        database = database if isinstance(database,str) else self.databases[database] if isinstance(database,int) else self.databases[-1]
+        
         pathfile = join(self.database_dir,f"{database}.pkl")
         
         if database in self.databases and not replace:
             raise Exception(f"{pathfile} already saved, set replace=True to replace")
+        else:
+            print(f"Load {pathfile}")
         
         self.df[self.default_columns].to_pickle(pathfile)
             
             
     @Timer('loading Casos Confirmados from pkl')
-    def load(self, database=f"cc_{ontem.strftime('%d_%m_%Y')}"):
+    def load(self, database=None):
+        
+        database = database if isinstance(database,str) else self.databases[database] if isinstance(database,int) else self.databases[-1]
+        
         pathfile = join(self.database_dir,f"{database}.pkl")
         
         if database not in self.databases:
             raise Exception(f"{pathfile} not found")
+        else:
+            print(f"Load {pathfile}")
         
         df = pd.read_pickle(pathfile)[self.default_columns]
         

@@ -69,14 +69,12 @@ class Metabase:
             order by 
                 table_name
         '''
-        
+
         columns_sql = '''
             select 
                 table_name, column_name, udt_name 
             from 
                 information_schema.columns 
-            where 
-                table_name != 'notificacao' 
             order by 
                 table_name
         '''
@@ -96,10 +94,25 @@ class Metabase:
         '''
         
         notificacao = pd.read_csv(self.download(notificacao_sql, join(self.tables,'notificacao.csv')))
+        notificacao.loc[notificacao['udt_name'].str.contains('int'),'udt_name'] = 'int'
+        notificacao.loc[notificacao['udt_name'].str.contains('date'),'udt_name'] = 'datetime'
+        notificacao.loc[notificacao['udt_name'].str.contains('time'),'udt_name'] = 'datetime'
+        notificacao.loc[notificacao['udt_name'].str.contains('char'),'udt_name'] = 'str'
+        notificacao.loc[notificacao['udt_name'].str.contains('text'),'udt_name'] = 'str'
+        notificacao.loc[notificacao['udt_name'].str.contains('float'),'udt_name'] = 'float'
         
         columns = pd.read_csv(self.download(columns_sql, join(self.tables,'columns.csv')))
+        columns.loc[columns['udt_name'].str.contains('int'),'udt_name'] = 'int'
+        columns.loc[columns['udt_name'].str.contains('date'),'udt_name'] = 'datetime'
+        columns.loc[columns['udt_name'].str.contains('time'),'udt_name'] = 'datetime'
+        columns.loc[columns['udt_name'].str.contains('char'),'udt_name'] = 'str'
+        columns.loc[columns['udt_name'].str.contains('text'),'udt_name'] = 'str'
+        columns.loc[columns['udt_name'].str.contains('float'),'udt_name'] = 'float'
         
-        constraint = pd.read_csv(self.download(constraint_sql,join(self.tables,'notifica_constraint.csv')))
+#         notificacao = columns.loc[columns['table_name']=='notificacao']
+#         columns = columns.loc[columns['table_name']!='notificacao']
+        
+        constraint = pd.read_csv(self.download(constraint_sql,join(self.tables,'constraint.csv')))
     
         notificacao = pd.merge(notificacao,constraint,on=['table_name','column_name'],how='left').fillna('')
         
