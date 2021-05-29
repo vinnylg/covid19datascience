@@ -12,7 +12,9 @@ from bulletin import root, default_input, default_output
 from retry import retry
 import re
 import glob
-from pathlib import Path    
+from pathlib import Path 
+import shutil
+from datetime import datetime
 
 from bulletin.utils.normalize import trim_overspace
 from bulletin.utils.timer import Timer
@@ -26,11 +28,15 @@ class Metabase:
 
         self.cookie = self.request_cookie()
         self.output = join(default_input,'queries')
+        self.tmp = join(default_input,'queries','tmp')
         self.sql_dir = join(root,'resources','sql')
         self.tables = join(root,'resources','tables')
         
         if not isdir(self.output):
             makedirs(self.output)
+            
+        if not isdir(self.tmp):
+            makedirs(self.tmp)
         
         if not isdir(self.sql_dir):
             makedirs(self.sql_dir)
@@ -42,6 +48,9 @@ class Metabase:
         
         print("\nsaved_queries:",self.saved_queries,'\n')
     
+        self.saved_csv = [ Path(path).stem for path in glob.glob(join(self.output,"*.csv"))]
+
+#         print("\nsaved_csv:",self.saved_csv,'\n')
     
     def request_cookie(self):
         my_cookie = ''
@@ -117,7 +126,15 @@ class Metabase:
         notificacao = pd.merge(notificacao,constraint,on=['table_name','column_name'],how='left').fillna('')
         
         return notificacao, columns, constraint
+    
+    
+    @Timer('Load downloaded query')
+    def get_downloaded_query(self, filename):
+        if filename not in self.saved_csv:
+            raise Exception(f"Query {filename}.csv not found in {self.output}")
             
+        return join(self.output,f"{filename}.csv")
+
     @Timer('Download query')
     def download_query(self, query_name='diario', remove_parts=True):
         if query_name not in self.saved_queries:
@@ -143,7 +160,7 @@ class Metabase:
         
             parts.append(
                 self.download(
-                    f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}",join(self.output,f"{query_name}_{offset}.csv")
+                    f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}",join(self.output,f"{query_name}_o{offset}.csv")
                 )
             )
 
@@ -158,7 +175,7 @@ class Metabase:
                 for part in parts: os.remove(part)         
         else:
             os.rename(parts[0],output_path)
-        
+                
         return output_path     
                                 
                                                                                              
@@ -209,12 +226,14 @@ class Metabase:
                 if chunk:
                     out.write(chunk)
                     out.flush()
+        
+        print('tmp_copy:->\t',pathfile,join(self.tmp,f"{Path(pathfile).stem}_d{datetime.today().strftime('%d%m%Y%H%M')}.csv"))
+        shutil.copyfile(pathfile,join(self.tmp,f"{Path(pathfile).stem}_d{datetime.today().strftime('%d%m%Y%H%M')}.csv"))
 
         try:
             if log: print(f"Download finish, time elapsed: {res.elapsed}")
             if log: print(f"downloaded shape {pd.read_csv(pathfile,low_memory=False).shape}\n")
         except:
             raise Exception(f"download error")
-
-
+            
         return pathfile

@@ -1,3 +1,4 @@
+
 from os.path import dirname, join, isfile, isdir
 from datetime import datetime, timedelta
 from unidecode import unidecode
@@ -6,52 +7,53 @@ from os import makedirs
 from sys import exit
 import pandas as pd
 
-from bulletin import __file__ as __root__
+from bulletin import root, default_input
 from bulletin.utils import static, timer
 from bulletin.utils.normalize import normalize_text, normalize_number, normalize_hash, normalize_ibge, normalize_municipios, date_hash
 
 class TbPacientes:
-    def __init__(self, pathfile=join('../input','tb_pacientes.csv'), force=False, hard=False):
+    def __init__(self, pathfile=join(default_input,'tb_pacientes.csv'), force=False, hard=False):
         self.pathfile = pathfile
         self.__source = None
-        self.checksum_file = join(dirname(__root__),'resources','database','tb_pacientes_checksum')
-        self.database = join(dirname(__root__),'resources','database','tb_pacientes.pkl')
-        self.errorspath = join('output','errors','tb_pacientes')
+        # self.checksum_file = join(dirname(__root__),'resources','database','tb_pacientes_checksum')
+        # self.database = join(dirname(__root__),'resources','database','tb_pacientes.pkl')
+        # self.errorspath = join('output','errors','tb_pacientes')
 
-        if not isdir(self.errorspath):
-            makedirs(self.errorspath)
+        # if not isdir(self.errorspath):
+        #     makedirs(self.errorspath)
 
-        if not isdir(dirname(self.database)):
-            makedirs(dirname(self.database))
+        # if not isdir(dirname(self.database)):
+        #     makedirs(dirname(self.database))
 
-        if isfile(self.pathfile):
-            saved_checksum = None
+        # if isfile(self.pathfile):
+        #     saved_checksum = None
 
-            if isfile(self.checksum_file):
-                with open(self.checksum_file, "r") as checksum:
-                    saved_checksum = checksum.read()
+        #     if isfile(self.checksum_file):
+        #         with open(self.checksum_file, "r") as checksum:
+        #             saved_checksum = checksum.read()
 
-            with open(self.pathfile, "rb") as filein:
-                bytes = filein.read()
-                self.checksum = sha256(bytes).hexdigest()
+        #     with open(self.pathfile, "rb") as filein:
+        #         bytes = filein.read()
+        #         self.checksum = sha256(bytes).hexdigest()
 
-            if saved_checksum != self.checksum:
-                if force:
-                    self.update()
-            else:
-                if hard:
-                    self.update()
+        #     if saved_checksum != self.checksum:
+        #         if force:
+        #             self.update()
+        #     else:
+        #         if hard:
+        #             self.update()
 
-            if isfile(self.database):
-                self.__source = pd.read_pickle(self.database)
-            else:
-                self.update()
+        #     if isfile(self.database):
+        #         self.__source = pd.read_pickle(self.database)
+        #     else:
+        #         self.update()
 
-        else:
-            if not isdir(dirname(self.pathfile)):
-                makedirs(dirname(self.pathfile))
+        # else:
+        #     if not isdir(dirname(self.pathfile)):
+        #         makedirs(dirname(self.pathfile))
 
-            exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
+            # exit(f"{self.pathfile} não encontrado, insira o arquivo para dar continuidade")
+
 
     def __len__(self):
         return len(self.__source)
@@ -63,25 +65,35 @@ class TbPacientes:
 
     @timer.Timer('Reading TbPacientes')
     def update(self):
-
-        tb_pacientes = pd.read_csv(self.pathfile,
-            low_memory=False,
-            sep=';',
-            dtype={
-                "Identificacao": int
-            },
-            converters={
-                "IBGE_RES_PR": lambda x: normalize_number(x,fill=9999999),
-                "IBGE_ATEND_PR": lambda x: normalize_number(x,fill=9999999),
-                "Nome": normalize_text,
-                "Sexo": normalize_text,
-                'Idade': lambda x: normalize_number(x,fill=0),
-                "Mun_Resid": normalize_text,
-                "Mun_atend": normalize_text
-            },
-            parse_dates=["Dt_diag", "dt_notificacao", "dt_inicio_sintomas", "15_dia_Isolamento", "Data_de_internamento", "Dt_alta", "Dt_obito", "DT_ATUALIZACAO", "Dt_internamento","dt_com_obito","dt_com_recuperado",],
-            date_parser=lambda x: pd.to_datetime(x,errors='coerce',format='%d/%m/%Y')
-        )
+        tb_pacientes = pd.concat([
+            pd.read_excel(join(default_input,'tb_pacientes_2020.xlsx'),
+                dtype={
+                    "Identificacao": int
+                },
+                converters={
+                    "IBGE_RES_PR": lambda x: normalize_ibge(normalize_number(x,fill=9999999)),
+                    "IBGE_ATEND_PR": lambda x: normalize_ibge(normalize_number(x,fill=9999999)),
+                    "Nome": normalize_text,
+                    "Sexo": normalize_text,
+                    'Idade': lambda x: normalize_number(x,fill=0),
+                    "Mun_Resid": normalize_text,
+                    "Mun_atend": normalize_text
+                }
+            ),
+                pd.read_excel(join(default_input,'tb_pacientes_2021.xlsx'),
+                dtype={
+                    "Identificacao": int
+                },
+                converters={
+                    "IBGE_RES_PR": lambda x: normalize_ibge(normalize_number(x,fill=9999999)),
+                    "IBGE_ATEND_PR": lambda x: normalize_ibge(normalize_number(x,fill=9999999)),
+                    "Nome": normalize_text,
+                    "Sexo": normalize_text,
+                    'Idade': lambda x: normalize_number(x,fill=0),
+                    "Mun_Resid": normalize_text,
+                    "Mun_atend": normalize_text
+                }
+        )])
 
         tb_pacientes.columns = [ normalize_text(x).lower() for x in tb_pacientes.columns ]
 
@@ -97,12 +109,11 @@ class TbPacientes:
         
         tb_pacientes.loc[tb_pacientes['dt_obito'].notnull(),'hash_obito'] = tb_pacientes.loc[tb_pacientes['dt_obito'].notnull()] .apply(lambda row: normalize_hash(row['nome'])+date_hash(row['dt_obito']), axis=1)
 
-        tb_pacientes.to_pickle(self.database)
+        tb_pacientes.to_pickle('tb_pacientes.pkl')
 
-        with open(self.checksum_file, "w") as checksum:
-            checksum.write(self.checksum)
+        # with open(self.checksum_file, "w") as checksum:
+        #     checksum.write(self.checksum)
 
         self.__source = tb_pacientes
-
     def get(self):
         return self.__source
