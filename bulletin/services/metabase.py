@@ -174,6 +174,7 @@ class Metabase:
                 print(f"removing {' '.join(parts)}")
                 for part in parts: os.remove(part)         
         else:
+            os.remove(output_path)  
             os.rename(parts[0],output_path)
                 
         return output_path     
