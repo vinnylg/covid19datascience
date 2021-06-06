@@ -155,7 +155,7 @@ def get_casos_confirmados(load=False):
 
         casos_confirmados.loc[ casos_confirmados['data_nascimento'].notnull(), 'hash_nasc'] = casos_confirmados.loc[ casos_confirmados['data_nascimento'].notnull() ].apply(lambda row: normalize_hash(row['paciente'])+date_hash(row['data_nascimento'],date(1900,1,1)), axis=1)
 
-        casos_confirmados.to_feather('casos_confirmados.feather')
+        casos_confirmados.reset_index().to_feather('casos_confirmados.feather')
     
     return casos_confirmados 
 
@@ -165,9 +165,9 @@ def get_srag(load=False):
     if load and isfile('srag.pkl'):
         srag = pd.read_pickle('srag.pkl')
     else:
-        srag1 = Dbf5('../input/SRAGHOSPITALIZADO2020.dbf', codec = 'cp860').to_dataframe()
+        srag1 = Dbf5('SRAGHOSPITALIZADO2020.dbf', codec = 'cp860').to_dataframe()
         print(len(srag1))
-        srag2 = Dbf5('../input/SRAGHOSPITALIZADO2021.dbf', codec = 'cp860').to_dataframe()
+        srag2 = Dbf5('SRAGHOSPITALIZADO2021.dbf', codec = 'cp860').to_dataframe()
         print(len(srag2))
         srag = pd.concat([srag1,srag2])
         print(len(srag))
