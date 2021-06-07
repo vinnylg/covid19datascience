@@ -88,3 +88,21 @@ def normalize_ibge(ibge):
         ibge = ibge[:len(ibge) - 1]
 
     return ibge
+
+def normalize_campo_aberto(x,name):
+    return x
+
+def normalize_do(x):
+    return x
+
+def normalize_cns(x):
+    return x
+
+def normalize_nome(x):
+    return normalize_text(x)
+
+def normalize_passaporte(x):
+    return x
+
+def normalize_cnpj(x):
+    return x

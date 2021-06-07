@@ -24,123 +24,130 @@ urllib3.disable_warnings()
 class Metabase:
 
     def __init__(self, limit:int=2**18):
-        self.limit = limit
+        self.limit = limit    
+        print(f"limit: {limit}")
+        
+        if not isfile(join(default_input,'cookie_file')):
+            print('login_session')
+            raise Exception('not_implemented') #!TODO
+            
+        with open(join(default_input,'cookie_file'),'r') as cookie_file:
+            self.cookie = cookie_file.read()
 
-        self.cookie = self.request_cookie()
+            
+        print(f"Cookie:'{ self.cookie[:5]}{''.join(['-' if x=='-' else '*' for x in  self.cookie])}{ self.cookie[-5:]}'")
+        
         self.output = join(default_input,'queries')
-        self.tmp = join(default_input,'queries','tmp')
-        self.sql_dir = join(root,'resources','sql')
-        self.tables = join(root,'resources','tables')
+        self.tmp_queries = join(self.output,'tmp')
+        self.sql_path = join(root,'resources','sql')
+        self.tables_path = join(root,'resources','tables')
         
         if not isdir(self.output):
             makedirs(self.output)
             
-        if not isdir(self.tmp):
-            makedirs(self.tmp)
+        if not isdir(self.tmp_queries):
+            makedirs(self.tmp_queries)
         
-        if not isdir(self.sql_dir):
-            makedirs(self.sql_dir)
+        if not isdir(self.sql_path):
+            makedirs(self.sql_path)
                 
-        if not isdir(self.tables):
-            makedirs(self.tables)
-        
-        self.saved_queries = [ Path(path).stem for path in glob.glob(join(self.sql_dir,"*.sql"))]
-        
-        print("\nsaved_queries:",self.saved_queries,'\n')
+        if not isdir(self.tables_path):
+            makedirs(self.tables_path)
     
-        self.saved_csv = [ Path(path).stem for path in glob.glob(join(self.output,"*.csv"))]
+        self.list_sql_files()
+        self.list_query_results()
+    
+    def list_sql_files(self):
+        self.sql_files = [ Path(path).stem for path in glob.glob(join(self.sql_path,"*.sql"))]
+        print("\nsql_files:")
+        for i in range(len(self.sql_files)): print(f"\t{i}: {self.sql_files[i]}")
+    
+    def list_query_results(self):
+        self.query_resuls = [ Path(path).stem for path in glob.glob(join(self.output,"*.csv"))]
+        print("\nsql_results:")
+        for i in range(len(self.query_resuls)): print(f"\t{i}: {self.query_resuls[i]}")
+    
+    def information_schema_columns(self):
+        columns_sql = ''' select table_name, column_name, udt_name from information_schema.columns order by table_name '''
+        columns = pd.read_csv(self.download(columns_sql, join(self.tables_path,'columns.csv')))
+        for x, y in zip(['int', 'date','time','char','text','float'],['int','datetime','datetime','str','str','float']):
+            columns.loc[columns['udt_name'].str.contains(x),'udt_name'] = y
+        
+        return columns
+    
+    def constraint(self):
+        constraint_sql = ''' SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = 'FOREIGN KEY' '''
 
-#         print("\nsaved_csv:",self.saved_csv,'\n')
+        return pd.read_csv(self.download(constraint_sql,join(self.tables_path,'constraint.csv')))
     
-    def request_cookie(self):
-        my_cookie = ''
-        if not isfile(join(default_input,'cookie_file')):
-            print('login_session')
-            raise Exception('not_implemented')
-            
-        with open(join(default_input,'cookie_file'),'r') as cookie_file:
-            my_cookie = cookie_file.read()
+    def notificacao_information_schema(self):
+        if not isfile(join(root,'resources','tables','notificacao_schema.csv')):
+            notificacao_sql = ''' select table_name, column_name, udt_name from information_schema.columns where table_name = 'notificacao' order by table_name '''
+
+            notificacao = pd.read_csv(self.download(notificacao_sql, join(self.tables_path,'notificacao.csv')))
+            for x, y in zip(['int', 'date','time','char','text','float'],['int','datetime','datetime','str','str','float']):
+                notificacao.loc[notificacao['udt_name'].str.contains(x),'udt_name'] = y
+
+            return pd.merge(notificacao,self.constraint(),on=['table_name','column_name'],how='left').fillna('')
+        else:
+            notificacao = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
+            return notificacao.loc[notificacao['usecols']==1]
         
-        print(f"Cookie:'{my_cookie[:5]}{''.join(['-' if x=='-' else '*' for x in my_cookie])}{my_cookie[-5:]}'")
-        return my_cookie#input('enter with cookie')                                                                 
-                                                             
-    
+
     @Timer('Download tables')
-    def download_tables(self, update=False):
+    def download_tables(self):
+        notificacao = self.notificacao_information_schema()
+        columns = self.information_schema_columns()
+        tables = [ x for x in notificacao['foreign_table_name'].unique() if (str(x).lower() not in ['nan','none']) and (len(x) > 0) ] 
+        for table in tables:
+            if table in columns['table_name'].unique():
+                self.download(f'SELECT * FROM public.{table}', join(self.tables_path,f'{table}.csv'))
         
-        notificacao_sql = '''
-            select 
-                table_name, column_name, udt_name 
-            from 
-                information_schema.columns 
-            where 
-                table_name = 'notificacao' 
-            order by 
-                table_name
-        '''
+    
+    def generate_notifica_query(self, usecols=True):
+        if isfile(join(root,'resources','tables','notificacao_schema.csv')):
+            notificacao_schema = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
+            if usecols:
+                notificacao_schema = notificacao_schema.loc[notificacao_schema['usecols']==1]
+            
+            print(f"Select {len(notificacao_schema)} columns")
+            sql = 'SELECT '
+            for idx, row in notificacao_schema.iterrows():
+                if row['dtypes'] == 'datetime':
+                    sql += f"to_char({row['column']},'DD/MM/YYYY') AS {row['column']}"
+                else:
+                    sql += f"{row['column']}"
+                    
+                if idx != notificacao_schema.index[-1]:
+                    sql += ', '
+                    
+            sql += ' FROM notificacao WHERE true ORDER BY 1 LIMIT ALL OFFSET 0'
+            return sql
+        
+        return None
+        
 
-        columns_sql = '''
-            select 
-                table_name, column_name, udt_name 
-            from 
-                information_schema.columns 
-            order by 
-                table_name
-        '''
         
-        constraint_sql = '''
-            SELECT
-                tc.constraint_name, tc.table_name, kcu.column_name,
-                ccu.table_name AS foreign_table_name,
-                ccu.column_name AS foreign_column_name
-            FROM
-                information_schema.table_constraints AS tc
-                JOIN information_schema.key_column_usage AS kcu
-                    ON tc.constraint_name = kcu.constraint_name
-                JOIN information_schema.constraint_column_usage AS ccu
-                    ON ccu.constraint_name = tc.constraint_name
-            WHERE constraint_type = 'FOREIGN KEY'
-        '''
-        
-        notificacao = pd.read_csv(self.download(notificacao_sql, join(self.tables,'notificacao.csv')))
-        notificacao.loc[notificacao['udt_name'].str.contains('int'),'udt_name'] = 'int'
-        notificacao.loc[notificacao['udt_name'].str.contains('date'),'udt_name'] = 'datetime'
-        notificacao.loc[notificacao['udt_name'].str.contains('time'),'udt_name'] = 'datetime'
-        notificacao.loc[notificacao['udt_name'].str.contains('char'),'udt_name'] = 'str'
-        notificacao.loc[notificacao['udt_name'].str.contains('text'),'udt_name'] = 'str'
-        notificacao.loc[notificacao['udt_name'].str.contains('float'),'udt_name'] = 'float'
-        
-        columns = pd.read_csv(self.download(columns_sql, join(self.tables,'columns.csv')))
-        columns.loc[columns['udt_name'].str.contains('int'),'udt_name'] = 'int'
-        columns.loc[columns['udt_name'].str.contains('date'),'udt_name'] = 'datetime'
-        columns.loc[columns['udt_name'].str.contains('time'),'udt_name'] = 'datetime'
-        columns.loc[columns['udt_name'].str.contains('char'),'udt_name'] = 'str'
-        columns.loc[columns['udt_name'].str.contains('text'),'udt_name'] = 'str'
-        columns.loc[columns['udt_name'].str.contains('float'),'udt_name'] = 'float'
-        
-#         notificacao = columns.loc[columns['table_name']=='notificacao']
-#         columns = columns.loc[columns['table_name']!='notificacao']
-        
-        constraint = pd.read_csv(self.download(constraint_sql,join(self.tables,'constraint.csv')))
-    
-        notificacao = pd.merge(notificacao,constraint,on=['table_name','column_name'],how='left').fillna('')
-        
-        return notificacao, columns, constraint
-    
-    
     @Timer('Load downloaded query')
-    def get_downloaded_query(self, filename):
-        if filename not in self.saved_csv:
-            raise Exception(f"Query {filename}.csv not found in {self.output}")
+    def read_query(self, query_name):
+        if query_name not in self.saved_csv:
+            raise Exception(f"Query {query_name}.csv not found in {self.output}")
             
         return join(self.output,f"{filename}.csv")
 
+    
+    def get_downloaded_part(self,pathfile):
+        pathfile = "_".join(pathfile.split('_')[:-1]) + '*.csv'
+        pathfile = glob.glob(pathfile)[-1]
+        return pathfile
+    
     @Timer('Download query')
-    def download_query(self, query_name='diario', remove_parts=True):
-        if query_name not in self.saved_queries:
-            raise Exception(f"Query {query_name}.sql not found in {self.sql_dir}")
+    def download_query(self, query_name='diario', dtype=None, converters=None, load=False):
+        print(f"download_query({query_name})")
+        if query_name not in self.sql_files:
+            raise Exception(f"Query {query_name}.sql not found in {self.sql_path}")
 
-        with open(join(self.sql_dir,f"{query_name}.sql")) as file:
+        with open(join(self.sql_path,f"{query_name}.sql")) as file:
             raw_sql = trim_overspace(" ".join([ row.replace('\n',' ') for row in file.readlines() if not '--' in row ]))
 
         sql = {}
@@ -151,37 +158,38 @@ class Metabase:
         sql['limit'] = re.search('LIMIT (.*) OFFSET', raw_sql).group(1)
         sql['offset'] = re.search('OFFSET (.*)', raw_sql).group(1)
         
-        query_size = pd.read_csv(self.download(f"select count(*) from {sql['from']} where {sql['where']}", join(self.output,f"{query_name}_len.csv"),False)).iloc[0,0]
+        if not load:
+            query_size = pd.read_csv(self.download(f"select count(*) from {sql['from']} where {sql['where']}", join(self.output,f"{query_name}_len_{datetime.today().strftime('%Y%m%d%H%M')}.csv"))).iloc[0,0]
+        else:
+            query_size = pd.read_csv(self.get_downloaded_part(join(self.output,f"{query_name}_len_{datetime.today().strftime('%Y%m%d%H%M')}.csv"))).iloc[0,0]
+        
         print(f"\nquery_size: {query_size}\n")
                 
         parts = []
-        for offset in range(0,query_size,self.limit):
-            print(f"select ... limit {self.limit} offset {offset}")
-        
-            parts.append(
-                self.download(
-                    f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}",join(self.output,f"{query_name}_o{offset}.csv")
-                )
-            )
+        for part, offset in enumerate(range(0,query_size,self.limit)):
+            part_query = f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}"
+            part_filename = join(self.tmp_queries,f"{query_name}_{offset}_{offset+self.limit}_{datetime.today().strftime('%Y%m%d%H%M')}.csv")
+            
+            if not load:
+                print(f"select ... limit {self.limit} offset {offset}")
+                parts.append(self.download(part_query,part_filename))
+            else:
+                parts.append(self.get_downloaded_part(part_filename))
 
         output_path = join(self.output,f"{query_name}.csv")
-    
-        if len(parts) > 1: 
-            output_query = pd.concat([ pd.read_csv(part) for part in parts ])
-            print(f"saving all in {output_path}")
-            output_query.to_csv(output_path,index=False)
-            if remove_parts:
-                print(f"removing {' '.join(parts)}")
-                for part in parts: os.remove(part)         
-        else:
-            os.remove(output_path)  
-            os.rename(parts[0],output_path)
-                
+        result_query = pd.DataFrame()
+        for part in parts: 
+            print(f"Appending {part}")
+            result_query = result_query.append(pd.read_csv(part,dtype=dtype,converters=converters))
+            
+        print(f"saving all in {output_path}")
+        result_query.to_csv(output_path,index=False)      
+
         return output_path     
                                 
                                                                                              
-    @retry(Exception, delay=10, tries=-1)
-    def download(self,sql,pathfile, log=True):
+    @retry(Exception, delay=10, tries=5)
+    def download(self,sql,pathfile):
         
         header = {
             'Host':'metabase.saude.pr.gov.br',
@@ -216,24 +224,21 @@ class Metabase:
                             )
 
         if res.status_code in [ 200, 202 ] :
-            if log: print(f"Success code {res.status_code }")
+            print(f"Success code {res.status_code }")
         else:
-            if log: print(f"Error code {res.status_code }")
+            print(f"Error code {res.status_code }")
             raise Exception()
-
+            
+            
+        print(f'Saving query in {pathfile}')
         with open(pathfile,'wb') as out:
-#             if log: print(f'Saving in {pathfile}')
             for chunk in res.iter_content(chunk_size=1024):
                 if chunk:
                     out.write(chunk)
                     out.flush()
         
-        print('tmp_copy:->\t',pathfile,join(self.tmp,f"{Path(pathfile).stem}_d{datetime.today().strftime('%d%m%Y%H%M')}.csv"))
-        shutil.copyfile(pathfile,join(self.tmp,f"{Path(pathfile).stem}_d{datetime.today().strftime('%d%m%Y%H%M')}.csv"))
-
         try:
-            if log: print(f"Download finish, time elapsed: {res.elapsed}")
-            if log: print(f"downloaded shape {pd.read_csv(pathfile,low_memory=False).shape}\n")
+            print(f"Download finish, time elapsed: {res.elapsed}\n")
         except:
             raise Exception(f"download error")
             

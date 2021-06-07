@@ -1,0 +1,180 @@
+id,group_id,group_name,column,usecols,dtypes,converters,constraint_name,foreign_table_name,foreign_column_name,ref
+0,0,notificacao,id,1,int,,,,,
+1,0,notificacao,data_notificacao,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+2,0,notificacao,excluir_ficha,1,int,"lambda x: normalize_number(x,fill='3')",excluir_ficha,sim_nao,id,[ref: - sim_nao.id]
+3,0,notificacao,motivo_exclusao,1,str,"lambda x: normalize_campo_aberto(x,'motivo_exclusao')",,,,
+4,0,notificacao,data_encerramento,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+5,0,notificacao,status_notificacao,1,int,"lambda x: normalize_number(x,fill='-1')",status,status,id,[ref: - status.id]
+6,0,notificacao,origem,1,int,"lambda x: normalize_number(x,fill='-1')",origem,origem,id,[ref: - origem.id]
+8,0,notificacao,updated_at,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+9,1,identificacao,possui_cpf,0,int,"lambda x: normalize_number(x,fill='3')",possui_cpf,sim_nao,id,[ref: - sim_nao.id]
+10,1,identificacao,tipo_paciente,1,int,"lambda x: normalize_number(x,fill='-1')",tipo_paciente,tipo_paciente,id,[ref: - tipo_paciente.id]
+11,1,identificacao,cns,1,str,normalize_cns,,,,
+12,1,identificacao,cpf,1,str,normalize_cpf,,,,
+13,1,identificacao,passaporte,0,str,normalize_passaporte,,,,
+14,1,identificacao,etnia,1,int,"lambda x: normalize_number(x,fill='-1')",etnia,etnia,co_etnia,[ref: - etnia.co_etnia]
+15,1,identificacao,paciente,1,str,normalize_nome,,,,
+16,1,identificacao,sexo,1,int,"lambda x: normalize_number(x,fill=-1')",sexo,sexo,id,[ref: - sexo.id]
+17,1,identificacao,data_nascimento,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'),begin=date(1900,1,1))",,,,
+18,1,identificacao,idade,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+19,1,identificacao,nome_mae,1,str,"lambda x: normalize_campo_aberto(x,'nome_mae')",,,,
+20,1,identificacao,raca_cor,1,int,"lambda x: normalize_number(x,fill='-1')",raca_cor,raca_cor,id,[ref: - raca_cor.id]
+21,1,identificacao,id_externa,0,str,,,,,
+22,1,identificacao,rash_paciente,0,str,,,,,
+23,1,identificacao,rash_paciente_1,0,str,,,,,
+24,1,identificacao,rash_paciente_2,0,str,,,,,
+25,1,identificacao,telefone_residencial_paciente,0,str,,,,,
+26,1,identificacao,email_paciente,0,str,,,,,
+27,2,localizacao,pais_residencia,1,int,"lambda x: normalize_number(x,fill='-1')",pais_residencia,pais,co_pais,[ref: - pais.co_pais]
+28,2,localizacao,pais_municipio_residencia,1,str,"lambda x: normalize_campo_aberto(x,'pais_municipio_residencia')",,,,
+29,2,localizacao,uf_residencia,1,str,"lambda x: normalize_number(x,fill='99')",estado_residencia,estado,co_uf,[ref: - estado.co_uf]
+30,2,localizacao,ibge_residencia,1,str,"lambda x: normalize_number(x,fill='999999')",ibge_residencia,municipio,co_municipio,[ref: - municipio.co_municipio]
+31,2,localizacao,cep_residencia,1,str,,,,,
+32,2,localizacao,logradouro_residencia,1,str,,,,,
+33,2,localizacao,numero_residencia,0,str,,,,,
+34,2,localizacao,bairro_residencia,1,str,,,,,
+35,2,localizacao,telefone_paciente,0,str,,,,,
+36,2,localizacao,latitude_residencia,0,str,,,,,
+37,2,localizacao,longitude_residencia,0,str,,,,,
+38,3,atendimento,frequentou_unidade,1,int,"lambda x: normalize_number(x,fill='3')",frequentou_unidade,sim_nao,id,[ref: - sim_nao.id]
+39,3,atendimento,frequentou_unidade_cnes,1,int,"lambda x: normalize_number(x,fill='-1')",,,,
+40,3,atendimento,frequentou_unidade_descricao,1,str,"lambda x: normalize_campo_aberto(x,'frequentou_unidade_descricao')",,,,
+41,3,atendimento,cnes_unidade_notifica,1,str,,,,,
+42,3,atendimento,nome_unidade_notifica,1,str,normalize_text,,,,
+43,3,atendimento,uf_unidade_notifica,1,str,"lambda x: normalize_number(x,fill='99')",uf_notifica,estado,co_uf,[ref: - estado.co_uf]
+44,3,atendimento,ibge_unidade_notifica,1,str,"lambda x: normalize_number(x,fill='999999')",ibge_notifica,municipio,co_municipio,[ref: - municipio.co_municipio]
+45,3,atendimento,nome_notificador,1,str,normalize_text,,,,
+46,3,atendimento,email_notificador,1,str,,,,,
+47,3,atendimento,ocupacao_notificador,1,int,"lambda x: normalize_number(x,fill='-1')",ocupacao_notificador,ocupacao,id,[ref: - ocupacao.id]
+48,3,atendimento,telefone_notificador,0,str,,,,,
+49,3,atendimento,cnpj_unidade_notifica,0,str,normalize_cnpj,,,,
+50,3,atendimento,unidade_solicitante_gal,0,str,normalize_text,,,,
+51,4,laboratorial,amostra_material,0,str,,,,,
+52,4,laboratorial,coleta_amostra,1,int,"lambda x: normalize_number(x,fill='3')",coleta_amostra,sim_nao,id,[ref: - sim_nao.id]
+53,4,laboratorial,data_cadastro,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+54,4,laboratorial,data_coleta,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+55,4,laboratorial,data_recebimento,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+56,4,laboratorial,data_liberacao,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+57,4,laboratorial,requisicao,1,str,normalize_number,,,,
+58,4,laboratorial,co_seq_exame,1,str,normalize_number,,,,
+59,4,laboratorial,resultado,1,int,"lambda x: normalize_number(x,fill='-1')",resultado,resultado,id,[ref: - resultado.id]
+60,4,laboratorial,exame,1,str,normalize_number,exame,exame,id,[ref: - exame.id]
+61,4,laboratorial,metodo,1,str,normalize_number,metodo,metodo,id,[ref: - metodo.id]
+62,4,laboratorial,lab_executor,1,str,normalize_nome,,,,
+63,4,laboratorial,raiox_torax,0,int,"lambda x: normalize_number(x,fill='-1')",raiox_torax,raiox_torax,id,[ref: - raiox_torax.id]
+64,4,laboratorial,raiox_torax_descricao,0,str,"lambda x: normalize_campo_aberto(x,'raiox_torax_descricao')",,,,
+65,4,laboratorial,tomografia,0,int,"lambda x: normalize_number(x,fill='3')",tomografia,sim_nao,id,[ref: - sim_nao.id]
+66,4,laboratorial,tomografia_descricao,0,str,"lambda x: normalize_campo_aberto(x,'tomografia_descricao')",,,,
+67,4,laboratorial,pressao_torax,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+68,4,laboratorial,resultado_enviado,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+69,4,laboratorial,api_gal,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+70,4,laboratorial,pesquisa_gal,0,int,"lambda x: normalize_number(x,fill='-1')",pesquisa_gal,pesquisa_gal,id,[ref: - pesquisa_gal.id]
+7,5,epidemiologico,numero_do,1,str,normalize_do,,,,
+71,5,epidemiologico,classificacao_final,1,int,"lambda x: normalize_number(x,fill='-1')",classificacao_final,classificacao_final,id,[ref: - classificacao_final.id]
+72,5,epidemiologico,criterio_classificacao,1,int,"lambda x: normalize_number(x,fill='-1')",criterio_classificacao,criterio_classificacao,id,[ref: - criterio_classificacao.id]
+73,5,epidemiologico,evolucao,1,int,"lambda x: normalize_number(x,fill='-1')",evolucao,evolucao,id,[ref: - evolucao.id]
+74,5,epidemiologico,data_cura_obito,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+75,5,epidemiologico,semana_epidemiologica,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+76,5,epidemiologico,monitoramento_id,1,int,"lambda x: normalize_number(x,fill='-1')",,,,
+77,5,epidemiologico,opcoes_de_surto,1,int,"lambda x: normalize_number(x,fill='-1')",surto,surto,id_surto,[ref: - surto.id_surto]
+78,6,sintomas,febre,1,int,"lambda x: normalize_number(x,fill='-1')",febre,febre,id,[ref: - febre.id]
+79,6,sintomas,tosse,1,int,"lambda x: normalize_number(x,fill='3')",tosse,sim_nao,id,[ref: - sim_nao.id]
+80,6,sintomas,dor_garganta,1,int,"lambda x: normalize_number(x,fill='3')",dor_garganta,sim_nao,id,[ref: - sim_nao.id]
+81,6,sintomas,mialgia,1,int,"lambda x: normalize_number(x,fill='3')",mialgia,sim_nao,id,[ref: - sim_nao.id]
+82,6,sintomas,artralgia,1,int,"lambda x: normalize_number(x,fill='3')",artralgia,sim_nao,id,[ref: - sim_nao.id]
+83,6,sintomas,diarreia,1,int,"lambda x: normalize_number(x,fill='3')",diarreia,sim_nao,id,[ref: - sim_nao.id]
+84,6,sintomas,nausea_vomitos,1,int,"lambda x: normalize_number(x,fill='3')",nausea_vomitos,sim_nao,id,[ref: - sim_nao.id]
+85,6,sintomas,cefaleia,1,int,"lambda x: normalize_number(x,fill='3')",cefaleia,sim_nao,id,[ref: - sim_nao.id]
+86,6,sintomas,coriza,1,int,"lambda x: normalize_number(x,fill='3')",coriza,sim_nao,id,[ref: - sim_nao.id]
+87,6,sintomas,irritabilidade_confusao,1,int,"lambda x: normalize_number(x,fill='3')",irritabilidade_confusao,sim_nao,id,[ref: - sim_nao.id]
+88,6,sintomas,adinamia,1,int,"lambda x: normalize_number(x,fill='3')",adinamia,sim_nao,id,[ref: - sim_nao.id]
+89,6,sintomas,escarro,1,int,"lambda x: normalize_number(x,fill='3')",escarro,sim_nao,id,[ref: - sim_nao.id]
+90,6,sintomas,calafrios,1,int,"lambda x: normalize_number(x,fill='3')",calafrios,sim_nao,id,[ref: - sim_nao.id]
+91,6,sintomas,congestao_nasal,1,int,"lambda x: normalize_number(x,fill='3')",congestao_nasal,sim_nao,id,[ref: - sim_nao.id]
+92,6,sintomas,congestao_conjuntiva,1,int,"lambda x: normalize_number(x,fill='3')",congestao_conjuntiva,sim_nao,id,[ref: - sim_nao.id]
+93,6,sintomas,dificuldade_deglutir,1,int,"lambda x: normalize_number(x,fill='3')",dificuldade_deglutir,sim_nao,id,[ref: - sim_nao.id]
+94,6,sintomas,manchas_vermelhas,1,int,"lambda x: normalize_number(x,fill='3')",manchas_vermelhas,sim_nao,id,[ref: - sim_nao.id]
+95,6,sintomas,ganglios_linfaticos,1,int,"lambda x: normalize_number(x,fill='3')",ganglios_linfaticos,sim_nao,id,[ref: - sim_nao.id]
+96,6,sintomas,asas_nasais,1,int,"lambda x: normalize_number(x,fill='3')",asas_nasais,sim_nao,id,[ref: - sim_nao.id]
+97,6,sintomas,saturacao_o2,1,int,"lambda x: normalize_number(x,fill='3')",saturacao_o2,sim_nao,id,[ref: - sim_nao.id]
+98,6,sintomas,cianose,1,int,"lambda x: normalize_number(x,fill='3')",cianose,sim_nao,id,[ref: - sim_nao.id]
+99,6,sintomas,tiragem_intercostal,1,int,"lambda x: normalize_number(x,fill='3')",tiragem_intercostal,sim_nao,id,[ref: - sim_nao.id]
+100,6,sintomas,dispneia,1,int,"lambda x: normalize_number(x,fill='3')",dispneia,sim_nao,id,[ref: - sim_nao.id]
+101,6,sintomas,assintomatico,1,int,"lambda x: normalize_number(x,fill='3')",assintomatico,sim_nao,id,[ref: - sim_nao.id]
+102,6,sintomas,outros_sintomas,1,str,"lambda x: normalize_campo_aberto(x,'outros_sintomas')",,,,
+103,6,sintomas,perda_olfato_paladar,1,int,"lambda x: normalize_number(x,fill='3')",perda_olfato_paladar,sim_nao,id,[ref: - sim_nao.id]
+104,6,sintomas,data_1o_sintomas,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+105,7,comorbidades,gestante,1,int,"lambda x: normalize_number(x,fill='3')",gestante,sim_nao,id,[ref: - sim_nao.id]
+106,7,comorbidades,periodo_gestacao,1,int,"lambda x: normalize_number(x,fill='-1')",periodo_gestacao,periodo_gestacao,id,[ref: - periodo_gestacao.id]
+107,7,comorbidades,doenca_cardiovascular,1,int,"lambda x: normalize_number(x,fill='3')",doenca_cardiovascular,sim_nao,id,[ref: - sim_nao.id]
+108,7,comorbidades,hipertensao,1,int,"lambda x: normalize_number(x,fill='3')",hipertensao,sim_nao,id,[ref: - sim_nao.id]
+109,7,comorbidades,diabetes,1,int,"lambda x: normalize_number(x,fill='3')",diabetes,sim_nao,id,[ref: - sim_nao.id]
+110,7,comorbidades,doenca_hepatica,1,int,"lambda x: normalize_number(x,fill='3')",doenca_hepatica,sim_nao,id,[ref: - sim_nao.id]
+111,7,comorbidades,doenca_neurologica,1,int,"lambda x: normalize_number(x,fill='3')",doenca_neurologica,sim_nao,id,[ref: - sim_nao.id]
+112,7,comorbidades,sindrome_down,1,int,"lambda x: normalize_number(x,fill='3')",sindrome_down,sim_nao,id,[ref: - sim_nao.id]
+113,7,comorbidades,imunodeficiencia,1,int,"lambda x: normalize_number(x,fill='3')",imunodeficiencia,sim_nao,id,[ref: - sim_nao.id]
+114,7,comorbidades,infeccao_hiv,1,int,"lambda x: normalize_number(x,fill='3')",infeccao_hiv,sim_nao,id,[ref: - sim_nao.id]
+115,7,comorbidades,doenca_renal,1,int,"lambda x: normalize_number(x,fill='3')",doenca_renal,sim_nao,id,[ref: - sim_nao.id]
+116,7,comorbidades,doenca_pulmonar,1,int,"lambda x: normalize_number(x,fill='3')",doenca_pulmonar,sim_nao,id,[ref: - sim_nao.id]
+117,7,comorbidades,neoplasia,1,int,"lambda x: normalize_number(x,fill='3')",doenca_pulmonar,sim_nao,id,[ref: - sim_nao.id]
+118,7,comorbidades,puerperio,1,int,"lambda x: normalize_number(x,fill='3')",puerperio,sim_nao,id,[ref: - sim_nao.id]
+119,7,comorbidades,obesidade,1,int,"lambda x: normalize_number(x,fill='3')",obesidade,sim_nao,id,[ref: - sim_nao.id]
+120,7,comorbidades,tabagismo,1,int,"lambda x: normalize_number(x,fill='3')",tabagismo,sim_nao,id,[ref: - sim_nao.id]
+121,7,comorbidades,outras_morbidades,1,str,"lambda x: normalize_campo_aberto(x,'outras_morbidades')",,,,
+122,7,comorbidades,gestante_alto_risco,1,int,"lambda x: normalize_number(x,fill='3')",gestante_alto_risco,sim_nao,id,[ref: - sim_nao.id]
+123,8,hospital,hospitalizado,1,int,"lambda x: normalize_number(x,fill='3')",hospitalizado,sim_nao,id,[ref: - sim_nao.id]
+124,8,hospital,cnes_hospital,1,str,normalize_number,,,,
+125,8,hospital,nome_hospital,1,str,normalize_nome,,,,
+126,8,hospital,uf_hospital,1,str,normalize_number,uf_hospital,estado,co_uf,[ref: - estado.co_uf]
+127,8,hospital,ibge_hospital,1,str,normalize_number,ibge_hospital,municipio,co_municipio,[ref: - municipio.co_municipio]
+128,8,hospital,internacao_sus,1,int,"lambda x: normalize_number(x,fill='3')",internacao_sus,sim_nao,id,[ref: - sim_nao.id]
+129,8,hospital,tipo_internacao,1,int,"lambda x: normalize_number(x,fill='-1')",tipo_internacao,tipo_internacao,id,[ref: - tipo_internacao.id]
+130,8,hospital,data_entrada,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+131,8,hospital,data_isolamento,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+132,8,hospital,data_alta,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+133,8,hospital,uso_antiviral,1,int,"lambda x: normalize_number(x,fill='-1')",uso_antiviral,uso_antiviral,id,[ref: - uso_antiviral.id]
+134,8,hospital,uso_antiviral_descricao,1,str,"lambda x: normalize_campo_aberto(x,'uso_antiviral_descricao')",,,,
+135,9,instituicao,ocupacao,1,int,"lambda x: normalize_number(x,fill='-1')",ocupacao,ocupacao,id,[ref: - ocupacao.id]
+136,9,instituicao,ocupacao_descricao,1,str,"lambda x: normalize_campo_aberto(x,'ocupacao_descricao')",,,,
+137,9,instituicao,cod_cbo,1,int,"lambda x: normalize_number(x,fill='-1')",cbo,cbo,codigo,[ref: - cbo.codigo]
+138,9,instituicao,situacao_trabalho,1,int,"lambda x: normalize_number(x,fill='-1')",situacao_trabalho,situacao_trabalho,id,[ref: - situacao_trabalho.id]
+139,9,instituicao,doenca_trabalho,1,int,"lambda x: normalize_number(x,fill='3')",doenca_trabalho,sim_nao,id,[ref: - sim_nao.id]
+140,9,instituicao,paciente_institucionalizado,1,str,,paciente_institucionalizado,paciente_institucionalizado,id,[ref: - paciente_institucionalizado.id]
+141,9,instituicao,instituicao,1,int,"lambda x: normalize_number(x,fill='-1')",instituicao,termo_instituicao,id,[ref: - termo_instituicao.id]
+142,9,instituicao,tipo_paciente_institucionalizado,1,int,"lambda x: normalize_number(x,fill='-1')",tipo_paciente_institucionalizado,tipo_paciente_institucionalizado,id,[ref: - tipo_paciente_institucionalizado.id]
+143,9,instituicao,cnpj_empresa,0,str,"lambda x: normalize_campo_aberto(x,'cnpj_empresa')",,,,
+144,9,instituicao,nome_empresa,1,str,"lambda x: normalize_campo_aberto(x,'nome_empresa')",,,,
+145,9,instituicao,cep_empresa,0,str,,,,,
+146,9,instituicao,uf_empresa,1,str,normalize_number,uf_empresa,estado,co_uf,[ref: - estado.co_uf]
+147,9,instituicao,ibge_empresa,1,str,normalize_number,ibge_empresa,municipio,co_municipio,[ref: - municipio.co_municipio]
+148,9,instituicao,logradouro_empresa,0,str,,,,,
+149,9,instituicao,numero_empresa,0,str,,,,,
+150,9,instituicao,bairro_empresa,0,str,,,,,
+151,9,instituicao,instituicao_ensino,1,int,"lambda x: normalize_number(x,fill='-1')",instituicao_ensino,instituicao_ensino,id,[ref: - instituicao_ensino.id]
+152,9,instituicao,escolaridade,1,int,"lambda x: normalize_number(x,fill='-1')",escolaridade,escolaridade,id,[ref: - escolaridade.id]
+153,10,viagem,historico_viagem,1,int,"lambda x: normalize_number(x,fill='3')",historico_viagem,sim_nao,id,[ref: - sim_nao.id]
+154,10,viagem,local_viagem,1,str,"lambda x: normalize_campo_aberto(x,'local_viagem')",,,,
+155,10,viagem,data_ida_local,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+156,10,viagem,data_retorno_local,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+157,10,viagem,descritivo_viagem,1,str,"lambda x: normalize_campo_aberto(x,'descritivo_viagem')",,,,
+158,10,viagem,data_chegada_brasil,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+159,10,viagem,data_chegada_estado,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+160,11,contato,contato_suspeito,1,int,"lambda x: normalize_number(x,fill='3')",contato_suspeito,sim_nao,id,[ref: - sim_nao.id]
+161,11,contato,local_contato_suspeito,1,int,"lambda x: normalize_number(x,fill='-1')",local_contato_suspeito,local_contato_suspeito,id,[ref: - local_contato_suspeito.id]
+162,11,contato,local_contato_suspeito_descricao,1,str,"lambda x: normalize_campo_aberto(x,'local_contato_suspeito_descricao')",,,,
+163,11,contato,contato_confirmado,1,int,"lambda x: normalize_number(x,fill='3')",contato_confirmado,sim_nao,id,[ref: - sim_nao.id]
+164,11,contato,local_contato_confirmado,1,int,"lambda x: normalize_number(x,fill='-1')",local_contato_confirmado,local_contato_confirmado,id,[ref: - local_contato_confirmado.id]
+165,11,contato,local_contato_confirmado_descricao,1,str,"lambda x: normalize_campo_aberto(x,'local_contato_confirmado_descricao')",,,,
+166,11,contato,nome_caso_fonte,1,str,"lambda x: normalize_campo_aberto(x,'nome_caso_fonte')",,,,
+167,12,vacinacao,vacina_covid19,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+168,12,vacinacao,lab_produtor_covid19,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+169,12,vacinacao,data_covid19_1a,0,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'),begin=date(2021,1,18))",,,,
+170,12,vacinacao,lote_covid19_1a,0,str,,,,,
+171,12,vacinacao,data_covid19_2a,0,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'),begin=date(2021,2,1))",,,,
+172,12,vacinacao,lote_covid19_2a,0,str,,,,,
+173,12,vacinacao,vacina_influenza,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
+174,12,vacinacao,data_vac_influenza,0,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'),begin=date(2021,1,18))",,,,
+175,13,outros,data_confirmacao,0,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
+176,13,outros,observacao,0,str,,,,,
+177,13,outros,alerta,0,int,"lambda x: normalize_number(x,fill='-1')",alerta,alerta,id,[ref: - alerta.id]
+178,13,outros,api_cad_sus,0,int,"lambda x: normalize_number(x,fill='-1')",,,,
