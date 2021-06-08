@@ -18,6 +18,7 @@ from datetime import datetime
 
 from bulletin.utils.normalize import trim_overspace
 from bulletin.utils.timer import Timer
+from bulletin.systems.notifica import Notifica
 
 urllib3.disable_warnings()
 
@@ -121,7 +122,7 @@ class Metabase:
                 if idx != notificacao_schema.index[-1]:
                     sql += ', '
                     
-            sql += ' FROM notificacao WHERE true ORDER BY 1 LIMIT ALL OFFSET 0'
+            sql += ' FROM notificacao WHERE classificacao_final = 2 AND excluir_ficha = 2 AND status_notificacao in (1,2) ORDER BY 1 LIMIT ALL OFFSET 0'
             return sql
         
         return None
@@ -142,7 +143,7 @@ class Metabase:
         return pathfile
     
     @Timer('Download query')
-    def download_query(self, query_name='diario', dtype=None, converters=None, load=False):
+    def download_query(self, query_name='diario', load=False):
         print(f"download_query({query_name})")
         if query_name not in self.sql_files:
             raise Exception(f"Query {query_name}.sql not found in {self.sql_path}")
@@ -177,15 +178,14 @@ class Metabase:
                 parts.append(self.get_downloaded_part(part_filename))
 
         output_path = join(self.output,f"{query_name}.csv")
-        result_query = pd.DataFrame()
+        
+        notifica = Notifica()
+        
         for part in parts: 
             print(f"Appending {part}")
-            result_query = result_query.append(pd.read_csv(part,dtype=dtype,converters=converters))
+            notifica.read(part,append=True)
             
-        print(f"saving all in {output_path}")
-        result_query.to_csv(output_path,index=False)      
-
-        return output_path     
+        return notifica     
                                 
                                                                                              
     @retry(Exception, delay=10, tries=5)
