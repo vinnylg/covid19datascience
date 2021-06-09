@@ -29,27 +29,27 @@ id,group_id,group_name,column,usecols,dtypes,converters,constraint_name,foreign_
 28,2,localizacao,pais_municipio_residencia,1,str,"lambda x: normalize_campo_aberto(x,'pais_municipio_residencia')",,,,
 29,2,localizacao,uf_residencia,1,str,"lambda x: normalize_number(x,fill='99')",estado_residencia,estado,co_uf,[ref: - estado.co_uf]
 30,2,localizacao,ibge_residencia,1,str,"lambda x: normalize_number(x,fill='999999')",ibge_residencia,municipio,co_municipio,[ref: - municipio.co_municipio]
-31,2,localizacao,cep_residencia,1,str,,,,,
-32,2,localizacao,logradouro_residencia,1,str,,,,,
-33,2,localizacao,numero_residencia,1,str,,,,,
-34,2,localizacao,bairro_residencia,1,str,,,,,
-35,3,atendimento,cnes_unidade_notifica,1,str,,,,,
-36,3,atendimento,nome_unidade_notifica,1,str,normalize_text,,,,
-37,3,atendimento,uf_unidade_notifica,1,str,"lambda x: normalize_number(x,fill='99')",uf_notifica,estado,co_uf,[ref: - estado.co_uf]
+31,2,localizacao,cep_residencia,0,str,,,,,
+32,2,localizacao,logradouro_residencia,0,str,,,,,
+33,2,localizacao,numero_residencia,0,str,,,,,
+34,2,localizacao,bairro_residencia,0,str,,,,,
+35,3,atendimento,cnes_unidade_notifica,0,str,,,,,
+36,3,atendimento,nome_unidade_notifica,0,str,normalize_text,,,,
+37,3,atendimento,uf_unidade_notifica,0,str,"lambda x: normalize_number(x,fill='99')",uf_notifica,estado,co_uf,[ref: - estado.co_uf]
 38,3,atendimento,ibge_unidade_notifica,1,str,"lambda x: normalize_number(x,fill='999999')",ibge_notifica,municipio,co_municipio,[ref: - municipio.co_municipio]
-39,3,atendimento,nome_notificador,1,str,normalize_text,,,,
-40,3,atendimento,email_notificador,1,str,,,,,
-41,3,atendimento,ocupacao_notificador,1,int,"lambda x: normalize_number(x,fill='-1')",ocupacao_notificador,ocupacao,id,[ref: - ocupacao.id]
-42,3,atendimento,telefone_notificador,1,str,,,,,
+39,3,atendimento,nome_notificador,0,str,normalize_text,,,,
+40,3,atendimento,email_notificador,0,str,,,,,
+41,3,atendimento,ocupacao_notificador,0,int,"lambda x: normalize_number(x,fill='-1')",ocupacao_notificador,ocupacao,id,[ref: - ocupacao.id]
+42,3,atendimento,telefone_notificador,0,str,,,,,
 43,4,laboratorial,data_cadastro,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
 44,4,laboratorial,data_coleta,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
 45,4,laboratorial,data_recebimento,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
 46,4,laboratorial,data_liberacao,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
-47,4,laboratorial,requisicao,1,str,normalize_number,,,,
+47,4,laboratorial,requisicao,0,str,normalize_number,,,,
 48,4,laboratorial,resultado,1,int,"lambda x: normalize_number(x,fill='-1')",resultado,resultado,id,[ref: - resultado.id]
 49,4,laboratorial,exame,1,str,normalize_number,exame,exame,id,[ref: - exame.id]
 50,4,laboratorial,metodo,1,str,normalize_number,metodo,metodo,id,[ref: - metodo.id]
-51,4,laboratorial,lab_executor,1,str,normalize_nome,,,,
+51,4,laboratorial,lab_executor,0,str,normalize_nome,,,,
 52,6,sintomas,febre,0,int,"lambda x: normalize_number(x,fill='-1')",febre,febre,id,[ref: - febre.id]
 53,6,sintomas,tosse,0,int,"lambda x: normalize_number(x,fill='3')",tosse,sim_nao,id,[ref: - sim_nao.id]
 54,6,sintomas,dor_garganta,0,int,"lambda x: normalize_number(x,fill='3')",dor_garganta,sim_nao,id,[ref: - sim_nao.id]

@@ -5,7 +5,6 @@ import io
 import os
 import urllib3
 import cgi
-from clint.textui import progress
 from os import makedirs, listdir
 from os.path import join, dirname, isdir, isfile
 from bulletin import root, default_input, default_output
@@ -24,16 +23,16 @@ urllib3.disable_warnings()
 
 class Metabase:
 
-    def __init__(self, limit:int=2**18):
+    def __init__(self, limit:int=100000):
         self.limit = limit    
         print(f"limit: {limit}")
         
-        if not isfile(join(default_input,'cookie_file')):
+        if not isfile(join(root,'services','cookie')):
             print('login_session')
-            raise Exception('not_implemented') #!TODO
-            
-        with open(join(default_input,'cookie_file'),'r') as cookie_file:
-            self.cookie = cookie_file.read()
+            self.session()
+        else:
+            with open(join(root,'services','cookie'),'r') as cookie_file:
+                self.cookie = cookie_file.read()
 
             
         print(f"Cookie:'{ self.cookie[:5]}{''.join(['-' if x=='-' else '*' for x in  self.cookie])}{ self.cookie[-5:]}'")
@@ -73,16 +72,26 @@ class Metabase:
         columns = pd.read_csv(self.download(columns_sql, join(self.tables_path,'columns.csv')))
         for x, y in zip(['int', 'date','time','char','text','float'],['int','datetime','datetime','str','str','float']):
             columns.loc[columns['udt_name'].str.contains(x),'udt_name'] = y
-        
         return columns
     
     def constraint(self):
-        constraint_sql = ''' SELECT tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name AS foreign_table_name, ccu.column_name AS foreign_column_name FROM information_schema.table_constraints AS tc JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name WHERE constraint_type = 'FOREIGN KEY' '''
-
+        constraint_sql = ''' 
+            SELECT 
+                tc.constraint_name,
+                tc.table_name,
+                kcu.column_name,
+                ccu.table_name AS foreign_table_name,
+                ccu.column_name AS foreign_column_name 
+            FROM 
+                information_schema.table_constraints AS tc 
+                JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name 
+                JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name 
+            WHERE constraint_type = 'FOREIGN KEY' 
+        '''
         return pd.read_csv(self.download(constraint_sql,join(self.tables_path,'constraint.csv')))
     
     def notificacao_information_schema(self):
-        if not isfile(join(root,'resources','tables','notificacao_schema.csv')):
+        if not isfile(join(root,'resources','schemas','notificacao_schema.csv')):
             notificacao_sql = ''' select table_name, column_name, udt_name from information_schema.columns where table_name = 'notificacao' order by table_name '''
 
             notificacao = pd.read_csv(self.download(notificacao_sql, join(self.tables_path,'notificacao.csv')))
@@ -138,7 +147,6 @@ class Metabase:
 
     
     def get_downloaded_part(self,pathfile):
-        pathfile = "_".join(pathfile.split('_')[:-1]) + '*.csv'
         pathfile = glob.glob(pathfile)[-1]
         return pathfile
     
@@ -160,16 +168,16 @@ class Metabase:
         sql['offset'] = re.search('OFFSET (.*)', raw_sql).group(1)
         
         if not load:
-            query_size = pd.read_csv(self.download(f"select count(*) from {sql['from']} where {sql['where']}", join(self.output,f"{query_name}_len_{datetime.today().strftime('%Y%m%d%H%M')}.csv"))).iloc[0,0]
+            query_size = pd.read_csv(self.download(f"select count(*) from {sql['from']} where {sql['where']}", join(self.output,f"{query_name}_len.csv"))).iloc[0,0]
         else:
-            query_size = pd.read_csv(self.get_downloaded_part(join(self.output,f"{query_name}_len_{datetime.today().strftime('%Y%m%d%H%M')}.csv"))).iloc[0,0]
+            query_size = pd.read_csv(self.get_downloaded_part(join(self.output,f"{query_name}_len.csv"))).iloc[0,0]
         
         print(f"\nquery_size: {query_size}\n")
                 
         parts = []
         for part, offset in enumerate(range(0,query_size,self.limit)):
             part_query = f"select {sql['select']} from {sql['from']} where {sql['where']} order by 1 limit {self.limit} offset {offset}"
-            part_filename = join(self.tmp_queries,f"{query_name}_{offset}_{offset+self.limit}_{datetime.today().strftime('%Y%m%d%H%M')}.csv")
+            part_filename = join(self.tmp_queries,f"{query_name}_{offset}_{offset+self.limit}.csv")
             
             if not load:
                 print(f"select ... limit {self.limit} offset {offset}")
@@ -185,9 +193,52 @@ class Metabase:
             print(f"Appending {part}")
             notifica.read(part,append=True)
             
-        return notifica     
-                                
-                                                                                             
+        return notifica
+    
+    @retry(Exception, delay=10,tries=5)
+    def session(self):
+        header = {
+            "accept": "application/json",
+            "accept-language": "en-US,en;q=0.9",
+            "content-type": "application/json",
+            "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"90\", \"Google Chrome\";v=\"90\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "referrer": "https://metabase.saude.pr.gov.br/auth/login?redirect=%2F",
+            "referrerPolicy": "strict-origin-when-cross-origin",
+            "mode": "cors",
+            "credentials": "include"
+        }
+
+    
+        try:
+            data = open(join(root,'services','login.json')).readlines()[0]
+        except:
+            data = json.dumps({"username": input("username"),"password": input("password"),"remember": "true"})
+            with open(join(root,'services','login.json'),'w') as out:
+                out.write(data)
+
+        res = requests.post("https://metabase.saude.pr.gov.br/api/session",
+                                headers = header,
+                                data = data,
+                                verify=False
+                            )
+
+        if res.status_code in [ 200, 202 ] :
+            print(f"Success code {res.status_code }")
+        else:
+            print(f"Error code {res.status_code }")
+            raise Exception()
+
+        cookie = json.loads(res.text)['id']
+
+        with open(join(root,'services','cookie'),'w') as out:
+            out.write(cookie)
+
+        self.cookie = cookie    
+    
     @retry(Exception, delay=10, tries=5)
     def download(self,sql,pathfile):
         
