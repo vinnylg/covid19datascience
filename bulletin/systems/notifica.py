@@ -64,6 +64,7 @@ class Notifica:
     # ----------------------------------------------------------------------------------------------------------------------
     @Timer('reading Notifica')
     def read(self, pathfile, append=False):
+        print(f"Reading {pathfile}")
         notifica = pd.read_csv(
                 pathfile,
                 dtype=self.dtypes,
@@ -77,7 +78,7 @@ class Notifica:
         else:
             self.df = notifica
 
-        return notifica
+        print(len(notifica))
 
     # ----------------------------------------------------------------------------------------------------------------------
     def load(self):
@@ -100,14 +101,6 @@ class Notifica:
             )
 
         new_df.to_pickle(self.database)
-
-    def to_csv(self, *args, **kargs):
-        self.df.to_csv(args,kargs)
-    
-    
-    @staticmethod
-    def parser(_):
-        return _
 
     # ----------------------------------------------------------------------------------------------------------------------
     # Normaliza strings, datas e códigos. Anula valores incorretos.
@@ -140,22 +133,14 @@ class Notifica:
         notifica.loc[notifica['ibge_residencia'] == 0, 'ibge_residencia'] = 999999
         notifica.loc[notifica['uf_unidade_notifica'] == 0, 'uf_unidade_notifica'] = 99
         notifica.loc[notifica['ibge_unidade_notifica'] == 0, 'ibge_unidade_notifica'] = 999999
-
-        # Conjunto de negações encontradas na coluna nome_mae
-        nao = {'NAO', 'CONSTA', 'INFO', 'INFORMADO', 'CONTEM', ''}
-
-        # Anula campo com alguma negação na coluna nome_mae
-        notifica.loc[[True if set(nome_mae.split(" ")).intersection(nao) else False for nome_mae in
-                      notifica['nome_mae']], 'nome_mae'] = None
-
         
+        notifica['nome_mae'] = notifica['nome_mae'].apply(normalize_campo_aberto)
+
         notifica.loc[notifica['evolucao']==5, 'evolucao'] = 2
-        notifica.loc[~notifica['evolucao'].isin([1,2,3]),'evolucao'] = 3
 
         notifica['hash'] = (notifica['paciente'].apply(normalize_hash) +
                           notifica['idade'].astype(str) +
                           notifica['ibge_residencia'].astype(str) )
-
 
         notifica['hash_atend'] = (notifica['paciente'].apply(normalize_hash) +
                           notifica['idade'].astype(str) +
@@ -169,12 +154,11 @@ class Notifica:
                                 notifica['idade'].apply(lambda x: str(x + 1)) +
                                 notifica['ibge_residencia'].astype(str) )
 
-        notifica['hash_diag'] = notifica['paciente'].apply(normalize_hash) + notifica['data_liberacao'].apply(date_hash)
-
-        notifica = pd.merge(notifica.rename(columns={'ibge_residencia':'ibge'}),municipios[['ibge','rs','mun_resid','uf','municipio']],on='ibge',how='left').rename(columns={'ibge':'ibge_residencia'})
-        notifica = pd.merge(notifica.rename(columns={'ibge_unidade_notifica':'ibge'}),municipios[['ibge','mun_resid']].rename(columns={'mun_resid':'mun_atend'}),on='ibge',how='left').rename(columns={'ibge':'ibge_unidade_notifica'})
-
         
+        return notifica
+#         notifica = pd.merge(notifica.rename(columns={'ibge_residencia':'ibge'}),municipios[['ibge','rs','mun_resid','uf','municipio']],on='ibge',how='left').rename(columns={'ibge':'ibge_residencia'})
+#         notifica = pd.merge(notifica.rename(columns={'ibge_unidade_notifica':'ibge'}),municipios[['ibge','mun_resid']].rename(columns={'mun_resid':'mun_atend'}),on='ibge',how='left').rename(columns={'ibge':'ibge_unidade_notifica'})
+
 
     # ----------------------------------------------------------------------------------------------------------------------
     def verify_changes(self, casos_confirmados):

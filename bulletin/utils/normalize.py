@@ -89,20 +89,23 @@ def normalize_ibge(ibge):
 
     return ibge
 
-def normalize_campo_aberto(x,name):
-    return x
-
+def normalize_campo_aberto(value):
+    # Conjunto de negações encontradas
+    nao = {'NAO', 'CONSTA', 'INFO', 'INFORMADO', 'CONTEM', ''}
+    # Anula campo com alguma negação
+    return value if not set(value.split(" ")).intersection(nao) else None 
+    
+    
 def normalize_do(x):
-    return x
+    if len(x) >= 8:
+        return x.split('-')[0]
+    else:
+        return None
 
 def normalize_cns(x):
-    return x
-
-def normalize_nome(x):
-    return normalize_text(x)
-
-def normalize_passaporte(x):
-    return x
-
-def normalize_cnpj(x):
-    return x
+    cns = ''.join(filter(str.isdigit, str(cns)))
+    
+    if (len(cns) != 15) or ((sum([int(cns[i]) * (15 - i) for i in range(15)]) % 11) != 0):
+        return None
+    else:
+        return cns
