@@ -128,7 +128,7 @@ def get_casos_confirmados(load=False):
                 'data_coleta': normalize_date,
                 'data_recebimento': normalize_date,
                 'data_liberacao': normalize_date,
-                'data_cura_obito': normalize_date
+                'data_cura_obito': lambda x: normalize_date(x,format='%Y-%m-%d')
             }
         ).rename(columns={'ibge_residencia':'ibge'})
 
@@ -246,12 +246,12 @@ def normalize_cpf(cpf):
 
     return cpf  # [:3] + '.' + cpf[3:6] + '.' + cpf[6:9] + '-' + cpf[9:]caralho
 
-def normalize_date(raw_date,begin=date(2020, 3, 12)):
+def normalize_date(raw_date,begin=date(2020, 3, 12), format='%d/%m/%Y'):
     if isinstance(raw_date,str) and len(raw_date) > 10:
         raw_date = raw_date[:10]
 
-    dt = pd.to_datetime(raw_date, errors='coerce')
-    return dt if isvaliddate(dt,begin) else None
+    dt = pd.to_datetime(raw_date, format=format, errors='coerce')
+    return dt if isvaliddate(dt,begin) else pd.NaT
     
 def date_hash(raw_date,begin=date(2020, 3, 12)):
     try:
