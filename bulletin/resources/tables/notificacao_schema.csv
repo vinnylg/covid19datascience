@@ -11,22 +11,22 @@ id,group_id,group_name,column,usecols,sivep,dtypes,converters,constraint_name,fo
 10,0,notificacao,evolucao,1,1,float,,evolucao,evolucao,id,[ref: - evolucao.id]
 11,0,notificacao,data_cura_obito,1,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'))",,,,
 12,1,identificacao,tipo_paciente,1,0,float,,tipo_paciente,tipo_paciente,id,[ref: - tipo_paciente.id]
-13,1,identificacao,cns,1,0,str,normalize_cns,,,,
-14,1,identificacao,cpf,1,1,str,normalize_cpf,,,,
-15,1,identificacao,passaporte,1,0,str,,,,,
+13,1,tb_pacientes,cns,1,0,str,normalize_cns,,,,
+14,1,tb_pacientes,cpf,1,1,str,normalize_cpf,,,,
+15,1,tb_pacientes,passaporte,1,0,str,,,,,
 16,1,identificacao,etnia,1,1,float,,etnia,etnia,co_etnia,[ref: - etnia.co_etnia]
-17,1,identificacao,paciente,1,1,str,normalize_nome,,,,
+17,1,tb_pacientes,paciente,1,1,str,normalize_text,,,,
 18,1,identificacao,sexo,1,1,float,,sexo,sexo,id,[ref: - sexo.id]
-19,1,identificacao,data_nascimento,1,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'),begin=date(1900,1,1))",,,,
+19,1,tb_pacientes,data_nascimento,1,1,datetime,"lambda x: isvaliddate(pd.to_datetime(x,format='%d/%m/%Y', errors='coerce'),begin=date(1900,1,1))",,,,
 20,1,identificacao,idade,0,1,float,,,,,
-21,1,identificacao,nome_mae,1,1,str,"lambda x: normalize_campo_aberto(x,'nome_mae')",,,,
+21,1,tb_pacientes,nome_mae,1,1,str,normalize_campo_aberto,,,,
 22,1,identificacao,raca_cor,1,1,float,,raca_cor,raca_cor,id,[ref: - raca_cor.id]
 23,1,identificacao,ocupacao,1,0,float,,ocupacao,ocupacao,id,[ref: - ocupacao.id]
-24,1,identificacao,ocupacao_descricao,1,0,str,"lambda x: normalize_campo_aberto(x,'ocupacao_descricao')",,,,
+24,1,identificacao,ocupacao_descricao,1,0,str,normalize_campo_aberto,,,,
 25,1,identificacao,cod_cbo,1,1,float,,cbo,cbo,codigo,[ref: - cbo.codigo]
 26,1,identificacao,escolaridade,1,0,float,,escolaridade,escolaridade,id,[ref: - escolaridade.id]
 27,2,localizacao,pais_residencia,1,1,float,,pais_residencia,pais,co_pais,[ref: - pais.co_pais]
-28,2,localizacao,pais_municipio_residencia,1,0,str,"lambda x: normalize_campo_aberto(x,'pais_municipio_residencia')",,,,
+28,2,localizacao,pais_municipio_residencia,1,0,str,normalize_campo_aberto,,,,
 29,2,localizacao,uf_residencia,1,1,str,"lambda x: normalize_number(x,fill='99')",estado_residencia,estado,co_uf,[ref: - estado.co_uf]
 30,2,localizacao,ibge_residencia,1,1,str,"lambda x: normalize_number(x,fill='999999')",ibge_residencia,municipio,co_municipio,[ref: - municipio.co_municipio]
 31,2,localizacao,cep_residencia,1,1,str,,,,,
@@ -49,7 +49,7 @@ id,group_id,group_name,column,usecols,sivep,dtypes,converters,constraint_name,fo
 48,4,laboratorial,resultado,1,1,float,,resultado,resultado,id,[ref: - resultado.id]
 49,4,laboratorial,exame,1,0,str,normalize_number,exame,exame,id,[ref: - exame.id]
 50,4,laboratorial,metodo,1,0,str,normalize_number,metodo,metodo,id,[ref: - metodo.id]
-51,4,laboratorial,lab_executor,1,1,str,normalize_nome,,,,
+51,4,laboratorial,lab_executor,1,1,str,normalize_text,,,,
 52,6,sintomas,febre,0,1,int,"lambda x: normalize_number(x,fill='-1')",febre,febre,id,[ref: - febre.id]
 53,6,sintomas,tosse,0,1,int,"lambda x: normalize_number(x,fill='3')",tosse,sim_nao,id,[ref: - sim_nao.id]
 54,6,sintomas,dor_garganta,0,1,int,"lambda x: normalize_number(x,fill='3')",dor_garganta,sim_nao,id,[ref: - sim_nao.id]
@@ -93,14 +93,14 @@ id,group_id,group_name,column,usecols,sivep,dtypes,converters,constraint_name,fo
 92,7,comorbidades,puerperio,0,1,int,"lambda x: normalize_number(x,fill='3')",puerperio,sim_nao,id,[ref: - sim_nao.id]
 93,7,comorbidades,obesidade,0,1,int,"lambda x: normalize_number(x,fill='3')",obesidade,sim_nao,id,[ref: - sim_nao.id]
 94,7,comorbidades,tabagismo,0,0,int,"lambda x: normalize_number(x,fill='3')",tabagismo,sim_nao,id,[ref: - sim_nao.id]
-95,7,comorbidades,outras_morbidades,0,1,str,"lambda x: normalize_campo_aberto(x,'outras_morbidades')",,,,
+95,7,comorbidades,outras_morbidades,0,1,str,normalize_campo_aberto,,,,
 96,7,comorbidades,gestante_alto_risco,0,0,int,"lambda x: normalize_number(x,fill='3')",gestante_alto_risco,sim_nao,id,[ref: - sim_nao.id]
 97,9,instituicao,situacao_trabalho,0,0,int,"lambda x: normalize_number(x,fill='-1')",situacao_trabalho,situacao_trabalho,id,[ref: - situacao_trabalho.id]
 98,9,instituicao,doenca_trabalho,0,0,int,"lambda x: normalize_number(x,fill='3')",doenca_trabalho,sim_nao,id,[ref: - sim_nao.id]
 99,9,instituicao,paciente_institucionalizado,0,0,str,"lambda x: normalize_number(x,fill='-1')",paciente_institucionalizado,paciente_institucionalizado,id,[ref: - paciente_institucionalizado.id]
 100,9,instituicao,instituicao,0,0,int,"lambda x: normalize_number(x,fill='-1')",instituicao,termo_instituicao,id,[ref: - termo_instituicao.id]
 101,9,instituicao,tipo_paciente_institucionalizado,0,0,int,"lambda x: normalize_number(x,fill='-1')",tipo_paciente_institucionalizado,tipo_paciente_institucionalizado,id,[ref: - tipo_paciente_institucionalizado.id]
-102,9,instituicao,nome_empresa,0,0,str,"lambda x: normalize_campo_aberto(x,'nome_empresa')",,,,
+102,9,instituicao,nome_empresa,0,0,str,normalize_campo_aberto,,,,
 103,9,instituicao,uf_empresa,0,0,str,normalize_number,uf_empresa,estado,co_uf,[ref: - estado.co_uf]
 104,9,instituicao,ibge_empresa,0,0,str,normalize_number,ibge_empresa,municipio,co_municipio,[ref: - municipio.co_municipio]
 105,9,instituicao,instituicao_ensino,0,0,int,"lambda x: normalize_number(x,fill='-1')",instituicao_ensino,instituicao_ensino,id,[ref: - instituicao_ensino.id]

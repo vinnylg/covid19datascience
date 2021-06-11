@@ -23,12 +23,11 @@ urllib3.disable_warnings()
 
 class Metabase:
 
-    def __init__(self, limit:int=100000):
+    def __init__(self, reconnect = False, limit:int=100000):
         self.limit = limit    
         print(f"limit: {limit}")
         
-        if not isfile(join(root,'services','cookie')):
-            print('login_session')
+        if not isfile(join(root,'services','cookie')) or reconnect:
             self.session()
         else:
             with open(join(root,'services','cookie'),'r') as cookie_file:
@@ -114,8 +113,8 @@ class Metabase:
                 self.download(f'SELECT * FROM public.{table}', join(self.tables_path,f'{table}.csv'))
         
     
-    def generate_notifica_query(self, usecols=True):
-        if isfile(join(root,'resources','tables','notificacao_schema.csv')):
+    def generate_notifica_query(self,name,where='classificacao_final = 2 AND excluir_ficha = 2 AND status_notificacao in (1,2)',replace=False,usecols=True):
+        try:
             notificacao_schema = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
             if usecols:
                 notificacao_schema = notificacao_schema.loc[notificacao_schema['usecols']==1]
@@ -131,11 +130,17 @@ class Metabase:
                 if idx != notificacao_schema.index[-1]:
                     sql += ', '
                     
-            sql += ' FROM notificacao WHERE classificacao_final = 2 AND excluir_ficha = 2 AND status_notificacao in (1,2) ORDER BY 1 LIMIT ALL OFFSET 0'
+            sql += f" FROM notificacao WHERE {where} ORDER BY 1 LIMIT ALL OFFSET 0"
+            
+            pathfile = join(self.sql_path,f"{name}.sql")
+            if (not isfile(pathfile)) or replace:  
+                with open(pathfile,'w') as out:
+                    out.write(sql)
+            
             return sql
-        
-        return None
-        
+            
+        except:
+            raise Exception(f"{join(root,'resources','tables','notificacao_schema.csv')} not found")
 
         
     @Timer('Load downloaded query')
@@ -151,8 +156,9 @@ class Metabase:
         return pathfile
     
     @Timer('Download query')
-    def download_query(self, query_name='diario', load=False):
-        print(f"download_query({query_name})")
+    def download_notificacao(self, query_name='diario', load=False):
+        print(f"Download {query_name}")
+        
         if query_name not in self.sql_files:
             raise Exception(f"Query {query_name}.sql not found in {self.sql_path}")
 
@@ -215,11 +221,14 @@ class Metabase:
     
         try:
             data = open(join(root,'services','login.json')).readlines()[0]
+            print(f"\nLoading saved login\n")
         except:
-            data = json.dumps({"username": input("username"),"password": input("password"),"remember": "true"})
+            data = json.dumps({"username": input("username: "),"password": input("password: "),"remember": "true"})
             with open(join(root,'services','login.json'),'w') as out:
                 out.write(data)
 
+        print(f"Requesting session")
+                
         res = requests.post("https://metabase.saude.pr.gov.br/api/session",
                                 headers = header,
                                 data = data,
@@ -267,6 +276,7 @@ class Metabase:
 
         query = json.dumps(query)
 
+        print(f"\nRequesting csv)")
         res = requests.post("https://metabase.saude.pr.gov.br/api/dataset/csv",
                                 headers = header,
                                 data = {'query': query},
@@ -289,7 +299,7 @@ class Metabase:
                     out.flush()
         
         try:
-            print(f"Download finish, time elapsed: {res.elapsed}\n")
+            print(f"Download finish!\ntime elapsed: {res.elapsed}\nColumns size: {len(pd.read_csv(pathfile,nrows=1).columns)}\n")
         except:
             raise Exception(f"download error")
             

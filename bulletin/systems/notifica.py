@@ -12,7 +12,7 @@ from bulletin import root, default_input, default_output
 from bulletin.utils import static
 from bulletin.utils.timer import Timer
 from bulletin.utils.utils import isvaliddate
-from bulletin.utils.normalize import date_hash, normalize_cpf, normalize_text, normalize_number, normalize_hash, normalize_campo_aberto, normalize_do, normalize_cns, normalize_nome, normalize_passaporte, normalize_cnpj
+from bulletin.utils.normalize import date_hash, normalize_cpf, normalize_text, normalize_number, normalize_hash, normalize_campo_aberto, normalize_do, normalize_cns
 from bulletin.utils.static import Municipios
 
 
@@ -27,21 +27,14 @@ class Notifica:
     # ----------------------------------------------------------------------------------------------------------------------
     def __init__(self, usecols=True):
         self.df = None
-        self.database = join(root,'database', f"notifica_{datetime.today().strftime('%d%m%Y%H%M')}.pkl")
-
-        self.errorspath = join(
-                default_output, 'errors', 'notifica', datetime.today().strftime('%d%m%Y')
-        )
-
-        if not isdir(self.errorspath):
-            makedirs(self.errorspath)
+        self.database = join(root,'database', f"notifica_{datetime.today().strftime('%d_%m_%Y')}.pkl")
 
         if not isdir(dirname(self.database)):
             makedirs(dirname(self.database))
             
         if isfile(join(root,'resources','tables','notificacao_schema.csv')):
             notificacao_schema = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
-            self.notificacao_schema = notificacao_schema.loc[notificacao_schema['usecols']==1] if (usecols == True) else notificacao_schema
+            self.schema = notificacao_schema.loc[notificacao_schema['usecols']==1] if (usecols == True) else notificacao_schema
             self.dtypes = dict(notificacao_schema.loc[notificacao_schema['converters'].isna(),['column','dtypes']].values)
             self.converters = dict([[column,eval(converters)] for column, converters in notificacao_schema.loc[(notificacao_schema['converters'].notna()),['column','converters']].values])            
         else:
