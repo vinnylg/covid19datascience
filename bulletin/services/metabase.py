@@ -196,7 +196,6 @@ class Metabase:
         notifica = Notifica()
         
         for part in parts: 
-            print(f"Appending {part}")
             notifica.read(part,append=True)
             
         return notifica
@@ -276,7 +275,7 @@ class Metabase:
 
         query = json.dumps(query)
 
-        print(f"\nRequesting csv)")
+        print(f"\nRequesting csv")
         res = requests.post("https://metabase.saude.pr.gov.br/api/dataset/csv",
                                 headers = header,
                                 data = {'query': query},

@@ -67,11 +67,13 @@ class Notifica:
         notifica = self.__normalize(notifica)
         
         if isinstance(self.df, pd.DataFrame) and append:
+            print(f"Appending")
             self.df = self.df.append(notifica)
         else:
+            print(f"Attrb")
             self.df = notifica
 
-        print(len(notifica))
+        print(len(self.df))
 
     # ----------------------------------------------------------------------------------------------------------------------
     def load(self):
