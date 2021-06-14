@@ -27,7 +27,7 @@ class Notifica:
     # ----------------------------------------------------------------------------------------------------------------------
     def __init__(self, usecols=True):
         self.df = None
-        self.database = join(root,'database', f"notifica_{datetime.today().strftime('%d_%m_%Y')}.pkl")
+        self.database = join(root,'database', f"notifica.pkl")
 
         if not isdir(dirname(self.database)):
             makedirs(dirname(self.database))
@@ -132,6 +132,7 @@ class Notifica:
         notifica['nome_mae'] = notifica['nome_mae'].apply(normalize_campo_aberto)
 
         notifica.loc[notifica['evolucao']==5, 'evolucao'] = 2
+        notifica.loc[notifica['evolucao']==0, 'evolucao'] = 3
 
         notifica['hash'] = (notifica['paciente'].apply(normalize_hash) +
                           notifica['idade'].astype(str) +
@@ -149,14 +150,16 @@ class Notifica:
                                 notifica['idade'].apply(lambda x: str(x + 1)) +
                                 notifica['ibge_residencia'].astype(str) )
 
+        notifica.loc[notifica['nome_mae'].notna(),'hash_mae'] = ( notifica.loc[notifica['nome_mae'].notna(),'paciente'].apply(normalize_hash) +
+                                                                  notifica.loc[notifica['nome_mae'].notna(),'nome_mae'].apply(normalize_hash) )
+
+        notifica.loc[notifica['data_nascimento'].notna(),'hash_nasc'] = ( notifica.loc[notifica['data_nascimento'].notna(),'paciente'].apply(normalize_hash) +
+                                                                          notifica.loc[notifica['data_nascimento'].notna(),'data_nascimento'].apply(date_hash) )
         
         return notifica
-#         notifica = pd.merge(notifica.rename(columns={'ibge_residencia':'ibge'}),municipios[['ibge','rs','mun_resid','uf','municipio']],on='ibge',how='left').rename(columns={'ibge':'ibge_residencia'})
-#         notifica = pd.merge(notifica.rename(columns={'ibge_unidade_notifica':'ibge'}),municipios[['ibge','mun_resid']].rename(columns={'mun_resid':'mun_atend'}),on='ibge',how='left').rename(columns={'ibge':'ibge_unidade_notifica'})
-
 
     # ----------------------------------------------------------------------------------------------------------------------
-    def verify_changes(self, casos_confirmados):
+    def verify_changes(self, database):
         pass
 
     # ----------------------------------------------------------------------------------------------------------------------

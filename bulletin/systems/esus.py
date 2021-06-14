@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------------------------------------------------------#
-# Classe de tratamento de dados do e-SUS Notifica
+# Classe de tratamento de dados do e-SUS esus
 # Todos os direitos reservados ao autor
 # -----------------------------------------------------------------------------------------------------------------------------#
 import os
@@ -22,7 +22,7 @@ class eSUS:
     # ----------------------------------------------------------------------------------------------------------------------
     def __init__(self):
         self.df = None
-        self.database = join(root,'database','esus',f"esus_{datetime.today().strftime('%d_%m_%Y')}.pkl")
+        self.database = join(root,'database','esus',f"esus.pkl")
 
         if not isdir(dirname(self.database)):
             makedirs(dirname(self.database))
@@ -60,12 +60,12 @@ class eSUS:
             'paciente_cns': 'cns',
             'paciente_nome': 'paciente',
             'paciente_cpf': 'cpf',
-            'paciente_idade': 'idade'
+            'paciente_idade': 'idade',
             'paciente_nome_mae': 'nome_mae',
             'paciente_enumSexoBiologico': 'sexo',
             'paciente_dataNascimento': 'data_nascimento',
             'vacina_dataAplicacao': 'data_aplicacao',
-            'vacina_dose': 'dose',
+            'vacina_numDose': 'dose',
             'vacina_fabricante_nome': 'fabricante',
             'paciente_endereco_coIbgeMunicipio': 'ibge_residencia',
             'estabelecimento_municipio_codigo': 'ibge_atendimento',
@@ -73,7 +73,7 @@ class eSUS:
             'vacina_grupoAtendimento_nome': 'grupo_atendimento'
         })
 
-        notifica = self.__normalize(esus)
+        esus = self.__normalize(esus)
         
         if isinstance(self.df, pd.DataFrame) and append:
             print(f"Appending")
@@ -107,12 +107,18 @@ class eSUS:
 
     # ----------------------------------------------------------------------------------------------------------------------
     # Normaliza strings, datas e códigos. Anula valores incorretos.
-    def __normalize(self, esus):
-        esus['cpf'] = esus['cpf'].apply(normalize_cpf)
-        esus['cns'] = esus['cns'].apply(normalize_cns)
-        esus['nome_mae'] = esus['nome_mae'].apply(normalize_campo_aberto)        
-        esus['nome_mae'] = esus['nome_mae'].apply(normalize_campo_aberto)
-        esus['data_nascimento'] = esus['data_nascimento'].apply(lambda x: pd.to_datetime(x,errors='coerce'))
-        esus['data_aplicacao'] = esus['data_aplicacao'].apply(lambda x:isvaliddate(pd.to_datetime(x[:10],format='%Y-%m-%d',errors='coerce')))
+    def normalize(self, esus):
+        # esus['cpf'] = esus['cpf'].apply(normalize_cpf)
+        # esus['cns'] = esus['cns'].apply(normalize_cns)
+        # esus['nome_mae'] = esus['nome_mae'].apply(normalize_campo_aberto)        
+        # esus['nome_mae'] = esus['nome_mae'].apply(normalize_campo_aberto)
+        # esus['data_nascimento'] = esus['data_nascimento'].apply(lambda x: pd.to_datetime(x,errors='coerce'))
+        # esus['data_aplicacao'] = esus['data_aplicacao'].apply(lambda x:isvaliddate(pd.to_datetime(x[:10],format='%Y-%m-%d',errors='coerce')))
+
+        esus.loc[esus['nome_mae'].notna(),'hash_mae'] = ( esus.loc[esus['nome_mae'].notna(),'paciente'].apply(normalize_hash) +
+                                                          esus.loc[esus['nome_mae'].notna(),'nome_mae'].apply(normalize_hash) )
+
+        esus.loc[esus['data_nascimento'].notna(),'hash_nasc'] = ( esus.loc[esus['data_nascimento'].notna(),'paciente'].apply(normalize_hash) +
+                                                                  esus.loc[esus['data_nascimento'].notna(),'data_nascimento'].apply(date_hash) )
         
         return esus
