@@ -63,11 +63,6 @@ class CasosConfirmados:
                casos_confirmados['idade'].astype(str) +
                casos_confirmados['ibge_resid'].astype(str) )
         
-
-        casos_confirmados['hash_atend'] = (casos_confirmados['nome'].apply(normalize_hash) +
-                          casos_confirmados['idade'].astype(str) +
-                          casos_confirmados['ibge_atend'].apply(normalize_hash) )
-        
         casos_confirmados['hash_less'] = ( casos_confirmados['nome'].apply(normalize_hash) +
                             casos_confirmados['idade'].apply(lambda x: str(x-1)) +
                             casos_confirmados['ibge_resid'].astype(str) )
@@ -75,7 +70,19 @@ class CasosConfirmados:
         casos_confirmados['hash_more'] = ( casos_confirmados['nome'].apply(normalize_hash) +
                             casos_confirmados['idade'].apply(lambda x: str(x+1)) +
                             casos_confirmados['ibge_resid'].astype(str) )
-        
+
+        casos_confirmados['hash_atend'] = (casos_confirmados['nome'].apply(normalize_hash) +
+                            casos_confirmados['idade'].astype(str) +
+                            casos_confirmados['ibge_atend'].apply(normalize_hash) )
+
+        casos_confirmados['hash_less_atend'] = (casos_confirmados['nome'].apply(normalize_hash) +
+                            casos_confirmados['idade'].apply(lambda x: str(x-1)) +
+                            casos_confirmados['ibge_atend'].apply(normalize_hash) )
+
+        casos_confirmados['hash_more_atend'] = (casos_confirmados['nome'].apply(normalize_hash) +
+                            casos_confirmados['idade'].apply(lambda x: str(x+1)) +
+                            casos_confirmados['ibge_atend'].apply(normalize_hash) )
+
         casos_confirmados['hash_diag'] = ( casos_confirmados['nome'].apply(normalize_hash) +
                             casos_confirmados['dt_diag'].apply(date_hash) )
         
@@ -114,10 +121,6 @@ class CasosConfirmados:
         df['hash'] = ( df['nome'].apply(normalize_hash) +
                        df['idade'].astype(str) +
                        df['ibge_resid'].apply(str) )
-        
-        df['hash_atend'] = (df['nome'].apply(normalize_hash) +
-                          df['idade'].astype(str) +
-                          df['ibge_atend'].apply(str) )
                 
         df['hash_less'] = ( df['nome'].apply(normalize_hash) +
                             df['idade'].apply(lambda x: str(x-1)) +
@@ -126,6 +129,18 @@ class CasosConfirmados:
         df['hash_more'] = ( df['nome'].apply(normalize_hash) +
                             df['idade'].apply(lambda x: str(x+1)) +
                             df['ibge_resid'].apply(str) )
+                            
+        df['hash_atend'] = (df['nome'].apply(normalize_hash) +
+                            df['idade'].astype(str) +
+                            df['ibge_atend'].apply(str) )
+
+        df['hash_less_atend'] = (df['nome'].apply(normalize_hash) +
+                            df['idade'].apply(lambda x: str(x-1)) +
+                            df['ibge_atend'].apply(str) )
+
+        df['hash_more_atend'] = (df['nome'].apply(normalize_hash) +
+                            df['idade'].apply(lambda x: str(x+1)) +
+                            df['ibge_atend'].apply(str) )
         
         df['hash_diag'] = ( df['nome'].apply(normalize_hash) +
                             df['dt_diag'].apply(date_hash) )

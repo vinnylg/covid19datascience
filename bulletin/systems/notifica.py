@@ -25,18 +25,18 @@ municipios.loc[municipios['uf']!='PR','mun_resid'] = municipios.loc[municipios['
 class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
-    def __init__(self, usecols=True):
+    def __init__(self,database='notifica'):
         self.df = None
-        self.database = join(root,'database', f"notifica.pkl")
+        self.database = join(root,'database', f"{database}.pkl")
 
         if not isdir(dirname(self.database)):
             makedirs(dirname(self.database))
             
         if isfile(join(root,'resources','tables','notificacao_schema.csv')):
             notificacao_schema = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
-            self.schema = notificacao_schema.loc[notificacao_schema['usecols']==1] if (usecols == True) else notificacao_schema
+            self.schema = notificacao_schema
             self.dtypes = dict(notificacao_schema.loc[notificacao_schema['converters'].isna(),['column','dtypes']].values)
-            self.converters = dict([[column,eval(converters)] for column, converters in notificacao_schema.loc[(notificacao_schema['converters'].notna()),['column','converters']].values])            
+            self.converters = dict([[column,eval(converters)] for column, converters in notificacao_schema.loc[(notificacao_schema['converters'].notna()),['column','converters']].values])
         else:
             raise Exception(f"notificacao_schema.csv not found in {join(root,'resources','tables')}")
 
@@ -56,15 +56,16 @@ class Notifica:
 
     # ----------------------------------------------------------------------------------------------------------------------
     @Timer('reading Notifica')
-    def read(self, pathfile, append=False):
+    def read(self, pathfile, append=False, normalize=True):
         print(f"Reading {pathfile}")
         notifica = pd.read_csv(
                 pathfile,
-                dtype=self.dtypes,
+                # dtype=self.dtypes,
                 converters=self.converters
         )
 
-        notifica = self.__normalize(notifica)
+        if normalize:
+            notifica = self.__normalize(notifica)
         
         if isinstance(self.df, pd.DataFrame) and append:
             print(f"Appending")
@@ -141,14 +142,6 @@ class Notifica:
         notifica['hash_atend'] = (notifica['paciente'].apply(normalize_hash) +
                           notifica['idade'].astype(str) +
                           notifica['ibge_unidade_notifica'].astype(str) )
-
-        notifica['hash_less'] = ( notifica['paciente'].apply(normalize_hash) +
-                                notifica['idade'].apply(lambda x: str(x - 1)) +
-                                notifica['ibge_residencia'].astype(str) )
-
-        notifica['hash_more'] = ( notifica['paciente'].apply(normalize_hash) +
-                                notifica['idade'].apply(lambda x: str(x + 1)) +
-                                notifica['ibge_residencia'].astype(str) )
 
         notifica.loc[notifica['nome_mae'].notna(),'hash_mae'] = ( notifica.loc[notifica['nome_mae'].notna(),'paciente'].apply(normalize_hash) +
                                                                   notifica.loc[notifica['nome_mae'].notna(),'nome_mae'].apply(normalize_hash) )

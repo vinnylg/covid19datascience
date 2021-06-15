@@ -113,12 +113,15 @@ class Metabase:
                 self.download(f'SELECT * FROM public.{table}', join(self.tables_path,f'{table}.csv'))
         
     
-    def generate_notifica_query(self,name,where='classificacao_final = 2 AND excluir_ficha = 2 AND status_notificacao in (1,2)',replace=False,usecols=True):
+    def generate_notifica_query(self,name,where='classificacao_final = 2 AND excluir_ficha = 2 AND status_notificacao in (1,2)',replace=False,usecols=True,group=''):
         try:
             notificacao_schema = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
             if usecols:
                 notificacao_schema = notificacao_schema.loc[notificacao_schema['usecols']==1]
             
+            if group != '':
+                notificacao_schema = notificacao_schema.loc[(notificacao_schema['group_name']==group) | (notificacao_schema['column']=='id')]
+
             print(f"Select {len(notificacao_schema)} columns")
             sql = 'SELECT '
             for idx, row in notificacao_schema.iterrows():
@@ -156,7 +159,7 @@ class Metabase:
         return pathfile
     
     @Timer('Download query')
-    def download_notificacao(self, query_name='diario', load=False):
+    def download_notificacao(self, query_name='diario', load=False, normalize=False):
         print(f"Download {query_name}")
         
         if query_name not in self.sql_files:
@@ -193,10 +196,10 @@ class Metabase:
 
         output_path = join(self.output,f"{query_name}.csv")
         
-        notifica = Notifica()
+        notifica = Notifica(query_name)
         
         for part in parts: 
-            notifica.read(part,append=True)
+            notifica.read(part,append=True,normalize=normalize)
             
         return notifica
     
