@@ -14,6 +14,8 @@ from bulletin.utils.timer import Timer
 from bulletin.utils.utils import isvaliddate
 from bulletin.utils.normalize import date_hash, normalize_cpf, normalize_text, normalize_number, normalize_hash, normalize_campo_aberto, normalize_do, normalize_cns
 from bulletin.utils.static import Municipios
+import glob
+from pathlib import Path
 
 
 
@@ -48,19 +50,12 @@ class Notifica:
             return -1
 
     # ----------------------------------------------------------------------------------------------------------------------
-    def shape(self):
-        if isinstance(self.df,pd.DataFrame) and len(self.df) > 0:   
-            return tuple([len(self.df.loc[self.df['evolucao'] == evolucao]) for evolucao in [1, 2, 3, 4]])
-        else:
-            return -1
-
-    # ----------------------------------------------------------------------------------------------------------------------
     @Timer('reading Notifica')
     def read(self, pathfile, append=False, normalize=True):
         print(f"Reading {pathfile}")
         notifica = pd.read_csv(
                 pathfile,
-                # dtype=self.dtypes,
+                dtype=self.dtypes,
                 converters=self.converters
         )
 
@@ -152,8 +147,18 @@ class Notifica:
         return notifica
 
     # ----------------------------------------------------------------------------------------------------------------------
-    def verify_changes(self, database):
-        pass
+    def update(self, new_notifica):
+        novas_notificacoes = new_notifica.loc[~new_notifica['id'].isin(self.df['id'])]
+        print(f"novas_notificacoes {len(novas_notificacoes)}")
+        possiveis_atualizacoes = new_notifica.loc[new_notifica['id'].isin(self.df['id'])]
+        print(f"possiveis_atualizacoes {len(possiveis_atualizacoes)}")
+
+        novas_notificacoes = novas_notificacoes.set_index('id')
+        self.df = self.df.set_index('id')
+        self.df = self.df.append(novas_notificacoes)
+
+        self.df.update(possiveis_atualizacoes)
+        self.df = self.df.reset_index()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def get_casos(self):

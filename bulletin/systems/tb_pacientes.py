@@ -9,7 +9,7 @@ import pandas as pd
 
 from bulletin import root, default_input
 from bulletin.utils import static, timer
-from bulletin.utils.normalize import normalize_text, normalize_number, normalize_hash, normalize_ibge, normalize_municipios, date_hash
+from bulletin.utils.normalize import normalize_text, normalize_number, normalize_hash, normalize_ibge, date_hash
 
 class TbPacientes:
     def __init__(self, pathfile=join(default_input,'tb_pacientes.csv'), force=False, hard=False):
