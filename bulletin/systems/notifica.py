@@ -201,5 +201,5 @@ class Notifica:
         self.df = self.df.set_index('id')
         self.df = self.df.append(novas_notificacoes)
 
-        # self.df.update(possiveis_atualizacoes)
+        self.df.update(possiveis_atualizacoes)
         self.df = self.df.reset_index()
