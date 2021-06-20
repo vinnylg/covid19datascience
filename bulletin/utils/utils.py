@@ -10,12 +10,12 @@ from xlsxwriter.worksheet import (
     Worksheet, cell_number_tuple, cell_string_tuple)
 
 def isvaliddate(dt: date, begin=date(2020, 3, 12), end=date.today()):
-    if isinstance(dt,date):
+    if (not pd.isnull(dt)) and isinstance(dt,date):
         if dt >= begin:
             if dt <= end:
-                return True
+                return dt
 
-    return False
+    return pd.NaT
 
 def get_better_notifica(df):
     scores = np.zeros(len(df))

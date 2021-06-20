@@ -1,0 +1,1 @@
+SELECT id, situacao_trabalho, doenca_trabalho, paciente_institucionalizado, instituicao, tipo_paciente_institucionalizado, nome_empresa, uf_empresa, ibge_empresa, instituicao_ensino FROM notificacao WHERE classificacao_final = 2 AND excluir_ficha = 2 AND status_notificacao in (1,2) ORDER BY 1 LIMIT ALL OFFSET 0

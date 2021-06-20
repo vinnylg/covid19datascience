@@ -9,7 +9,7 @@ def normalize_number(num, cast=int, error='fill', fill='-1'):
     except ValueError:
         if error == 'raise':
             raise Exception(ValueError)
-        elif error == 'fill':
+        else:
             return normalize_number(fill, cast, 'raise')
 
 
@@ -17,7 +17,7 @@ def normalize_hash(string: str):
     return "".join(filter(lambda char: 'A' <= char <= 'Z', str(string).upper()))
 
 
-def trim_overspace(string):
+def trim_overspace(string: str):
     parts = filter(lambda part: len(part) > 0, string.split(" "))
     return " ".join(parts)
 
@@ -43,7 +43,7 @@ def normalize_cpf(cpf):
     if validacao != digitos[-2]:
         return None
 
-    return cpf[:3] + '.' + cpf[3:6] + '.' + cpf[6:9] + '-' + cpf[9:]
+    return cpf # cpf[:3] + '.' + cpf[3:6] + '.' + cpf[6:9] + '-' + cpf[9:]
 
 
 def date_hash(date_):
@@ -59,6 +59,7 @@ def replace_all(txt, replace_list):
         txt = txt.replace(*replace_tuple)
     return txt
 
+
 def normalize_text(txt):
     if not txt is None:
         txt = txt.upper()
@@ -70,21 +71,32 @@ def normalize_text(txt):
     
     return txt
 
-
-def normalize_municipios(mun):
-    mun = normalize_text(mun)
-    est = 'PR'
-    if '/' in mun:
-        mun, est = mun.split('/')
-
-    mun = trim_overspace(mun)
-
-    return mun, est
-
-
 def normalize_ibge(ibge):
     ibge = str(ibge)
     if len(ibge) > 6:
         ibge = ibge[:len(ibge) - 1]
 
     return ibge
+
+def normalize_campo_aberto(value):
+    # Conjunto de negações encontradas
+    nao = {'NAO', 'CONSTA', 'INFO', 'INFORMADO', 'CONTEM'}
+    # Anula campo com alguma negação
+    return value if (not pd.isnull(value)) and (not set(value.split(" ")).intersection(nao)) else None 
+    
+    
+def normalize_do(do):
+    if len(do) >= 8:
+        return do.split('-')[0]
+    else:
+        return None
+
+def normalize_cns(cns):
+    cns = ''.join(filter(str.isdigit, str(cns)))
+    
+    if (len(cns) != 15) or ((sum([int(cns[i]) * (15 - i) for i in range(15)]) % 11) != 0):
+        return None
+    else:
+        return cns
+    
+    
