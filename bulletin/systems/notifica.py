@@ -19,20 +19,25 @@ from pathlib import Path
 
 
 
-municipios = Municipios()
-municipios['mun_resid'] = municipios['municipio'].apply(normalize_text)
-municipios.loc[municipios['uf']!='PR','mun_resid'] = municipios.loc[municipios['uf']!='PR','municipio'].apply(normalize_text) + '/' + municipios['uf']
 
 # ----------------------------------------------------------------------------------------------------------------------
 class Notifica:
+    municipios = Municipios()
+    municipios['mun_resid'] = municipios['municipio'].apply(normalize_text)
+    municipios.loc[municipios['uf']!='PR','mun_resid'] = municipios.loc[municipios['uf']!='PR','municipio'].apply(normalize_text) + '/' + municipios['uf']
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __init__(self,database='notifica'):
         self.df = None
-        self.database = join(root,'database', f"{database}.pkl")
+        self.database_dir = join(root, 'database', 'notifica')
+        self.database = database
 
-        if not isdir(dirname(self.database)):
-            makedirs(dirname(self.database))
+        if not isdir(self.database_dir):
+            makedirs(self.database_dir)
+
+        self.databases = lambda: sorted([ Path(path).stem for path in glob.glob(join(self.database_dir,"*.pkl"))])
+        print(self.databases())
+
             
         if isfile(join(root,'resources','tables','notificacao_schema.csv')):
             notificacao_schema = pd.read_csv(join(root,'resources','tables','notificacao_schema.csv'))
@@ -42,13 +47,49 @@ class Notifica:
         else:
             raise Exception(f"notificacao_schema.csv not found in {join(root,'resources','tables')}")
 
-    # ----------------------------------------------------------------------------------------------------------------------
-    def __len__(self):
-        if isinstance(self.df,pd.DataFrame) and len(self.df) > 0: 
-            return len(self.df)
-        else:
-            return -1
 
+    def __len__(self):
+        return len(self.df)
+
+    def __str__(self):
+        return self.database
+
+    def check_duplicates(self):
+        assert not self.df is None
+
+        self.df['duplicated'] = False
+        for col in [ col for col in self.df.columns if 'hash' in col ]:
+            print('duplicated in ',col,':',len(self.df.loc[(self.df[col].notna())&(self.df.duplicated(col,keep=False))]))
+            self.df.loc[(self.df[col].notna())&(self.df.duplicated(col,keep=False)),'duplicated'] = True
+
+    def hashes(self):
+        assert not self.df is None
+
+        for col in [ col for col in self.df.columns if 'hash' in col ]:
+            del self.df[col]
+        
+        self.df.loc[self.df['nome_mae'].notna(),'hash_mae'] = ( self.df.loc[self.df['nome_mae'].notna(),'paciente'].apply(normalize_hash) +
+                                                                  self.df.loc[self.df['nome_mae'].notna(),'nome_mae'].apply(normalize_hash) )
+
+        self.df.loc[self.df['data_nascimento'].notna(),'hash_nasc'] = ( self.df.loc[self.df['data_nascimento'].notna(),'paciente'].apply(normalize_hash) +
+                                                                          self.df.loc[self.df['data_nascimento'].notna(),'data_nascimento'].apply(date_hash) )
+                                                                          
+        self.df['hash_resid'] = self.df['paciente'].apply(normalize_hash) + self.df['idade'].astype(str) + self.df['ibge_residencia'].astype(str)
+        self.df['hash_atend'] = self.df['paciente'].apply(normalize_hash) + self.df['idade'].astype(str) + self.df['ibge_unidade_notifica'].astype(str)
+
+        self.df.loc[self.df['data_diagnostico'].notna(),'hash_diag'] = self.df.loc[self.df['data_diagnostico'].notna(),'paciente'].apply(normalize_hash) + self.df.loc[self.df['data_diagnostico'].notna(),'data_diagnostico'].apply(date_hash)
+        self.df.loc[self.df['data_liberacao'].notna(),'hash_lib'] = self.df.loc[self.df['data_liberacao'].notna(),'paciente'].apply(normalize_hash) + self.df.loc[self.df['data_liberacao'].notna(),'data_liberacao'].apply(date_hash)
+
+    def fix_dtypes(self):
+        assert not self.df is None
+        
+        cols = pd.DataFrame(zip(self.df.columns,self.df.dtypes),columns=['col','dtype']).set_index('col')
+        floats = cols.loc[cols['dtype']=='float64']
+        if len(floats):
+            for col in floats.index:
+                self.df[col] = self.df[col].fillna(-1).apply(int)
+
+                
     # ----------------------------------------------------------------------------------------------------------------------
     @Timer('reading Notifica')
     def read(self, pathfile, append=False, normalize=True):
@@ -70,28 +111,45 @@ class Notifica:
             self.df = notifica
 
         print(len(self.df))
+        self.fix_dtypes()
 
-    # ----------------------------------------------------------------------------------------------------------------------
-    def load(self):
-        try:
-            self.df = pd.read_pickle(self.database)
-        except ValueError:
-            raise Exception(f"{ValueError}\nArquivo {self.database} não encontrado")
+    #gambiarra
+    def fix_dtypes(self):
+        if self.df is None:
+            raise Exception(f"self.df is none")
+        
+        cols = pd.DataFrame(zip(self.df.columns,self.df.dtypes),columns=['col','dtype']).set_index('col')
+        floats = cols.loc[cols['dtype']=='float64']
+        if len(floats):
+            for col in floats.index:
+                self.df[col] = self.df[col].fillna(-1).astype(int)
 
-    # ----------------------------------------------------------------------------------------------------------------------
-    def save(self, df=None):
-        if isinstance(df, pd.DataFrame) and len(df) > 0:
-            new_df = df
-            self.df = new_df
-        elif isinstance(self.df, pd.DataFrame) and len(self.df) > 0:
-            new_df = self.df
-        else:
-            raise Exception(
-                    'Não é possível salvar um DataFrame inexistente, '
-                    'realize a leitura antes ou passe como para esse método'
-            )
+    @Timer('saving Notifica to pkl')
+    def save(self,database=None,replace=False):
+        self.fix_dtypes()
 
-        new_df.to_pickle(self.database)
+        if not database is None:
+            self.database = database
+
+        if self.database in self.databases() and not replace:
+            raise Exception(f"{self.database} already saved, set replace=True to replace")
+        
+        pathfile = join(self.database_dir,f"{self.database}.pkl")
+
+        self.df.to_pickle(pathfile)
+            
+            
+    @Timer('loading Notifica from pkl')
+    def load(self, database=None):        
+        if not database is None:
+            self.database = database
+
+        if not self.database in self.databases():
+            raise Exception(f"{self.database} not found")
+        
+        pathfile = join(self.database_dir,f"{self.database}.pkl")
+        self.df = pd.read_pickle(pathfile)
+        self.fix_dtypes()
 
     # ----------------------------------------------------------------------------------------------------------------------
     # Normaliza strings, datas e códigos. Anula valores incorretos.
@@ -129,20 +187,6 @@ class Notifica:
 
         notifica.loc[notifica['evolucao']==5, 'evolucao'] = 2
         notifica.loc[notifica['evolucao']==0, 'evolucao'] = 3
-
-        notifica['hash'] = (notifica['paciente'].apply(normalize_hash) +
-                          notifica['idade'].astype(str) +
-                          notifica['ibge_residencia'].astype(str) )
-
-        notifica['hash_atend'] = (notifica['paciente'].apply(normalize_hash) +
-                          notifica['idade'].astype(str) +
-                          notifica['ibge_unidade_notifica'].astype(str) )
-
-        notifica.loc[notifica['nome_mae'].notna(),'hash_mae'] = ( notifica.loc[notifica['nome_mae'].notna(),'paciente'].apply(normalize_hash) +
-                                                                  notifica.loc[notifica['nome_mae'].notna(),'nome_mae'].apply(normalize_hash) )
-
-        notifica.loc[notifica['data_nascimento'].notna(),'hash_nasc'] = ( notifica.loc[notifica['data_nascimento'].notna(),'paciente'].apply(normalize_hash) +
-                                                                          notifica.loc[notifica['data_nascimento'].notna(),'data_nascimento'].apply(date_hash) )
         
         return notifica
 
@@ -157,25 +201,5 @@ class Notifica:
         self.df = self.df.set_index('id')
         self.df = self.df.append(novas_notificacoes)
 
-        self.df.update(possiveis_atualizacoes)
+        # self.df.update(possiveis_atualizacoes)
         self.df = self.df.reset_index()
-
-    # ----------------------------------------------------------------------------------------------------------------------
-    def get_casos(self):
-        return self.df.copy()
-
-    # ----------------------------------------------------------------------------------------------------------------------
-    def get_obitos(self):
-        return self.df.loc[self.df['evolucao'] == 2].copy()
-
-    # ----------------------------------------------------------------------------------------------------------------------
-    def get_recuperados(self):
-        return self.df.loc[self.df['evolucao'] == 1].copy()
-
-    # ----------------------------------------------------------------------------------------------------------------------
-    def get_casos_ativos(self):
-        return self.df.loc[self.df['evolucao'] == 3].copy()
-
-    # ----------------------------------------------------------------------------------------------------------------------
-    def get_obitos_nao_covid(self):
-        return self.df.loc[self.df['evolucao'] == 4].copy()

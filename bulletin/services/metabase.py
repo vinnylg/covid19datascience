@@ -53,8 +53,8 @@ class Metabase:
         if not isdir(self.tables_path):
             makedirs(self.tables_path)
     
-        self.list_sql_files()
-        self.list_query_results()
+        # self.list_sql_files()
+        # self.list_query_results()
     
     def list_sql_files(self):
         self.sql_files = [ Path(path).stem for path in glob.glob(join(self.sql_path,"*.sql"))]
