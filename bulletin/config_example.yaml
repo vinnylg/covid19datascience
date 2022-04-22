@@ -1,0 +1,22 @@
+notifica:
+  username:
+  password: 
+
+gal:
+  host:
+  port:
+  username:
+  password: 
+
+esus:
+  host: 
+  database: 
+  user: 
+  password: 
+  connect_timeout: 
+
+celepar:
+  host: 
+  port: 
+  username: 
+  password: 

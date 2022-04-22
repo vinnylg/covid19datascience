@@ -1,0 +1,9 @@
+id,tipo_paciente
+1,Estrangeiro (Sem CPF)
+2,Indígena (Sem CPF)
+3,CPF informado
+4,CPF não informado
+5,Em situação de rua (Sem CPF)
+6,Criança até 15 Anos (Sem CPF)
+8,Privado de liberdade (sem CPF)
+9,CNS Informado

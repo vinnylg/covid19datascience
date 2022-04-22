@@ -1,0 +1,207 @@
+id,group_name,column,dtypes,notifica,sim,sivep,gal,esus,care,casos_confirmados,updateable,csv_geral,csv_geral_replace,sim_parser,sivep_parser,converters,fillna,constraint_name,foreign_table_name,foreign_column_name
+0,notificacao,id,int,id,,,,,Cod Notificação COVID,1,0,0,0,,,,-1,,,
+1,notificacao,data_notificacao,datetime64[ns],data_notificacao,,DT_NOTIFIC,,,,1,1,1,0,,,,,,,
+2,notificacao,possui_cpf,int,possui_cpf,,,,,,1,1,0,0,,,,3,possui_cpf,sim_nao,id
+3,notificacao,tipo_paciente,int,tipo_paciente,,,,,,1,1,0,0,,,,4,tipo_paciente,tipo_paciente,id
+4,localizacao,pais_residencia,int,pais_residencia,,,,,,1,1,1,1,,,,-1,pais_residencia,pais,co_pais
+5,localizacao,pais_municipio_residencia,str,pais_municipio_residencia,,,,,,1,1,1,0,,,,,,,
+6,identificacao,cns,str,cns,NUMSUS,,cns,paciente_cns,,1,1,0,0,,,normalize_cns,,,,
+7,identificacao,cpf,str,cpf,,NU_CPF,cpf,paciente_cpf,,1,1,0,0,,,normalize_cpf,,,,
+8,identificacao,passaporte,str,passaporte,,,,,,1,1,0,0,,,,,,,
+9,identificacao,etnia,int,etnia,,,,,,1,1,1,1,,,,-1,etnia,etnia,co_etnia
+10,identificacao,paciente,str,paciente,NOME,NM_PACIENT,paciente,paciente_nome,Nome do Paciente,1,1,0,0,,,normalize_text,,,,
+11,identificacao,sexo,int,sexo,SEXO,CS_SEXO,sexo,paciente_enumSexoBiologico,,1,1,1,1,{},{},,3,sexo,sexo,id
+12,identificacao,data_nascimento,datetime64[ns],data_nascimento,DTNASC,DT_NASC,data_nascimento,paciente_dataNascimento,Data Nascimento,1,1,1,0,,,,,,,
+13,identificacao,idade,int,idade,IDADE,NU_IDADE_N,idade,paciente_idade,Idade,1,1,1,0,,,,-99,,,
+14,identificacao,nome_mae,str,nome_mae,NOMEMAE,NM_MAE_PAC,nome_mae,paciente_nome_mae,,1,1,0,0,,,normalize_nome_mae,,,,
+15,localizacao,uf_residencia,int,uf_residencia,,,,paciente_endereco_uf,,1,0,1,0,,,,99,estado_residencia,estado,co_uf
+16,localizacao,ibge_residencia,int,ibge_residencia,CODMUNRES,CO_MUN_RES,ibge,paciente_endereco_coIbgeMunicipio,,1,0,1,0,,,,999999,ibge_residencia,municipios,ibge
+17,localizacao,cep_residencia,str,cep_residencia,CEPRES,NU_CEP,,paciente_endereco_cep,,1,1,0,0,,,normalize_cep,,,,
+18,localizacao,logradouro_residencia,str,logradouro_residencia,ENDRES,NM_LOGRADO,,,,1,1,0,0,,,,,,,
+19,localizacao,numero_residencia,str,numero_residencia,NUMRES,NU_NUMERO,,,,1,1,0,0,,,,,,,
+20,localizacao,bairro_residencia,str,bairro_residencia,BAIRES,NM_BAIRRO,,paciente_endereco_bairro,,1,1,0,0,,,,,,,
+21,localizacao,telefone_paciente,str,telefone_paciente,,,,paciente_telefone,,1,1,0,0,,,,,,,
+22,identificacao,ocupacao,int,ocupacao,,,,,,1,1,1,1,,,,5,ocupacao,ocupacao,id
+23,identificacao,ocupacao_descricao,str,ocupacao_descricao,,,,,,1,1,1,0,,,,,,,
+24,fator_risco,gestante,int,gestante,,CS_GESTANT,,,,1,1,1,1,,"{0:3, 1:1, 2:1, 3:1, 4:1, 5:2, 6:3, 9:3}",,3,gestante,sim_nao,id
+25,fator_risco,periodo_gestacao,int,periodo_gestacao,,,idade_gestacional,,,1,1,1,1,,,,4,periodo_gestacao,periodo_gestacao,id
+26,sintomas,data_1o_sintomas,datetime64[ns],data_1o_sintomas,,DT_SIN_PRI,data_inicio_sintomas,,,1,1,1,0,,,,,,,
+27,sintomas,febre,int,febre,,FEBRE,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,febre,febre,id
+28,sintomas,tosse,int,tosse,,TOSSE,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,tosse,sim_nao,id
+29,sintomas,dor_garganta,int,dor_garganta,,GARGANTA,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,dor_garganta,sim_nao,id
+30,sintomas,mialgia,int,mialgia,,,,,,1,1,1,1,,,,3,mialgia,sim_nao,id
+31,sintomas,artralgia,int,artralgia,,,,,,1,1,1,1,,,,3,artralgia,sim_nao,id
+32,sintomas,diarreia,int,diarreia,,DIARREIA,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,diarreia,sim_nao,id
+33,sintomas,nausea_vomitos,int,nausea_vomitos,,VOMITO,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,nausea_vomitos,sim_nao,id
+34,sintomas,cefaleia,int,cefaleia,,,,,,1,1,1,1,,,,3,cefaleia,sim_nao,id
+35,sintomas,coriza,int,coriza,,,,,,1,1,1,1,,,,3,coriza,sim_nao,id
+36,sintomas,irritabilidade_confusao,int,irritabilidade_confusao,,,,,,1,1,1,1,,,,3,irritabilidade_confusao,sim_nao,id
+37,sintomas,adinamia,int,adinamia,,,,,,1,1,1,1,,,,3,adinamia,sim_nao,id
+38,sintomas,escarro,int,escarro,,,,,,1,1,1,1,,,,3,escarro,sim_nao,id
+39,sintomas,calafrios,int,calafrios,,,,,,1,1,1,1,,,,3,calafrios,sim_nao,id
+40,sintomas,congestao_nasal,int,congestao_nasal,,,,,,1,1,1,1,,,,3,congestao_nasal,sim_nao,id
+41,sintomas,congestao_conjuntiva,int,congestao_conjuntiva,,,,,,1,1,1,1,,,,3,congestao_conjuntiva,sim_nao,id
+42,sintomas,dificuldade_deglutir,int,dificuldade_deglutir,,,,,,1,1,1,1,,,,3,dificuldade_deglutir,sim_nao,id
+43,sintomas,manchas_vermelhas,int,manchas_vermelhas,,,,,,1,1,1,1,,,,3,manchas_vermelhas,sim_nao,id
+44,sintomas,ganglios_linfaticos,int,ganglios_linfaticos,,,,,,1,1,1,1,,,,3,ganglios_linfaticos,sim_nao,id
+45,sintomas,asas_nasais,int,asas_nasais,,,,,,1,1,1,1,,,,3,asas_nasais,sim_nao,id
+46,sintomas,saturacao_o2,int,saturacao_o2,,SATURACAO,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,saturacao_o2,sim_nao,id
+47,sintomas,cianose,int,cianose,,,,,,1,1,1,1,,,,3,cianose,sim_nao,id
+48,sintomas,tiragem_intercostal,int,tiragem_intercostal,,,,,,1,1,1,1,,,,3,tiragem_intercostal,sim_nao,id
+49,sintomas,dispneia,int,dispneia,,DISPNEIA,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,dispneia,sim_nao,id
+50,laboratorial,raiox_torax,int,raiox_torax,,RAIOX_RES,,,,1,1,1,1,,"{1:1, 4:2, 2:3, 3:4, 5:5, 6:-1}",,-1,raiox_torax,raiox_torax,id
+51,laboratorial,raiox_torax_descricao,str,raiox_torax_descricao,,,,,,1,1,1,0,,"{1:1, 2:2, 9:3}",,,,,
+52,laboratorial,tomografia,int,tomografia,,,,,,1,1,1,1,,,,-1,tomografia,tomografia,id
+53,laboratorial,tomografia_descricao,str,tomografia_descricao,,,,,,1,1,1,0,,,,,,,
+54,fator_risco,doenca_cardiovascular,int,doenca_cardiovascular,,CARDIOPATI,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,doenca_cardiovascular,sim_nao,id
+55,fator_risco,hipertensao,int,hipertensao,,,,,,1,1,1,1,,,,3,hipertensao,sim_nao,id
+56,fator_risco,diabetes,int,diabetes,,,,,,1,1,1,1,,,,3,diabetes,sim_nao,id
+57,fator_risco,doenca_hepatica,int,doenca_hepatica,,HEPATICA,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,doenca_hepatica,sim_nao,id
+58,fator_risco,doenca_neurologica,int,doenca_neurologica,,NEUROLOGIC,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,doenca_neurologica,sim_nao,id
+59,fator_risco,sindrome_down,int,sindrome_down,,SIND_DOWN,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,sindrome_down,sim_nao,id
+60,fator_risco,imunodeficiencia,int,imunodeficiencia,,IMUNODEPRE,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,imunodeficiencia,sim_nao,id
+61,fator_risco,infeccao_hiv,int,infeccao_hiv,,,,,,1,1,1,1,,,,3,infeccao_hiv,sim_nao,id
+62,fator_risco,doenca_renal,int,doenca_renal,,RENAL,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,doenca_renal,sim_nao,id
+63,fator_risco,doenca_pulmonar,int,doenca_pulmonar,,PNEUMOPATI,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,doenca_pulmonar,sim_nao,id
+64,fator_risco,neoplasia,int,neoplasia,,,,,,1,1,1,0,,,,3,neoplasia,sim_nao,id
+65,fator_risco,puerperio,int,puerperio,,PUERPERA,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,puerperio,sim_nao,id
+66,fator_risco,obesidade,int,obesidade,,OBESIDADE,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,obesidade,sim_nao,id
+67,fator_risco,tabagismo,int,tabagismo,,,,,,1,1,1,1,,,,3,tabagismo,sim_nao,id
+68,fator_risco,outras_morbidades,str,outras_morbidades,,OUT_MORBI,,,,1,1,1,0,,,,,,,
+69,tratamento,hospitalizado,int,hospitalizado,,HOSPITAL,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,hospitalizado,sim_nao,id
+70,tratamento,cnes_hospital,str,cnes_hospital,,,,,,1,1,0,0,,,,,,,
+71,tratamento,nome_hospital,str,nome_hospital,,,,,Executante,1,1,1,0,,,,,,,
+72,tratamento,uf_hospital,int,uf_hospital,,,,,,1,1,1,1,,,,99,uf_hospital,estado,co_uf
+73,tratamento,ibge_hospital,int,ibge_hospital,,,,,,1,1,1,0,,,,999999,ibge_hospital,municipios,ibge
+74,tratamento,internacao_sus,int,internacao_sus,,,,,,1,1,1,1,,,,3,internacao_sus,sim_nao,id
+75,tratamento,tipo_internacao,int,tipo_internacao,,UTI,,,Leito Tipo,1,1,1,1,,"{1:2, 2:1, 9:3}",,3,tipo_internacao,tipo_internacao,id
+76,tratamento,data_entrada,datetime64[ns],data_entrada,,DT_INTERNA ,,,Data Internação,1,1,1,0,,,,,,,
+77,tratamento,data_isolamento,datetime64[ns],data_isolamento,,,,,,1,1,1,0,,,,,,,
+78,tratamento,data_alta,datetime64[ns],data_alta,,,,,,1,1,1,0,,,,,,,
+79,tratamento,uso_antiviral,int,uso_antiviral,,ANTIVIRAL,,,,1,1,1,1,,"{1:1, 2:2, 3:3, 9 :2}",,2,uso_antiviral,uso_antiviral,id
+80,tratamento,uso_antiviral_descricao,str,uso_antiviral_descricao,,,,,,1,1,1,0,,,,,,,
+81,laboratorial,coleta_amostra,int,coleta_amostra,,AMOSTRA,,,,1,1,1,1,,,,3,coleta_amostra,sim_nao,id
+82,laboratorial,data_cadastro,datetime64[ns],data_cadastro,,,data_requisicao,,,1,1,1,0,,,,,,,
+83,laboratorial,data_coleta,datetime64[ns],data_coleta,,DT_COLETA,data_coleta,,,1,1,1,0,,,,,,,
+84,laboratorial,data_recebimento,datetime64[ns],data_recebimento,,,data_recebimento_amostra,,,1,1,1,0,,,,,,,
+85,laboratorial,data_liberacao,datetime64[ns],data_liberacao,,DT_PCR,data_liberacao,,Data Resultado Exame,1,1,1,0,,,,,,,
+86,laboratorial,requisicao,str,requisicao,,REQUI_GAL,requisicao,,,1,1,0,0,,,,,,,
+87,laboratorial,co_seq_exame,str,co_seq_exame,,,cod_exame_requisicao ,,,1,1,0,0,,,,,,,
+88,laboratorial,resultado,int,resultado,,,resultado,,,1,1,0,0,,,,14,resultado,resultado,id
+89,laboratorial,exame,int,exame,,,exame,,,1,1,1,1,,,,-1,exame,exame,id
+90,laboratorial,metodo,int,metodo,,,metodo,,,1,1,1,1,,,,3,metodo,metodo,id
+91,laboratorial,lab_executor,str,lab_executor,,LAB_PCR,laboratorio_executor,,,1,1,1,0,,,,,,,
+92,viagem,historico_viagem,int,historico_viagem,,,,,,1,1,1,1,,,,3,historico_viagem,sim_nao,id
+93,viagem,local_viagem,str,local_viagem,,,,,,1,1,1,0,,,,,,,
+94,viagem,data_ida_local,datetime64[ns],data_ida_local,,,,,,1,1,1,0,,,,,,,
+95,viagem,data_retorno_local,datetime64[ns],data_retorno_local,,,,,,1,1,1,0,,,,,,,
+96,viagem,descritivo_viagem,str,descritivo_viagem,,,,,,1,1,1,0,,,,,,,
+97,viagem,data_chegada_brasil,datetime64[ns],data_chegada_brasil,,,,,,1,1,1,0,,,,,,,
+98,viagem,data_chegada_estado,datetime64[ns],data_chegada_estado,,,,,,1,1,1,0,,,,,,,
+99,contato,contato_suspeito,int,contato_suspeito,,,,,,1,1,0,0,,,,3,contato_suspeito,sim_nao,id
+100,contato,local_contato_suspeito,int,local_contato_suspeito,,,,,,1,1,0,0,,,,4,local_contato_suspeito,local_contato_suspeito,id
+101,contato,local_contato_suspeito_descricao,str,local_contato_suspeito_descricao,,,,,,1,1,0,0,,,,,,,
+102,contato,contato_confirmado,int,contato_confirmado,,,,,,1,1,0,0,,,,3,contato_confirmado,sim_nao,id
+103,contato,local_contato_confirmado,int,local_contato_confirmado,,,,,,1,1,0,0,,,,4,local_contato_confirmado,local_contato_confirmado,id
+104,contato,local_contato_confirmado_descricao,str,local_contato_confirmado_descricao,,,,,,1,1,0,0,,,,,,,
+105,contato,nome_caso_fonte,str,nome_caso_fonte,,,,,,1,1,0,0,,,,,,,
+106,atendimento,frequentou_unidade,int,frequentou_unidade,,,,,,1,1,1,1,,,,3,frequentou_unidade,sim_nao,id
+107,atendimento,frequentou_unidade_cnes,int,frequentou_unidade_cnes,,,,,,1,1,0,0,,,,-1,,,
+108,atendimento,frequentou_unidade_descricao,str,frequentou_unidade_descricao,,,,,,1,1,1,0,,,,,,,
+109,atendimento,cnes_unidade_notifica,str,cnes_unidade_notifica,,,,,,1,1,1,0,,,,,,,
+110,atendimento,nome_unidade_notifica,str,nome_unidade_notifica,,,,,,1,1,1,0,,,,,,,
+111,atendimento,uf_unidade_notifica,int,uf_unidade_notifica,,,,,,1,1,1,1,,,,99,uf_notifica,estado,co_uf
+112,atendimento,ibge_unidade_notifica,int,ibge_unidade_notifica,CODMUNOCOR,CO_MUN_NOT,,,,1,1,1,0,,,,999999,ibge_notifica,municipios,ibge
+113,atendimento,nome_notificador,str,nome_notificador,,,,,,1,1,0,0,,,,,,,
+114,atendimento,email_notificador,str,email_notificador,,,,,,1,1,0,0,,,,,,,
+115,atendimento,ocupacao_notificador,int,ocupacao_notificador,,,,,,1,1,0,0,,,,5,ocupacao_notificador,ocupacao,id
+116,atendimento,telefone_notificador,str,telefone_notificador,,,,,,1,1,0,0,,,,,,,
+117,notificacao,classificacao_final,int,classificacao_final,,CLASSI_FIN,classificacao,,,1,0,0,0,,"{1:3, 2:3, 3:3, 4:5, 5:2}",,1,classificacao_final,classificacao_final,id
+118,notificacao,criterio_classificacao,int,criterio_classificacao,,CRITERIO,,,,1,1,1,1,,"{1:1, 2:2, 3:6, 4:5}",,4,criterio_classificacao,criterio_classificacao,id
+119,notificacao,evolucao,int,evolucao,,EVOLUCAO,,,,1,0,1,1,,"{1:1, 2:2, 3:4, 9:3}",,3,evolucao,evolucao,id
+120,notificacao,data_cura_obito,datetime64[ns],data_cura_obito,DTOBITO,DT_EVOLUCA,,,,1,0,1,0,,,,,,,
+121,notificacao,excluir_ficha,int,excluir_ficha,,,,,,1,1,0,0,,,,3,excluir_ficha,sim_nao,id
+122,notificacao,motivo_exclusao,str,motivo_exclusao,,,,,,1,1,0,0,,,,,,,
+123,notificacao,data_encerramento,datetime64[ns],data_encerramento,,DT_ENCERRA,,,,1,1,0,0,,,,,,,
+124,notificacao,status_notificacao,int,status_notificacao,,,,,,1,1,0,0,,,,1,status,status,id
+125,notificacao,origem,int,origem,,,,,,1,1,1,1,,,,-1,origem,origem,id
+126,sintomas,outros_sintomas,str,outros_sintomas,,OUTRO_SIN,,,,1,1,1,0,,,,,,,
+127,fator_risco,gestante_alto_risco,int,gestante_alto_risco,,,,,,1,1,1,1,,,,3,gestante_alto_risco,sim_nao,id
+128,identificacao,raca_cor,int,raca_cor,RACACOR,CS_RACA,raca_cor,paciente_racaCor_valor,,1,1,1,1,"{1:1, 2:2, 3:4, 4:3, 5:5}","{1:1, 2:2, 3:4, 4:3, 5:5, 9:99}",,99,raca_cor,raca_cor,id
+129,notificacao,numero_do,str,numero_do,NUMERODO,NU_DO,,,,1,0,0,0,,,normalize_do,,,,
+130,notificacao,id_externa,str,id_externa,,,,,,1,1,0,0,,,,,,,
+131,sintomas,assintomatico,int,assintomatico,,,,,,1,1,1,1,,,,3,assintomatico,sim_nao,id
+132,notificacao,rash_paciente,str,rash_paciente,,,,,,1,1,0,0,,,,,,,
+133,surtos,opcoes_de_surto,int,opcoes_de_surto,,,,,,1,1,0,0,,,,-1,surto,surto,id_surto
+134,instituicao,paciente_institucionalizado,int,paciente_institucionalizado,,,,,,1,1,1,1,,,,-1,paciente_institucionalizado,paciente_institucionalizado,id
+135,notificacao,updated_at,datetime64[ns],updated_at,,,,,,1,1,0,0,,,,,,,
+136,notificacao,rash_paciente_1,str,rash_paciente_1,,,,,,1,1,0,0,,,,,,,
+137,notificacao,rash_paciente_2,str,rash_paciente_2,,,,,,1,1,0,0,,,,,,,
+138,sintomas,perda_olfato_paladar,int,perda_olfato_paladar,,PERD_OLFT,,,,1,1,1,1,,"{1:1, 2:2, 9:3}",,3,perda_olfato_paladar,sim_nao,id
+139,atendimento,unidade_solicitante_gal,str,unidade_solicitante_gal,,,unidade_requisitante,,,1,1,0,0,,,,,,,
+140,notificacao,api_gal,int,api_gal,,,,,,1,1,0,0,,,,-1,,,
+141,notificacao,api_cad_sus,int,api_cad_sus,,,,,,1,1,0,0,,,,-1,,,
+142,instituicao,instituicao,int,instituicao,,,,,,1,1,1,1,,,,-1,instituicao,termo_instituicao,id
+143,notificacao,pesquisa_gal,int,pesquisa_gal,,,,,,1,1,0,0,,,,-1,pesquisa_gal,pesquisa_gal,id
+144,atendimento,cnpj_unidade_notifica,str,cnpj_unidade_notifica,,,,,,1,1,0,0,,,,,,,
+145,instituicao,tipo_paciente_institucionalizado,int,tipo_paciente_institucionalizado,,,,,,1,1,1,1,,,,-1,tipo_paciente_institucionalizado,tipo_paciente_institucionalizado,id
+146,identificacao,telefone_residencial_paciente,str,telefone_residencial_paciente,,,,,,1,1,0,0,,,,,,,
+147,identificacao,email_paciente,str,email_paciente,,,,paciente_email,,1,1,0,0,,,,,,,
+148,outros,alerta,int,alerta,,,,,,1,1,0,0,,,,1,alerta,alerta,id
+149,tratamento,pressao_torax,int,pressao_torax,,,,,,1,1,1,0,,,,-1,,,
+150,trabalho,cnpj_empresa,str,cnpj_empresa,,,,,,1,1,0,0,,,,,,,
+151,trabalho,nome_empresa,str,nome_empresa,,,,,,1,1,0,0,,,,,,,
+152,trabalho,cep_empresa,str,cep_empresa,,,,,,1,1,0,0,,,,,,,
+153,trabalho,uf_empresa,int,uf_empresa,,,,,,1,1,0,0,,,,99,uf_empresa,estado,co_uf
+154,trabalho,ibge_empresa,int,ibge_empresa,,,,,,1,1,0,0,,,,999999,ibge_empresa,municipios,ibge
+155,trabalho,logradouro_empresa,str,logradouro_empresa,,,,,,1,1,0,0,,,,,,,
+156,trabalho,numero_empresa,str,numero_empresa,,,,,,1,1,0,0,,,,,,,
+157,trabalho,bairro_empresa,str,bairro_empresa,,,,,,1,1,0,0,,,,,,,
+158,monitoramento,monitoramento_id,int,monitoramento_id,,,,,,1,1,0,0,,,,-1,,,
+159,outros,semana_epidemiologica,int,semana_epidemiologica,,,,,,1,1,0,0,,,,-1,,,
+160,identificacao,cod_cbo,int,cod_cbo,OCUP,PAC_COCBO,,,,1,1,1,1,,,normalize_cbo,0,cod_cbo,cod_cbo,id
+161,trabalho,situacao_trabalho,int,situacao_trabalho,,,,,,1,1,1,1,,,,-1,situacao_trabalho,situacao_trabalho,id
+162,trabalho,doenca_trabalho,int,doenca_trabalho,,,,,,1,1,1,1,,,,3,doenca_trabalho,sim_nao,id
+163,laboratorial,amostra_material,str,amostra_material,,,material_biologico,,,1,1,1,0,,,,,,,
+164,localizacao,latitude_residencia,str,latitude_residencia,,,latitude,,,1,1,0,0,,,,,,,
+165,localizacao,longitude_residencia,str,longitude_residencia,,,longitude,,,1,1,0,0,,,,,,,
+166,notificacao,data_confirmacao,datetime64[ns],data_confirmacao,,,,,,1,1,0,0,,,,,,,
+167,laboratorial,resultado_enviado,int,resultado_enviado,,,,,,1,1,1,0,,,,-1,,,
+168,outros,observacao,str,observacao,,,,,,1,1,1,0,,,,,,,
+169,instituicao,instituicao_ensino,int,instituicao_ensino,,,,,,1,1,1,1,,,,-1,instituicao_ensino,instituicao_ensino,id
+170,identificacao,escolaridade,int,escolaridade,,,,,,1,1,1,1,,,,-1,escolaridade,escolaridade,id
+171,vacinacao,vacina_covid19,int,vacina_covid19,,,,,,1,1,0,0,,,,-1,,,
+172,vacinacao,lab_produtor_covid19,int,lab_produtor_covid19,,,,,,1,1,0,0,,,,-1,,,
+173,vacinacao,data_covid19_1a,datetime64[ns],data_covid19_1a,,,,,,1,1,0,0,,,,,,,
+174,vacinacao,lote_covid19_1a,str,lote_covid19_1a,,,,,,1,1,0,0,,,,,,,
+175,vacinacao,data_covid19_2a,datetime64[ns],data_covid19_2a,,,,,,1,1,0,0,,,,,,,
+176,vacinacao,lote_covid19_2a,str,lote_covid19_2a,,,,,,1,1,0,0,,,,,,,
+177,vacinacao,vacina_influenza,int,vacina_influenza,,,,,,1,1,0,0,,,,-1,,,
+178,vacinacao,data_vac_influenza,datetime64[ns],data_vac_influenza,,,,,,1,1,0,0,,,,,,,
+179,identificacao,nome_social,str,nome_social,,,,,,1,1,0,0,,,,,,,
+180,outros,envio_ms,int,envio_ms,,,,,,1,1,0,0,,,,-1,,,
+181,outros,jogos_escolares,int,jogos_escolares,,,,,,1,1,1,0,,,,-1,,,
+182,laboratorial,estrategia_laboratorial,int,estrategia_laboratorial,,,,,,1,1,1,0,,,,-1,,,
+183,boletim,identificacao,int,,,,,,,0,0,0,0,,,,,,,
+184,boletim,data_diagnostico,datetime64[ns],,,,,,,1,0,1,0,,,,,,,
+185,boletim,data_comunicacao,datetime64[ns],,,,,,,1,0,1,0,,,,,,,
+186,boletim,data_com_evolucao,datetime64[ns],,,,,,,1,0,1,0,,,,,,,
+187,boletim,tipo_encerramento,str,,,,,,,1,0,0,0,,,,E0,tipo_encerramento,tipo_encerramento,id
+188,boletim,id_sivep,int,,,,,,,0,0,0,0,,,,-1,,,
+189,boletim,sistema_notificacao,str,,,,,,,0,0,0,0,,,,,,,
+190,boletim,reinfeccao,bool,,,,,,,1,0,1,0,,,,False,,,
+191,boletim,reinfeccao_ids,int,,,,,,,1,0,0,0,,,,-1,,,
+192,hashes,hash_mae,str,,,,,,,1,0,0,0,,,,,,,
+193,hashes,hash_nasc,str,,,,,,,1,0,0,0,,,,,,,
+194,hashes,hash_resid,str,,,,,,,1,0,0,0,,,,,,,
+195,hashes,hash_atend,str,,,,,,,1,0,0,0,,,,,,,
+196,vacinacao,vacina_nome_1a_dose,str,,,,,,,0,0,1,0,,,,,,,
+197,vacinacao,data_aplicacao_1a_dose,datetime64[ns],,,,,,,0,0,1,0,,,,,,,
+198,vacinacao,vacina_nome_2a_dose,str,,,,,,,0,0,1,0,,,,,,,
+199,vacinacao,data_aplicacao_2a_dose,datetime64[ns],,,,,,,0,0,1,0,,,,,,,
+200,vacinacao,vacina_nome_dose_unica,str,,,,,,,0,0,1,0,,,,,,,
+201,vacinacao,data_aplicacao_dose_unica,datetime64[ns],,,,,,,0,0,1,0,,,,,,,
+202,vacinacao,vacina_nome_dose_adicional,str,,,,,,,0,0,1,0,,,,,,,
+203,vacinacao,data_aplicacao_dose_adicional,datetime64[ns],,,,,,,0,0,1,0,,,,,,,
+204,vacinacao,vacina_nome_dose_reforco,str,,,,,,,0,0,1,0,,,,,,,
+205,vacinacao,data_aplicacao_dose_reforco,datetime64[ns],,,,,,,0,0,1,0,,,,,,,

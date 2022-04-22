@@ -1,0 +1,5 @@
+id,tipo_encerramento
+E0,caso não encerrado (ativo)
+E1,caso encerrado
+E2,"id_notifica não encontrado e caso a mais de 60 dias ativo,  encerrado automaticamente (evoluído para cura)"
+E3,"id_notifica encontrado e caso a mais de 60 dias ativo,  encerrado automaticamente (evoluído para cura)"

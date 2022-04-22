@@ -1,0 +1,12 @@
+id,situacao_trabalho
+1,Empregado registrado com carteira assinada
+2,Empregado não registrado
+3,Autônomo/conta própria
+4,Servidor público estatutário
+5,Servidor público celetista
+6,Aposentado
+7,Desempregado
+8,Trabalho temporário
+9,Coorperativado
+10,Trabalhador Avulso
+11,Empregador
